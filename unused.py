@@ -1,7 +1,6 @@
 import yaml ### install the pyyaml package
 import json
 from lookerapi import LookerApi
-from datetime import datetime
 from pprint import pprint
 from collections import defaultdict
 from itertools import groupby
@@ -23,7 +22,6 @@ def main():
                  secret = my_secret)
 
     response = get_fields_usage(looker)
-    print(response)
 
 def get_fields_usage(looker):
     body={
