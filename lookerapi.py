@@ -349,7 +349,7 @@ class LookerApi(object):
         url = '{}{}/{}/{}'.format(self.host, "queries", 'run', result_format)
         r = self.session.post(url, json.dumps(body))
 
-        if r.status_code == request.codes.ok:
+        if r.status_code == requests.codes.ok:
             return r.json()
         else:
             return r.status_code
