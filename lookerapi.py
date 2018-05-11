@@ -343,3 +343,13 @@ class LookerApi(object):
         r = self.session.get(url)
         if r.status_code == requests.codes.ok:
             return r.json()
+
+# POST /queries/run/{result_format}
+    def run_inline_query(self, result_format, body):
+        url = '{}{}/{}/{}'.format(self.host, "queries", 'run', result_format)
+        r = self.session.post(url, json.dumps(body))
+
+        if r.status_code == request.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
