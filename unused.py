@@ -23,9 +23,10 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-# print('Getting fields in '+model_name+'...')
+    response = get_fields_usage(looker)
+    response = get_fields_usage(looker, modelName, timeframe)
+    print(json.dumps(response))
+    print(format(response))
 
 def get_explores(model):
     print('Getting model ' + model_name)
@@ -42,7 +43,6 @@ def get_fields(model):
     distinct_fields = sorted(set(fields))
     return(fields)
 
-get_fields(model_name)
 def schema_builder(model):
     schema = []
     distinct_fields = sorted(set(get_fields(model)))
@@ -52,18 +52,6 @@ def schema_builder(model):
         "fields": [i[1] for i in list(group)]
         })
     pprint(schema)
-    # print(len(distinct_fields))
-schema_builder(model_name)
-# get_fields(model_name)
-
-        # schema.append(data)
-=======
-    response = get_fields_usage(looker)
-=======
-    response = get_fields_usage(looker, modelName, timeframe)
-    print(json.dumps(response))
-    print(format(response))
->>>>>>> jax_i__looker_field_usage
 
 def get_fields_usage(looker, modelName, timeframe):
     body={
@@ -78,13 +66,6 @@ def get_fields_usage(looker, modelName, timeframe):
 
     return response
 
-    # print('Getting fields in '+model_name+'...')
-    #
-    # model = looker.get_model(model_name)
-    #
-    # explore_names = [i['name'] for i in model['explores']]
-    #
-    # explore = [looker.get_explore(model_name, i) for i in explore_names]
 def format(json):
     dd = dict.fromkeys('fields', [])
     result = defaultdict(lambda: dd)
@@ -109,4 +90,3 @@ def get_api_creds():
 
 if __name__ == "__main__":
     main()
->>>>>>> c2f634d3009e67b79330878851559557c58a0d22
