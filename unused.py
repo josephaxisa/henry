@@ -12,7 +12,7 @@ import re
 # host name in config.yml
 host = 'mylooker'
 # model that you wish to analyze
-modelName = 'ML, postgres, i__looker'
+model_names = 'ML, postgres, i__looker'
 # How far you wish to look back
 timeframe = '90 days'
 
@@ -23,9 +23,11 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    response = get_fields_usage(looker, modelName, timeframe)
-    print(json.dumps(response))
-    print(format(response))
+    response = get_fields_usage(looker, model_names, timeframe)
+    # print(json.dumps(response))
+    # print(format(response))
+
+    get_fields_usage(looker, model_names, timeframe)
 
 def get_explores(model):
     print('Getting model ' + model_name)
