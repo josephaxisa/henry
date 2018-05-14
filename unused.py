@@ -23,7 +23,6 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    response = get_fields_usage(looker)
     response = get_fields_usage(looker, modelName, timeframe)
     print(json.dumps(response))
     print(format(response))
@@ -66,16 +65,16 @@ def get_fields_usage(looker, modelName, timeframe):
 
     return response
 
-def format(json):
-    dd = dict.fromkeys('fields', [])
-    result = defaultdict(lambda: dd)
-
-    for i in json:
-        #print(i)
-        d = [(m.group(1), m.group(2)) for view, field in i['query.formatted_fields']]
-        #result[i['query.model']]['view'].append(i['query.view'])
-
-    return result
+# def format(json):
+#     dd = dict.fromkeys('fields', [])
+#     result = defaultdict(lambda: dd)
+#
+#     for i in json:
+#         #print(i)
+#         d = [(m.group(1), m.group(2)) for view, field in i['query.formatted_fields']]
+#         #result[i['query.model']]['view'].append(i['query.view'])
+#
+#     return result
 
 def get_api_creds():
     f = open('config.yml')
