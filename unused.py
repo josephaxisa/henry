@@ -8,11 +8,11 @@ from itertools import groupby
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-host = 'sandbox'
+host = 'mylooker'
 # model that you wish to analyze
-model_name = 'trace_surfing'
+modelName = 'ML'
 # How far you wish to look back
-timeframe = '28 days'
+timeframe = '90 days'
 
 def main():
     my_host, my_token, my_secret = get_api_creds()
@@ -21,13 +21,16 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    response = get_fields_usage(looker)
+    response = get_fields_usage(looker, modelName, timeframe)
 
-def get_fields_usage(looker):
+    print(json.dumps(response))
+
+def get_fields_usage(looker, modelName, timeframe):
     body={
         "model":"i__looker",
         "view":"history",
         "fields":["query.model","query.view","query.formatted_fields","query.formatted_filters","query.sorts","query.formatted_pivots","history.query_run_count"],
+        "filters":{"history.created_date":timeframe,"query.model":modelName},
         "limit":"50000"
     }
 
