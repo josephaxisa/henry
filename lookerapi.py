@@ -71,6 +71,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 # GET /queries/
     def get_query(self,query_id):
         url = '{}{}/{}'.format(self.host,'queries',query_id)
@@ -79,6 +81,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
     # POST /queries/
     def create_query(self,query_body, fields):
@@ -89,6 +93,8 @@ class LookerApi(object):
         r = self.session.post(url,data=params, params = json.dumps({"fields": fields}))
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /looks/<look_id>/run/<format>
     def get_look(self,look_id, format='json', limit=500):
@@ -98,6 +104,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params, stream=True)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
     def download_look(self,look_id, format='xlsx'):
         url = '{}{}/{}/run/{}'.format(self.host,'looks',look_id, format)
@@ -120,6 +128,8 @@ class LookerApi(object):
         r = self.session.post(url,data=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /users
     def get_all_users(self):
@@ -129,6 +139,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /users/id
     def get_user(self,id=""):
@@ -139,6 +151,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # PATCH /users/id
     def update_user(self,id="",body={}):
@@ -149,6 +163,8 @@ class LookerApi(object):
         r = self.session.patch(url,data=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 
 # GET /user
@@ -158,6 +174,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # PUT /users/{user_id}/roles
     def set_user_role(self,id="", body={}):
@@ -168,6 +186,8 @@ class LookerApi(object):
         r = self.session.post(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /users/{user_id}/roles
     def get_user_role(self,id=""):
@@ -177,6 +197,8 @@ class LookerApi(object):
         r = self.session.get(url,params={})
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
     def get_roles(self):
         url = '{}{}'.format(self.host,'roles')
@@ -185,6 +207,8 @@ class LookerApi(object):
         r = self.session.get(url,params={})
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 
 # PATCH /users/{user_id}/access_filters/{access_filter_id}
@@ -192,13 +216,19 @@ class LookerApi(object):
         url = '{}{}/{}/{}/{}'.format(self.host,'users',user_id,'access_filters',access_filter_id)
         params = json.dumps(body)
         r = self.session.patch(url,data=params)
-        return r.json()
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
 
     def create_access_filter(self, user_id = 0, body={}):
         url = '{}{}/{}/{}'.format(self.host,'users',user_id,'access_filters')
         params = json.dumps(body)
         r = self.session.post(url,data=params)
-        return r.json()
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
 
 
 # GET /users/me
@@ -209,6 +239,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /lookml_models/
     def get_models(self,fields={}):
@@ -218,6 +250,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name="",fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
@@ -226,6 +260,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self,model_name=None,explore_name=None,fields={}):
@@ -235,6 +271,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 #GET /scheduled_plans/dashboard/{dashboard_id}
     def get_dashboard_schedule(self,dashboard_id=0):
@@ -243,6 +281,8 @@ class LookerApi(object):
         r = self.session.get(url)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 
 #GET /scheduled_plans
@@ -253,6 +293,8 @@ class LookerApi(object):
         r = self.session.get(url)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 #GET /scheduled_plans/look/{dashboard_id}
     def get_look_schedule(self,look_id=0):
@@ -261,6 +303,9 @@ class LookerApi(object):
         r = self.session.get(url)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
+
 
 
 #PATCH /scheduled_plans/{scheduled_plan_id}
@@ -272,7 +317,11 @@ class LookerApi(object):
         r = self.session.patch(url,data=params)
         # pp(r.request.url)
         # pp(r.request.body)
-        return r.json()
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
 
 #DELETE /looks/{look_id}
     def delete_look(self,look_id,fields=''):
@@ -282,6 +331,8 @@ class LookerApi(object):
         r = self.session.delete(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 #DELETE /dashboards/{dashboard_id}
     def delete_dashboard(self,dashboard_id,fields=''):
@@ -291,6 +342,8 @@ class LookerApi(object):
         r = self.session.delete(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 #GET  /user_attributes/{user_attribute_id}/group_values
     def get_user_attribute_group_values(self,user_attribute_id):
@@ -300,6 +353,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 #GET /groups/{group_id}/users
     def get_group_users(self,group_id):
@@ -309,6 +364,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /spaces/{space_id}/dashboards
     def get_space_dashboards(self,space_id):
@@ -318,6 +375,8 @@ class LookerApi(object):
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # POST  /groups/{group_id}/users
     def add_users_to_group(self,group_id,user_id):
@@ -327,6 +386,8 @@ class LookerApi(object):
         r = self.session.post(url,data=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 # POST /scheduled_plans
     def create_scheduled_plan(self,body):
         url = '{}{}'.format(self.host,'scheduled_plans')
@@ -335,6 +396,8 @@ class LookerApi(object):
         r = self.session.post(url,data=params)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # GET /scheduled_plans/space/{space_id}
     def get_scheduled_plans(self,space_id):
@@ -343,6 +406,8 @@ class LookerApi(object):
         r = self.session.get(url)
         if r.status_code == requests.codes.ok:
             return r.json()
+        else:
+            return r.status_code
 
 # POST /queries/run/{result_format}
     def run_inline_query(self, result_format, body):

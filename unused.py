@@ -11,10 +11,14 @@ import re
 
 # host name in config.yml
 host = 'mylooker'
+# host = 'lookerv54'
 # model that you wish to analyze
 model_names = 'ML, postgres, i__looker'
+# model_names = 'jax_adventureworks, thelook'
 # How far you wish to look back
 timeframe = '90 days'
+
+
 
 def main():
     my_host, my_token, my_secret = get_api_creds()
@@ -22,31 +26,33 @@ def main():
     looker = LookerApi(host=my_host,
                  token=my_token,
                  secret = my_secret)
-
-    response = get_fields_usage(looker, model_names, timeframe)
+    # schema_builder(looker, 'thelook, jax_adventureworks')
+    # response = get_fields_usage(looker, model_names, timeframe)
     # print(json.dumps(response))
     # print(format(response))
 
-    get_fields_usage(looker, model_names, timeframe)
+    # get_fields_usage(looker, model_names, timeframe)
 
-def get_explores(model):
-    print('Getting model ' + model_name)
-    model = looker.get_model(model)
-    explore_names = [i['name'] for i in model['explores']]
-    explores = [looker.get_explore(model_name, i) for i in explore_names]
-    return explores
 
-def get_fields(model):
+def get_explores(looker, model_names):
+    explores = []
+    for model in model_names.replace(' ','').split(','):
+        model_body = looker.get_model(model)
+        explore_names = [explore['name'] for explore in model_body['explores']]
+        [explores.append(looker.get_explore(model, explore)) for explore in explore_names]
+    return(explores)
+
+def get_fields(looker, model_names):
     fields =[]
-    for explore in get_explores(model):
+    for explore in get_explores(looker, model_names):
         [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
         [fields.append(measure['name']) for measure in explore['fields']['measures']]
     distinct_fields = sorted(set(fields))
     return(fields)
 
-def schema_builder(model):
+def schema_builder(looker, model_names):
     schema = []
-    distinct_fields = sorted(set(get_fields(model)))
+    distinct_fields = sorted(set(get_fields(looker, model_names)))
     view_field_pairs = [field.split('.') for field in distinct_fields]
     for key, group in groupby(view_field_pairs, lambda x:x[0]):
         schema.append({"view": key,
