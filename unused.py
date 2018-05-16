@@ -11,10 +11,10 @@ import re
 
 # host name in config.yml
 host = 'mylooker'
-# host = 'lookerv54'
+
 # model that you wish to analyze
 model = 'ML, postgres'
-# model_names = 'jax_adventureworks, thelook'
+
 # How far you wish to look back
 timeframe = '90 days'
 
@@ -63,17 +63,6 @@ def get_fields_usage(looker, model, timeframe):
     response = looker.run_inline_query("json", body)
 
     return response
-
-# def format(json):
-#     dd = dict.fromkeys('fields', [])
-#     result = defaultdict(lambda: dd)
-#
-#     for i in json:
-#         #print(i)
-#         d = [(m.group(1), m.group(2)) for view, field in i['query.formatted_fields']]
-#         #result[i['query.model']]['view'].append(i['query.view'])
-#
-#     return result
 
 def get_api_creds():
     f = open('config.yml')
