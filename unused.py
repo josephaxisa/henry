@@ -24,8 +24,12 @@ def main():
     looker = LookerApi(host=my_host,
                  token=my_token,
                  secret = my_secret)
-    pprint(schema_builder(looker,get_fields(looker, model)))
 
+# parses strings for view_name.field_name and returns a list  (empty if no matches)
+def parse(string):
+    return re.findall(r'(\w+\.\w+)', str(string))
+
+# returns a list of explores in a given model
 def get_explores(looker, model):
     explores = []
     for m in model.replace(' ','').split(','):
@@ -34,24 +38,28 @@ def get_explores(looker, model):
         [explores.append(looker.get_explore(m, explore)) for explore in explore_names]
     return(explores)
 
-def get_fields(looker, model):
+# returns a list of view scoped fields of explores for a given model
+def get_explore_fields(looker, model):
     fields =[]
     for explore in get_explores(looker, model):
         [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
         [fields.append(measure['name']) for measure in explore['fields']['measures']]
-    distinct_fields = sorted(set(fields))
-    return(distinct_fields)
+    return(fields)
 
-def schema_builder(looker, fields):
+# builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
+def schema_builder(fields):
     schema = []
-    view_field_pairs = [field.split('.') for field in fields]
+    distinct_fields = sorted(set(fields))
+
+    view_field_pairs = [field.split('.') for field in distinct_fields]
     for key, group in groupby(view_field_pairs, lambda x:x[0]):
         schema.append({"view": key,
         "fields": [i[1] for i in list(group)]
         })
     return(schema)
 
-def get_fields_usage(looker, model, timeframe):
+# returns list of view scoped fields used within a given timeframe
+def get_field_usage(looker, model, timeframe):
     body={
         "model":"i__looker",
         "view":"history",
@@ -62,8 +70,18 @@ def get_fields_usage(looker, model, timeframe):
 
     response = looker.run_inline_query("json", body)
 
-    return response
+    fields = []
+    for row in response:
+        fields.extend(parse(row['query.formatted_fields']))
+        fields.extend(parse(row['query.formatted_filters']))
+        fields.extend(parse(row['query.formatted_pivots']))
+        fields.extend(parse(row['query.sorts']))
 
+    fields = set(fields)
+
+    return fields
+
+# fetches api credentials from config.yml
 def get_api_creds():
     f = open('config.yml')
     params = yaml.load(f)
