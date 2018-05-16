@@ -90,6 +90,21 @@ def get_field_usage(looker, model, timeframe):
 
     return fields
 
+# returns a tree representation of a dictionary
+def tree_maker(dict):
+    tree_str = json.dumps(dict, indent=4)
+    tree_str = tree_str.replace("\n    ", "\n")
+    tree_str = tree_str.replace('"', "")
+    tree_str = tree_str.replace(',', "")
+    tree_str = tree_str.replace("{", "")
+    tree_str = tree_str.replace("}", "")
+    tree_str = tree_str.replace("    ", " | ")
+    tree_str = tree_str.replace("  ", " ")
+    tree_str = tree_str.replace("[", "")
+    tree_str = tree_str.replace("]", "")
+
+    return(tree_str)
+
 # fetches api credentials from config.yml
 def get_api_creds():
     f = open('config.yml')
