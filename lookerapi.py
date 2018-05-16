@@ -255,7 +255,6 @@ class LookerApi(object):
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name="",fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
-        print(url)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -266,7 +265,6 @@ class LookerApi(object):
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self,model_name=None,explore_name=None,fields={}):
         url = '{}{}/{}/{}/{}'.format(self.host,'lookml_models', model_name, 'explores', explore_name)
-        # print(url)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
