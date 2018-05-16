@@ -25,6 +25,15 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
+    # get list of all fields
+    explore_fields = get_explore_fields(looker, model)
+
+    # get list of fields used
+    used_fields = get_field_usage(looker, model, timeframe)
+
+    # unused_fields
+    unused_fields = explore_fields - used_fields
+    
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -44,7 +53,7 @@ def get_explore_fields(looker, model):
     for explore in get_explores(looker, model):
         [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
         [fields.append(measure['name']) for measure in explore['fields']['measures']]
-    return(fields)
+    return(set(fields))
 
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
 def schema_builder(fields):
