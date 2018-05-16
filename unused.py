@@ -33,7 +33,7 @@ def main():
 
     # unused_fields
     unused_fields = explore_fields - used_fields
-    
+
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -45,7 +45,7 @@ def get_explores(looker, model):
         model_body = looker.get_model(m)
         explore_names = [explore['name'] for explore in model_body['explores']]
         [explores.append(looker.get_explore(m, explore)) for explore in explore_names]
-    return(explores)
+    return explores
 
 # returns a list of view scoped fields of explores for a given model
 def get_explore_fields(looker, model):
@@ -53,7 +53,7 @@ def get_explore_fields(looker, model):
     for explore in get_explores(looker, model):
         [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
         [fields.append(measure['name']) for measure in explore['fields']['measures']]
-    return(set(fields))
+    return set(fields)
 
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
 def schema_builder(fields):
@@ -65,7 +65,7 @@ def schema_builder(fields):
         schema.append({"view": key,
         "fields": [i[1] for i in list(group)]
         })
-    return(schema)
+    return schema
 
 # returns list of view scoped fields used within a given timeframe
 def get_field_usage(looker, model, timeframe):
