@@ -245,13 +245,14 @@ class LookerApi(object):
 # GET /lookml_models/
     def get_models(self,fields={}):
         url = '{}{}'.format(self.host,'lookml_models')
-        # print(url)
+
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
             return r.status_code
+
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name="",fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
@@ -303,8 +304,6 @@ class LookerApi(object):
             return r.json()
         else:
             return r.status_code
-
-
 
 #PATCH /scheduled_plans/{scheduled_plan_id}
     def update_schedule(self, plan_id, body={}):
