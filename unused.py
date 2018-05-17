@@ -11,12 +11,12 @@ from tabulate import tabulate
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-host = 'mylooker'
-# host = 'cs_eng'
+# host = 'mylooker'
+host = 'cs_eng'
 
 # model that you wish to analyze
-model = 'ML, postgres'
-# model = 'snowflake_data, thelook'
+# model = 'ML, postgres'
+model = 'snowflake_data, thelook'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -28,16 +28,16 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    get list of all fields
-    explore_fields = get_explore_fields(looker, model)
+    # # get list of all fields
+    # explore_fields = get_explore_fields(looker, model)
+    #
+    # # get list of fields used
+    # used_fields = get_field_usage(looker, model, timeframe)
+    #
+    # # unused_fields
+    # unused_fields = explore_fields - used_fields
 
-    # get list of fields used
-    used_fields = get_field_usage(looker, model, timeframe)
-
-    # unused_fields
-    unused_fields = explore_fields - used_fields
-
-    pprint(get_explores(looker, model))
+    print(get_models_explores(looker, model))
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
@@ -53,8 +53,6 @@ def get_explores(looker, model):
     explores = []
     for model in get_models(looker, model):
         explore_names = [explore['name'] for explore in model['explores']]
-        print(explore_names)
-        print(model)
         [explores.append(looker.get_explore(model['name'], explore)) for explore in explore_names]
     return explores
 
@@ -101,14 +99,17 @@ def get_field_usage(looker, model, timeframe):
 
     return fields
 
-# def get_models_explores:
-#     schema = []
-#     for explore in get_explores():
-#         schema.append(
-#         {
-#
-#         }
-#         )
+# resturns a list of dictionaries
+def get_models_explores(looker, model):
+    schema = []
+    for model in get_models(looker, model):
+        d = {'model': model['name'],
+         'explores': [explore['name'] for explore in model['explores']]
+        }
+        schema.append(d)
+
+    return(schema)
+
 
 # returns a tree representation of a dictionary
 def tree_maker(dict):
