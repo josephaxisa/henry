@@ -3,6 +3,7 @@ import requests
 from pprint import pprint as pp
 import json
 import re
+import datetime
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -27,7 +28,6 @@ class LookerApi(object):
                   }
         r = self.session.post(url,params=params)
         access_token = r.json().get('access_token')
-        # print(access_token
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
 
     def auth_user(self, user_id):
@@ -72,7 +72,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 # GET /queries/
     def get_query(self,query_id):
         url = '{}{}/{}'.format(self.host,'queries',query_id)
@@ -82,7 +86,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
     # POST /queries/
     def create_query(self,query_body, fields):
@@ -94,7 +102,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /looks/<look_id>/run/<format>
     def get_look(self,look_id, format='json', limit=500):
@@ -105,7 +117,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
     def download_look(self,look_id, format='xlsx'):
         url = '{}{}/{}/run/{}'.format(self.host,'looks',look_id, format)
@@ -129,7 +145,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /users
     def get_all_users(self):
@@ -140,7 +160,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /users/id
     def get_user(self,id=""):
@@ -152,7 +176,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # PATCH /users/id
     def update_user(self,id="",body={}):
@@ -164,7 +192,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 # GET /user
@@ -175,7 +207,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # PUT /users/{user_id}/roles
     def set_user_role(self,id="", body={}):
@@ -187,7 +223,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /users/{user_id}/roles
     def get_user_role(self,id=""):
@@ -198,7 +238,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
     def get_roles(self):
         url = '{}{}'.format(self.host,'roles')
@@ -208,7 +252,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 # PATCH /users/{user_id}/access_filters/{access_filter_id}
@@ -219,7 +267,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message + '\n')
+            f.close()
 
     def create_access_filter(self, user_id = 0, body={}):
         url = '{}{}/{}/{}'.format(self.host,'users',user_id,'access_filters')
@@ -228,7 +280,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 # GET /users/me
@@ -240,7 +296,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /lookml_models/
     def get_models(self,fields={}):
@@ -251,16 +311,25 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name="",fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
+        print(url)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self,model_name=None,explore_name=None,fields={}):
@@ -270,7 +339,12 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
+
 
 #GET /scheduled_plans/dashboard/{dashboard_id}
     def get_dashboard_schedule(self,dashboard_id=0):
@@ -280,7 +354,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 #GET /scheduled_plans
@@ -292,7 +370,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 #GET /scheduled_plans/look/{dashboard_id}
     def get_look_schedule(self,look_id=0):
@@ -302,7 +384,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 
@@ -318,7 +404,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 #DELETE /looks/{look_id}
@@ -330,7 +420,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 #DELETE /dashboards/{dashboard_id}
     def delete_dashboard(self,dashboard_id,fields=''):
@@ -341,7 +435,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 #GET  /user_attributes/{user_attribute_id}/group_values
     def get_user_attribute_group_values(self,user_attribute_id):
@@ -352,7 +450,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 #GET /groups/{group_id}/users
     def get_group_users(self,group_id):
@@ -363,7 +465,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /spaces/{space_id}/dashboards
     def get_space_dashboards(self,space_id):
@@ -374,7 +480,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # POST  /groups/{group_id}/users
     def add_users_to_group(self,group_id,user_id):
@@ -385,7 +495,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 # POST /scheduled_plans
     def create_scheduled_plan(self,body):
         url = '{}{}'.format(self.host,'scheduled_plans')
@@ -395,7 +509,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # GET /scheduled_plans/space/{space_id}
     def get_scheduled_plans(self,space_id):
@@ -405,7 +523,11 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 # POST /queries/run/{result_format}
     def run_inline_query(self, result_format, body):
@@ -415,4 +537,8 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-            return r.status_code
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()

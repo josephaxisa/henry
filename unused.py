@@ -6,7 +6,7 @@ from collections import defaultdict
 from itertools import groupby
 import pandas as pd
 import re
-from tabulate import tabulate
+import sys
 
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
@@ -17,6 +17,7 @@ host = 'cs_eng'
 # model that you wish to analyze
 # model = 'ML, postgres'
 model = 'snowflake_data, thelook'
+# model = 'calendar, e_commerce'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -52,7 +53,13 @@ def get_explores(looker, model):
     explores = []
     for model in get_models(looker, model):
         explore_names = [explore['name'] for explore in model['explores']]
-        [explores.append(looker.get_explore(model['name'], explore)) for explore in explore_names]
+        for explore in explore_names:
+            explore_body = looker.get_explore(model['name'], explore)
+            if explore_body is None:
+                pass
+            else:
+                explores.append(explore_body)
+        # [explores.append(looker.get_explore(model['name'], explore)) for explore in explore_names]
     return explores
 
 # returns a list of view scoped fields of explores for a given model

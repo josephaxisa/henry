@@ -3,3 +3,4 @@ config_file.yml
 *.pyc
 __pycache__
 test.py
+api_errors.txt
