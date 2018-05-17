@@ -11,12 +11,12 @@ from tabulate import tabulate
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
+host = 'mylooker'
+# host = 'cs_eng'
 
 # model that you wish to analyze
-# model = 'ML, postgres'
-model = 'snowflake_data, thelook'
+model = 'ML, postgres'
+# model = 'snowflake_data, thelook'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -28,14 +28,14 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    # get list of all fields
-    # explore_fields = get_explore_fields(looker, model)
-    #
-    # # get list of fields used
-    # used_fields = get_field_usage(looker, model, timeframe)
-    #
-    # # unused_fields
-    # unused_fields = explore_fields - used_fields
+    get list of all fields
+    explore_fields = get_explore_fields(looker, model)
+
+    # get list of fields used
+    used_fields = get_field_usage(looker, model, timeframe)
+
+    # unused_fields
+    unused_fields = explore_fields - used_fields
 
     pprint(get_explores(looker, model))
 
