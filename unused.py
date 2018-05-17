@@ -6,14 +6,17 @@ from collections import defaultdict
 from itertools import groupby
 import pandas as pd
 import re
+from tabulate import tabulate
 
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-host = 'mylooker'
+# host = 'mylooker'
+host = 'cs_eng'
 
 # model that you wish to analyze
-model = 'ML, postgres'
+# model = 'ML, postgres'
+model = 'snowflake_data, thelook'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -26,25 +29,33 @@ def main():
                  secret = my_secret)
 
     # get list of all fields
-    explore_fields = get_explore_fields(looker, model)
+    # explore_fields = get_explore_fields(looker, model)
+    #
+    # # get list of fields used
+    # used_fields = get_field_usage(looker, model, timeframe)
+    #
+    # # unused_fields
+    # unused_fields = explore_fields - used_fields
 
-    # get list of fields used
-    used_fields = get_field_usage(looker, model, timeframe)
-
-    # unused_fields
-    unused_fields = explore_fields - used_fields
+    pprint(get_explores(looker, model))
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
+def get_models(looker, model):
+    model_list = model.replace(' ','').split(',')
+    models = [looker.get_model(model) for model in model_list]
+    return models
+
 # returns a list of explores in a given model
 def get_explores(looker, model):
     explores = []
-    for m in model.replace(' ','').split(','):
-        model_body = looker.get_model(m)
-        explore_names = [explore['name'] for explore in model_body['explores']]
-        [explores.append(looker.get_explore(m, explore)) for explore in explore_names]
+    for model in get_models(looker, model):
+        explore_names = [explore['name'] for explore in model['explores']]
+        print(explore_names)
+        print(model)
+        [explores.append(looker.get_explore(model['name'], explore)) for explore in explore_names]
     return explores
 
 # returns a list of view scoped fields of explores for a given model
@@ -89,6 +100,15 @@ def get_field_usage(looker, model, timeframe):
     fields = set(fields)
 
     return fields
+
+# def get_models_explores:
+#     schema = []
+#     for explore in get_explores():
+#         schema.append(
+#         {
+#
+#         }
+#         )
 
 # returns a tree representation of a dictionary
 def tree_maker(dict):
