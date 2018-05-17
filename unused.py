@@ -38,6 +38,11 @@ def main():
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
+def get_models(looker):
+    models = [m['name'] for m in looker.get_models()]
+
+    return models
+
 # returns a list of explores in a given model
 def get_explores(looker, model):
     explores = []
