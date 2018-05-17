@@ -99,7 +99,7 @@ def get_field_usage(looker, model, timeframe):
 
     return fields
 
-# resturns a list of dictionaries
+# resturns a list of dictionaries in the format of {'model':'model_name', 'explores': ['explore_name1',...]}
 def get_models_explores(looker, model):
     schema = []
     for model in get_models(looker, model):
