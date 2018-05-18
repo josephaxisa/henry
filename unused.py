@@ -6,7 +6,6 @@ from collections import defaultdict
 from itertools import groupby
 import pandas as pd
 import re
-import sys
 
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
@@ -16,7 +15,7 @@ host = 'cs_eng'
 
 # model that you wish to analyze
 # model = 'ML, postgres'
-model = 'snowflake_data, thelook'
+# model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
 
 # How far you wish to look back
@@ -37,16 +36,22 @@ def main():
     #
     # # unused_fields
     # unused_fields = explore_fields - used_fields
-
+    print(get_models(looker))
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
-def get_models(looker, model=''):
-    model_list = model.replace(' ','').split(',')
-    models = [looker.get_model(model) for model in model_list]
-    return models
+# returns list of models (if no model parameter is specified) otherwise it returns specific model definition
+def get_models(looker, model=None):
+    if model is None:
+        models = looker.get_models()
+        return models
+    else:
+        model_list = model.replace(' ','').split(',')
+        models = [looker.get_model(model) for model in model_list]
+        return models
+
 
 # returns a list of explores in a given model
 def get_explores(looker, model):
@@ -68,6 +73,7 @@ def get_explore_fields(looker, model):
         [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
         [fields.append(measure['name']) for measure in explore['fields']['measures']]
         [fields.append(measure['name']) for measure in explore['fields']['filters']]
+
     return set(fields)
 
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
