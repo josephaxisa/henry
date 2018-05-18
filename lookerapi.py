@@ -254,7 +254,7 @@ class LookerApi(object):
             return r.status_code
 
 # GET /lookml_models/{{NAME}}
-    def get_model(self,model_name="",fields={}):
+    def get_model(self,model_name=None,fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
         params = fields
         r = self.session.get(url,params=params)
