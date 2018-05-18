@@ -311,16 +311,12 @@ class LookerApi(object):
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
-<<<<<<< HEAD
             error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
             print(error_message)
             f = open('api_errors.txt', 'a+')
             f.write(error_message)
             f.close()
-=======
-            return r.status_code
 
->>>>>>> 5fb48fb25c76ccca8e8aacf2d65ed59ed0429d46
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name=None,fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
