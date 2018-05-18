@@ -6,7 +6,6 @@ from collections import defaultdict
 from itertools import groupby
 import pandas as pd
 import re
-from tabulate import tabulate
 
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
