@@ -11,13 +11,18 @@ import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
+host = 'mylooker'
+# host = 'cs_eng'
 
 # model that you wish to analyze
+<<<<<<< HEAD
 # model = 'ML, postgres'
 model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
+=======
+model = 'ML'
+#model = 'snowflake_data, thelook'
+>>>>>>> 5fb48fb25c76ccca8e8aacf2d65ed59ed0429d46
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -29,28 +34,33 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    # # get list of all fields
-    # explore_fields = get_explore_fields(looker, model)
-    #
-    # # get list of fields used
-    # used_fields = get_field_usage(looker, model, timeframe)
-    #
-    # # unused_fields
-    # unused_fields = explore_fields - used_fields
+    # get list of all fields
+    explore_fields = get_explore_fields(looker, model)
 
+    # get list of fields used
+    used_fields = get_field_usage(looker, model, timeframe)
+
+    # unused_fields
+    unused_fields = explore_fields - used_fields
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
-def get_models(looker, model):
-    model_list = model.replace(' ','').split(',')
-    models = [looker.get_model(model) for model in model_list]
+# returns list of models (if no model parameter is specified) otherwise it returns specific model definition
+def get_models(looker, model=None):
+    if model is None:
+        models = looker.get_models()
+        models = [m['name'] for m in models]
+    else:
+        model_list = model.replace(' ','').split(',')
+        models = [looker.get_model(model) for model in model_list]
     return models
 
 # returns a list of explores in a given model
 def get_explores(looker, model):
     explores = []
+<<<<<<< HEAD
     for model in get_models(looker, model):
         explore_names = [explore['name'] for explore in model['explores']]
         for explore in explore_names:
@@ -60,18 +70,30 @@ def get_explores(looker, model):
             else:
                 explores.append(explore_body)
         # [explores.append(looker.get_explore(model['name'], explore)) for explore in explore_names]
+=======
+
+    for m in get_models(looker, model):
+        explore_names = [explore['name'] for explore in m['explores']] # extract explore names from model body
+        explores.extend(explore_names)
+
+>>>>>>> 5fb48fb25c76ccca8e8aacf2d65ed59ed0429d46
     return explores
 
 # returns a list of view scoped fields of explores for a given model
 def get_explore_fields(looker, model):
     fields =[]
-    for explore in get_explores(looker, model):
-        [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
-        [fields.append(measure['name']) for measure in explore['fields']['measures']]
-        [fields.append(measure['name']) for measure in explore['fields']['filters']]
+    model_list = model.replace(' ','').split(',')
+    for m in model_list:
+        # get explores in model
+        explores = get_explores(looker, m)
+        for e in explores:
+            explore = looker.get_explore(model_name=m, explore_name=e)
+            [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
+            [fields.append(measure['name']) for measure in explore['fields']['measures']]
+            [fields.append(measure['name']) for measure in explore['fields']['filters']]
     return set(fields)
 
-# builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
+# builds a dictionary from a list of fields, in the form of {'view': 'view_name', 'fields': []}
 def schema_builder(fields):
     schema = []
     distinct_fields = sorted(set(fields))

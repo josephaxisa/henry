@@ -305,19 +305,24 @@ class LookerApi(object):
 # GET /lookml_models/
     def get_models(self,fields={}):
         url = '{}{}'.format(self.host,'lookml_models')
-        # print(url)
+
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
+<<<<<<< HEAD
             error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
             print(error_message)
             f = open('api_errors.txt', 'a+')
             f.write(error_message)
             f.close()
+=======
+            return r.status_code
+
+>>>>>>> 5fb48fb25c76ccca8e8aacf2d65ed59ed0429d46
 # GET /lookml_models/{{NAME}}
-    def get_model(self,model_name="",fields={}):
+    def get_model(self,model_name=None,fields={}):
         url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
         print(url)
         params = fields
@@ -389,8 +394,6 @@ class LookerApi(object):
             f = open('api_errors.txt', 'a+')
             f.write(error_message)
             f.close()
-
-
 
 #PATCH /scheduled_plans/{scheduled_plan_id}
     def update_schedule(self, plan_id, body={}):
