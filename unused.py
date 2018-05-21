@@ -46,10 +46,12 @@ def parse(string):
 def get_models(looker, model=None):
     if model is None:
         models = looker.get_models()
+        return models
     else:
         model_list = model.replace(' ','').split(',')
         models = [looker.get_model(model) for model in model_list]
-    return models
+        return models
+
 
 # returns a list of explores in a given model
 def get_explores(looker, model):
