@@ -17,7 +17,7 @@ host = 'cs_eng'
 # model = 'ML, postgres'
 # model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
-project = 'the_look_fabio, cse_looker'
+project = 'the_look_fabio'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -84,7 +84,7 @@ def get_projects(looker, project=None):
     else:
         project_list = project.replace(' ','').split(',')
         projects = [looker.get_project(project) for project in project_list]
-        return models
+        return projects
 
 
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
@@ -99,6 +99,8 @@ def schema_builder(fields):
         })
 
     return schema
+
+# def schema_project_model():
 
 # returns list of view scoped fields used within a given timeframe
 def get_field_usage(looker, model, timeframe):
