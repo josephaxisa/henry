@@ -38,7 +38,6 @@ def main():
     # # unused_fields
     # unused_fields = explore_fields - used_fields
     # project = ['cse_looker']
-    pprint(schema_project_model(looker, project=None))
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
@@ -119,8 +118,8 @@ def schema_builder(fields):
         })
 
     return schema
-
-def schema_project_model(looker, project=None):
+# returns a representation of all models and the projects to which they belong
+def schema_project_models(looker, project=None):
     schema = []
     for project in get_project_files(looker, project=None):
         models = []
