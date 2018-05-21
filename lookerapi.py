@@ -305,7 +305,6 @@ class LookerApi(object):
 # GET /lookml_models/
     def get_models(self,fields={}):
         url = '{}{}'.format(self.host,'lookml_models')
-
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -345,6 +344,21 @@ class LookerApi(object):
             f = open('api_errors.txt', 'a+')
             f.write(error_message)
             f.close()
+
+# GET /projects
+    def get_projects(self,fields={}):
+        url = '{}{}'.format(self.host,'projects')
+        params = fields
+        r = self.session.get(url,params=params)
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
+
 
 
 #GET /scheduled_plans/dashboard/{dashboard_id}

@@ -17,6 +17,7 @@ host = 'cs_eng'
 # model = 'ML, postgres'
 # model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
+project = 'the_look_fabio, cse_looker'
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -36,7 +37,7 @@ def main():
     #
     # # unused_fields
     # unused_fields = explore_fields - used_fields
-    print(get_models(looker))
+    pprint(get_projects(looker))
 
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
@@ -75,6 +76,16 @@ def get_explore_fields(looker, model):
         [fields.append(measure['name']) for measure in explore['fields']['filters']]
 
     return set(fields)
+
+def get_projects(looker, project=None):
+    if project is None:
+        projects = looker.get_projects()
+        return projects
+    else:
+        project_list = project.replace(' ','').split(',')
+        projects = [looker.get_project(project) for project in project_list]
+        return models
+
 
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
 def schema_builder(fields):
