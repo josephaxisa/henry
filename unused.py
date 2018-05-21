@@ -46,9 +46,6 @@ def main():
     # # unused_fields
     # unused_fields = explore_fields - used_fields
 
-# function that either lists explores (either instance wide or filtered on model)
-def ls():
-    return
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
