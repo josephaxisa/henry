@@ -4,17 +4,17 @@ from lookerapi import LookerApi
 from pprint import pprint
 from collections import defaultdict
 from itertools import groupby
-import pandas as pd
 import re
+import argparse
 
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
+host = 'mylooker'
+# host = 'cs_eng'
 
 # model that you wish to analyze
-# model = 'ML, postgres'
+model = 'ML, postgres'
 # model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
 
@@ -28,6 +28,15 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(help='sub command help', action='store_true')
+
+    # create the parser for the "ls" command
+    parser_ls = subparsers.add_parser('ls', help='ls help')
+    parser_ls.add_argument('--model', type=list, help='Filter on a model or list of models')
+
+    args = parser.parse_args()
+    print(args)
     # # get list of all fields
     # explore_fields = get_explore_fields(looker, model)
     #
@@ -36,8 +45,10 @@ def main():
     #
     # # unused_fields
     # unused_fields = explore_fields - used_fields
-    print(get_models(looker))
 
+# function that either lists explores (either instance wide or filtered on model)
+def ls():
+    return
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
