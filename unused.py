@@ -4,17 +4,15 @@ from lookerapi import LookerApi
 from pprint import pprint
 from collections import defaultdict
 from itertools import groupby
-import pandas as pd
 import re
-
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
+host = 'mylooker'
+#host = 'cs_eng'
 
 # model that you wish to analyze
-# model = 'ML, postgres'
+model = ['ML, postgres']
 # model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
 
@@ -28,30 +26,37 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    # # get list of all fields
-    # explore_fields = get_explore_fields(looker, model)
-    #
-    # # get list of fields used
-    # used_fields = get_field_usage(looker, model, timeframe)
-    #
-    # # unused_fields
-    # unused_fields = explore_fields - used_fields
-    print(get_models(looker))
-
 # parses strings for view_name.field_name and returns a list  (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
-# returns list of models (if no model parameter is specified) otherwise it returns specific model definition
-def get_models(looker, model=None):
-    if model is None:
+# function that returns list of model definitions (verbose=1) or model names (verbose=0). Allows the user to specify a project name, a model name or nothing at all.
+# project paramater is a string while model parameter is a list.
+def get_models(looker, project=None, model=None, verbose=0):
+    if project is None and model is None:
         models = looker.get_models()
-        return models
+    elif project is not None and model is None:
+        # if no parameters are specified
+        response = looker.get_models()
+        models = list(filter(lambda x: x['project_name']==project, response))
+    elif project is not None and model is not None:
+        # if both project and model paramaters are specified
+        print('Warning: Project parameter ignored. Model names are unique across projects in Looker.')
+        models = [looker.get_model(m) for m in model]
     else:
-        model_list = model.replace(' ','').split(',')
-        models = [looker.get_model(model) for model in model_list]
-        return models
+        # in case project parameter wasn't passed but model was. Behaves as above.
+        models = [looker.get_model(m) for m in model]
 
+    # error handling in case response is empty
+    try:
+        models = list(filter(lambda x: x['has_content']==True, models))
+        if verbose == 0:
+            models = [m['name'] for m in models]
+    except:
+        print("No results found.")
+        return
+
+    return models
 
 # returns a list of explores in a given model
 def get_explores(looker, model):
