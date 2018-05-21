@@ -15,6 +15,7 @@ host = 'mylooker'
 model = ['ML, postgres']
 # model = 'snowflake_data, thelook'
 # model = 'calendar, e_commerce'
+# projects = ['the_look_fabio']
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -81,6 +82,35 @@ def get_explore_fields(looker, model):
 
     return set(fields)
 
+def get_projects(looker, project=None):
+    if project is None:
+        projects = looker.get_projects()
+
+        return projects
+    else:
+        # project_list = project.replace(' ','').split(',')
+        projects = [looker.get_project(project) for project in project]
+
+        return projects
+
+def get_project_files(looker, project=None):
+    if project is None:
+        projects = looker.get_projects()
+        project_names = [project['id'] for project in projects]
+    else:
+        project_names = project
+
+    project_data =[]
+    for project in project_names:
+        project_files = looker.get_project_files(project)
+        project_data.append({
+                'project': project,
+                'files': project_files
+        })
+
+    return project_data
+
+
 # builds a dictionary from a list of fields, in them form of {'view': 'view_name', 'fields': []}
 def schema_builder(fields):
     schema = []
@@ -93,6 +123,23 @@ def schema_builder(fields):
         })
 
     return schema
+# returns a representation of all models and the projects to which they belong
+def schema_project_models(looker, project=None):
+    schema = []
+    for project in get_project_files(looker, project=None):
+        models = []
+        for file in project['files']:
+            if file['type'] == 'model':
+                models.append(file['title'])
+            else:
+                pass
+        schema.append({
+                        'project': project['project'],
+                        'models': models
+        })
+    return schema
+
+
 
 # returns list of view scoped fields used within a given timeframe
 def get_field_usage(looker, model, timeframe):
