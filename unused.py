@@ -51,7 +51,7 @@ def get_models(looker, project=None, model=None, verbose=0):
     try:
         models = list(filter(lambda x: x['has_content']==True, models))
         if verbose == 0:
-            models = [m['name'] for m in models]
+            models = [m['project_name']+"."+m['name'] for m in models]
     except:
         print("No results found.")
         return
