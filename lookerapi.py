@@ -359,6 +359,35 @@ class LookerApi(object):
             f.write(error_message)
             f.close()
 
+# GET /projects/{project_id}
+    def get_project(self,project=None,fields={}):
+        url = '{}{}/{}'.format(self.host,'projects', project)
+        print(url)
+        params = fields
+        r = self.session.get(url,params=params)
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
+
+# GET /projects/{project_id}/files
+    def get_project_files(self,project=None,fields={}):
+        url = '{}{}/{}/{}'.format(self.host,'projects', project, 'files')
+        print(url)
+        params = fields
+        r = self.session.get(url,params=params)
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
+            print(error_message)
+            f = open('api_errors.txt', 'a+')
+            f.write(error_message)
+            f.close()
 
 
 #GET /scheduled_plans/dashboard/{dashboard_id}
