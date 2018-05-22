@@ -59,17 +59,27 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
     return models
 
-# returns a list of explores in a given model
-def get_explores(looker, model):
+# returns a list of explores in a given project and/or model
+def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
     explores = []
-    for model in get_models(looker, model):
-        explore_names = [explore['name'] for explore in model['explores']]
-        for explore in explore_names:
-            explore_body = looker.get_explore(model['name'], explore)
-            if explore_body is None:
-                pass
-            else:
-                explores.append(explore_body)
+
+    if project is not None and model is None:
+        # if project is specified, get all models in that project
+        model_list = get_models(looker, project=project, verbose=1)
+    elif project is None and model is None:
+        # if no project or model are specified, get all models
+        model_list = get_models(looker, verbose=1)
+    else:
+        # if project and model are specified or if project is not specified but model is
+        model_list = get_models(looker, model=model, verbose=1)
+
+    # if verbose = 1, then return explore bodies otherwise return explore names which can be fully scoped with project name
+    for mdl in model_list:
+         if verbose == 1:
+             explores.extend([looker.get_explore(model_name=mdl['name'], explore_name=explore['name']) for explore in mdl['explores']])
+         else:
+             explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
+
     return explores
 
 # returns a list of view scoped fields of explores for a given model
