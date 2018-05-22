@@ -32,7 +32,7 @@ def parse(string):
 
 # function that returns list of model definitions (verbose=1) or model names (verbose=0). Allows the user to specify a project name, a model name or nothing at all.
 # project paramater is a string while model parameter is a list.
-def get_models(looker, project=None, model=None, verbose=0):
+def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
     if project is None and model is None:
         models = looker.get_models()
     elif project is not None and model is None:
@@ -51,7 +51,7 @@ def get_models(looker, project=None, model=None, verbose=0):
     try:
         models = list(filter(lambda x: x['has_content']==True, models))
         if verbose == 0:
-            models = [m['project_name']+"."+m['name'] for m in models]
+            models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
     except:
         print("No results found.")
         return
