@@ -27,7 +27,8 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-# parses strings for view_name.field_name and returns a list  (empty if no matches)
+    print(json.dumps(get_explore_fields(looker, model=['ecommerce'], scoped_names=1)))
+# parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
@@ -62,7 +63,6 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
     explores = []
-
     if project is not None and model is None:
         # if project is specified, get all models in that project
         model_list = get_models(looker, project=project, verbose=1)
@@ -70,7 +70,7 @@ def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
         # if no project or model are specified, get all models
         model_list = get_models(looker, verbose=1)
     else:
-        # if project and model are specified or if project is not specified but model is
+        # if project and model are specified or if project is not specified but model is.
         model_list = get_models(looker, model=model, verbose=1)
 
     # if verbose = 1, then return explore bodies otherwise return explore names which can be fully scoped with project name
@@ -82,15 +82,21 @@ def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
 
     return explores
 
-# returns a list of view scoped fields of explores for a given model
-def get_explore_fields(looker, model):
+# returns a list of scoped fields of explores for a given model or explore
+def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
     fields =[]
-    for explore in get_explores(looker, model):
-        [fields.append(dimension['name']) for dimension in explore['fields']['dimensions']]
-        [fields.append(measure['name']) for measure in explore['fields']['measures']]
-        [fields.append(measure['name']) for measure in explore['fields']['filters']]
+    explore_list = get_explores(looker, model=model, verbose=1)
 
-    return set(fields)
+    if explore is not None:
+        # filter list based on explore names supplied
+        explore_list = list(filter(lambda x: x['name']==explore, explore_list))
+
+    for explore in explore_list:
+        fields.extend([(explore['model_name']+'.')*scoped_names+dimension['name'] for dimension in explore['fields']['dimensions']])
+        fields.extend([(explore['model_name']+'.')*scoped_names+measure['name'] for measure in explore['fields']['measures']])
+        fields.extend([(explore['model_name']+'.')*scoped_names+fltr['name'] for fltr in explore['fields']['filters']])
+
+    return list(set(fields))
 
 def get_projects(looker, project=None):
     if project is None:
