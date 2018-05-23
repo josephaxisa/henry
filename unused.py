@@ -3,6 +3,7 @@ import json
 from lookerapi import LookerApi
 from pprint import pprint
 from collections import defaultdict
+from collections import Counter
 from itertools import groupby
 import re
 import argparse
@@ -10,12 +11,12 @@ import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-host = 'mylooker'
-#host = 'cs_eng'
+# host = 'mylooker'
+host = 'cs_eng'
 
 # model that you wish to analyze
-model = ['ML, postgres']
-# model = 'snowflake_data, thelook'
+# model = ['ML, postgres']
+model = 'thelook'
 # model = 'calendar, e_commerce'
 # projects = ['the_look_fabio']
 
@@ -34,6 +35,10 @@ def main():
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
     looker = authenticate(**auth_args)
 
+<<<<<<< HEAD
+=======
+    pprint(get_field_usage(looker, model, timeframe, aggregation= 'model'))
+>>>>>>> jesse_inline_queries
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -161,10 +166,10 @@ def schema_project_models(looker, project=None):
         })
     return schema
 
-
-
+# def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-def get_field_usage(looker, model, timeframe):
+def get_field_usage(looker, model, timeframe, aggregation=None):
+
     body={
         "model":"i__looker",
         "view":"history",
@@ -175,16 +180,59 @@ def get_field_usage(looker, model, timeframe):
 
     response = looker.run_inline_query("json", body)
 
-    fields = []
+    formatted_fields = []
     for row in response:
+        fields = []
+        explore = row['query.view']
+        model = row['query.model']
+        run_count = row['history.query_run_count']
         fields.extend(parse(row['query.formatted_fields']))
         fields.extend(parse(row['query.formatted_filters']))
         fields.extend(parse(row['query.formatted_pivots']))
         fields.extend(parse(row['query.sorts']))
+        formatted_fields.extend([model + '.' + explore + '.' + field + '.' + str(run_count) for field in fields])
 
-    fields = set(fields)
+    aggregator_count = []
+    if aggregation == 'field':
 
-    return fields
+        for row in formatted_fields:
+            field = '.'.join(row.split('.')[0:3])
+            count = int(row.split('.')[4])
+            aggregator_count.append({
+                'aggregator': field,
+                'count': count
+            })
+
+    if aggregation == 'view':
+        for row in formatted_fields:
+            view = row.split('.')[2]
+            count = int(row.split('.')[4])
+            aggregator_count.append({
+                'aggregator': view,
+                'count': count
+            })
+    if aggregation == 'explore':
+        for row in formatted_fields:
+            explore = row.split('.')[1]
+            count = int(row.split('.')[4])
+            aggregator_count.append({
+                'aggregator': explore,
+                'count': count
+            })
+    if aggregation == 'model':
+        for row in formatted_fields:
+            model = row.split('.')[0]
+            count = int(row.split('.')[4])
+            aggregator_count.append({
+                'aggregator': model,
+                'count': count
+            })
+
+    c = Counter()
+    for v in aggregator_count:
+        c[v['aggregator']] += v['count']
+    return dict(c)
+
 
 # resturns a list of dictionaries in the format of {'model':'model_name', 'explores': ['explore_name1',...]}
 def get_models_explores(looker, model):
