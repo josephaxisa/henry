@@ -27,7 +27,6 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
-    print(json.dumps(get_explore_fields(looker, model=['ecommerce'], scoped_names=1)))
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
