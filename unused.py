@@ -34,8 +34,11 @@ def main():
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
     looker = authenticate(**auth_args)
 
-    if looker.get_me() is None:
+    if looker.get_me() is not None:
+        print('Succesfully authenticated.')
+    else:
         print('Authentication failed.')
+
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -219,7 +222,7 @@ def tree_maker(dict):
 def authenticate(**kwargs):
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
-        looker = LookerApi(host=host, token=client_id, secret=client_secret)
+        looker = LookerApi(host=kwargs['host'], token=kwargs['client_id'], secret=kwargs['client_secret'])
     else:
         # otherwise, find credentials in config file
         try:
