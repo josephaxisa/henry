@@ -10,11 +10,12 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class LookerApi(object):
 
-    def __init__(self, token, secret, host):
+    def __init__(self, token, secret, host, port):
 
         self.token = token
         self.secret = secret
         self.host = host
+        self.port = port
 
         self.session = requests.Session()
         self.session.verify = False
@@ -22,13 +23,17 @@ class LookerApi(object):
         self.auth()
 
     def auth(self):
-        url = '{}{}'.format(self.host,'login')
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'login')
         params = {'client_id':self.token,
                   'client_secret':self.secret
                   }
         r = self.session.post(url,params=params)
         access_token = r.json().get('access_token')
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
+        if r.status_code == requests.codes.ok:
+            print('Successfully authenticated.')
+        else:
+            print('Authentication failed.')
 
     def auth_user(self, user_id):
         url = '{}{}/{}'.format(self.host,'login',user_id)
@@ -289,7 +294,7 @@ class LookerApi(object):
 
 # GET /users/me
     def get_me(self):
-        url = '{}{}'.format(self.host,'user')
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'user')
         print("Grabbing Myself: " + url)
         params = {}
         r = self.session.get(url,params=params)
@@ -304,7 +309,7 @@ class LookerApi(object):
 
 # GET /lookml_models/
     def get_models(self,fields={}):
-        url = '{}{}'.format(self.host,'lookml_models')
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'lookml_models')
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -318,7 +323,7 @@ class LookerApi(object):
 
 # GET /lookml_models/{{NAME}}
     def get_model(self,model_name=None,fields={}):
-        url = '{}{}/{}'.format(self.host,'lookml_models', model_name)
+        url = 'https://{}:{}/api/3.0/{}/{}'.format(self.host,self.port,'lookml_models', model_name)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -332,7 +337,7 @@ class LookerApi(object):
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self,model_name=None,explore_name=None,fields={}):
-        url = '{}{}/{}/{}/{}'.format(self.host,'lookml_models', model_name, 'explores', explore_name)
+        url = 'https://{}:{}/api/3.0/{}/{}/{}/{}'.format(self.host,self.port,'lookml_models', model_name, 'explores', explore_name)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -346,7 +351,7 @@ class LookerApi(object):
 
 # GET /projects
     def get_projects(self,fields={}):
-        url = '{}{}'.format(self.host,'projects')
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects')
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -360,8 +365,7 @@ class LookerApi(object):
 
 # GET /projects/{project_id}
     def get_project(self,project=None,fields={}):
-        url = '{}{}/{}'.format(self.host,'projects', project)
-        print(url)
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects', project)
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -375,8 +379,7 @@ class LookerApi(object):
 
 # GET /projects/{project_id}/files
     def get_project_files(self,project=None,fields={}):
-        url = '{}{}/{}/{}'.format(self.host,'projects', project, 'files')
-        print(url)
+        url = 'https://{}:{}/api/3.0/{}/{}/{}'.format(self.host,self.port,'projects', project, 'files')
         params = fields
         r = self.session.get(url,params=params)
         if r.status_code == requests.codes.ok:
@@ -572,7 +575,7 @@ class LookerApi(object):
 
 # POST /queries/run/{result_format}
     def run_inline_query(self, result_format, body):
-        url = '{}{}/{}/{}'.format(self.host, "queries", 'run', result_format)
+        url = 'https://{}:{}/api/3.0/{}/{}/{}'.format(self.host, self.port, 'queries', 'run', result_format)
         r = self.session.post(url, json.dumps(body))
 
         if r.status_code == requests.codes.ok:
