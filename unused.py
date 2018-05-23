@@ -23,20 +23,20 @@ model = ['ML, postgres']
 timeframe = '90 days'
 
 def main():
-    my_host, my_token, my_secret = get_api_creds()
-
-    looker = LookerApi(host=my_host,
-                 token=my_token,
-                 secret = my_secret)
-
     parser = argparse.ArgumentParser()
     auth = parser.add_argument_group('Authentication')
-    auth.add_argument('--host', type=str, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
-    auth.add_argument('--port', type=str, help='# Looker API Port, Default: 19999')
+    auth.add_argument('--host', type=str, default='mylooker', required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    auth.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
     auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
     auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
 
     args = vars(parser.parse_args())
+    auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
+    looker = authenticate(**auth_args)
+
+    if looker.get_me() is None:
+        print('Authentication failed.')
+
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -215,17 +215,30 @@ def tree_maker(dict):
 
     return(tree_str)
 
-# fetches api credentials from config.yml
-def get_api_creds():
-    f = open('config.yml')
-    params = yaml.load(f)
-    f.close()
+# returns an instanstiated Looker object using the credentials supplied by the auth argument group
+def authenticate(**kwargs):
+    if kwargs['client_id'] and kwargs['client_secret']:
+        # if client_id and client_secret are passed, then use them
+        looker = LookerApi(host=host, token=client_id, secret=client_secret)
+    else:
+        # otherwise, find credentials in config file
+        try:
+            f = open('config.yml')
+            params = yaml.load(f)
+            f.close()
+        except:
+            print('config.yml not found.')
 
-    my_host = params['hosts'][host]['host']
-    my_secret = params['hosts'][host]['secret'] # client_secret
-    my_token = params['hosts'][host]['token']  # client_id
+        try:
+            my_host = params['hosts'][kwargs['host']]['host']
+            my_secret = params['hosts'][kwargs['host']]['secret'] # client_secret
+            my_token = params['hosts'][kwargs['host']]['token']  # client_id
+            looker = LookerApi(host=my_host, token=my_token, secret=my_secret)
+        except:
+            print('%s host not found' % kwargs['host'])
+            return
 
-    return my_host, my_token, my_secret
+    return looker
 
 if __name__ == "__main__":
     main()
