@@ -34,11 +34,7 @@ def main():
     args = vars(parser.parse_args())
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
     looker = authenticate(**auth_args)
-
-<<<<<<< HEAD
-=======
     pprint(get_field_usage(looker, model, timeframe, aggregation= 'model'))
->>>>>>> jesse_inline_queries
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
