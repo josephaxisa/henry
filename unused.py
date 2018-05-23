@@ -5,6 +5,8 @@ from pprint import pprint
 from collections import defaultdict
 from itertools import groupby
 import re
+import argparse
+import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
@@ -27,6 +29,14 @@ def main():
                  token=my_token,
                  secret = my_secret)
 
+    parser = argparse.ArgumentParser()
+    auth = parser.add_argument_group('Authentication')
+    auth.add_argument('--host', type=str, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    auth.add_argument('--port', type=str, help='# Looker API Port, Default: 19999')
+    auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
+    auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
+
+    args = vars(parser.parse_args())
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
