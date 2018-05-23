@@ -10,7 +10,7 @@ import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-host = 'mylooker'
+# host = 'mylooker'
 #host = 'cs_eng'
 
 # model that you wish to analyze
@@ -25,7 +25,7 @@ timeframe = '90 days'
 def main():
     parser = argparse.ArgumentParser()
     auth = parser.add_argument_group('Authentication')
-    auth.add_argument('--host', type=str, default='mylooker', required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    auth.add_argument('--host', type=str, default='localhost', required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
     auth.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
     auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
     auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
@@ -33,12 +33,6 @@ def main():
     args = vars(parser.parse_args())
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
     looker = authenticate(**auth_args)
-
-    if looker.get_me() is not None:
-        print('Succesfully authenticated.')
-    else:
-        print('Authentication failed.')
-
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -222,7 +216,7 @@ def tree_maker(dict):
 def authenticate(**kwargs):
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
-        looker = LookerApi(host=kwargs['host'], token=kwargs['client_id'], secret=kwargs['client_secret'])
+        looker = LookerApi(host=kwargs['host'], port=kwargs['port'], token=kwargs['client_id'], secret=kwargs['client_secret'])
     else:
         # otherwise, find credentials in config file
         try:
@@ -236,7 +230,7 @@ def authenticate(**kwargs):
             my_host = params['hosts'][kwargs['host']]['host']
             my_secret = params['hosts'][kwargs['host']]['secret'] # client_secret
             my_token = params['hosts'][kwargs['host']]['token']  # client_id
-            looker = LookerApi(host=my_host, token=my_token, secret=my_secret)
+            looker = LookerApi(host=my_host, port=kwargs['port'], token=my_token, secret=my_secret)
         except:
             print('%s host not found' % kwargs['host'])
             return
