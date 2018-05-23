@@ -30,10 +30,10 @@ class LookerApi(object):
         r = self.session.post(url,params=params)
         access_token = r.json().get('access_token')
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
-        if r.status_code == requests.codes.ok:
-            print('Successfully authenticated.')
-        else:
+        if r.status_code != requests.codes.ok:
             print('Authentication failed.')
+
+        return
 
 # GET /lookml_models/
     def get_models(self,fields={}):

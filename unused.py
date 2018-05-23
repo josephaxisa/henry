@@ -10,7 +10,7 @@ import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
+host = 'mylooker'
 #host = 'cs_eng'
 
 # model that you wish to analyze
@@ -25,7 +25,7 @@ timeframe = '90 days'
 def main():
     parser = argparse.ArgumentParser()
     auth = parser.add_argument_group('Authentication')
-    auth.add_argument('--host', type=str, default='localhost', required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    auth.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
     auth.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
     auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
     auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
