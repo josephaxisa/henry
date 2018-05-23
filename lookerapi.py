@@ -27,7 +27,7 @@ class LookerApi(object):
         params = {'client_id':self.token,
                   'client_secret':self.secret
                   }
-        r = self.session.post(url,params=params)
+        r = self.session.post(url,params=params,timeout=10)
         access_token = r.json().get('access_token')
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
         if r.status_code != requests.codes.ok:
@@ -39,7 +39,7 @@ class LookerApi(object):
     def get_models(self,fields={}):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'lookml_models')
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -53,7 +53,7 @@ class LookerApi(object):
     def get_model(self,model_name=None,fields={}):
         url = 'https://{}:{}/api/3.0/{}/{}'.format(self.host,self.port,'lookml_models', model_name)
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -67,7 +67,7 @@ class LookerApi(object):
     def get_explore(self,model_name=None,explore_name=None,fields={}):
         url = 'https://{}:{}/api/3.0/{}/{}/{}/{}'.format(self.host,self.port,'lookml_models', model_name, 'explores', explore_name)
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -81,7 +81,7 @@ class LookerApi(object):
     def get_projects(self,fields={}):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects')
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -95,7 +95,7 @@ class LookerApi(object):
     def get_project(self,project=None,fields={}):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects', project)
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -109,7 +109,7 @@ class LookerApi(object):
     def get_project_files(self,project=None,fields={}):
         url = 'https://{}:{}/api/3.0/{}/{}/{}'.format(self.host,self.port,'projects', project, 'files')
         params = fields
-        r = self.session.get(url,params=params)
+        r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:
@@ -122,7 +122,7 @@ class LookerApi(object):
 # POST /queries/run/{result_format}
     def run_inline_query(self, result_format, body):
         url = 'https://{}:{}/api/3.0/{}/{}/{}'.format(self.host, self.port, 'queries', 'run', result_format)
-        r = self.session.post(url, json.dumps(body))
+        r = self.session.post(url,json.dumps(body),timeout=10)
 
         if r.status_code == requests.codes.ok:
             return r.json()
