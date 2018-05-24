@@ -11,7 +11,7 @@ import sys
 ### ------- HERE ARE PARAMETERS TO CONFIGURE -------
 
 # host name in config.yml
-# host = 'mylooker'
+host = 'mylooker'
 # host = 'cs_eng'
 
 # model that you wish to analyze
@@ -37,9 +37,9 @@ def main():
     # parser for ls command
     ls_parser = subparsers.add_parser('ls', help='ls help')
     ls_parser.add_argument('-a','--all', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-p','--project', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-m','--model', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-e','--explore', action='store_true', help='Lists all projects and their tree')
+    ls_parser.add_argument('-p','--project', action='store_true', help='Lists all projects')
+    ls_parser.add_argument('-m','--model', action='store_true', help='Lists all models')
+    ls_parser.add_argument('-e','--explore', action='store_true', help='Lists all explores')
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
@@ -121,13 +121,14 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
 def get_projects(looker, project=None):
     if project is None:
         projects = looker.get_projects()
-
-        return projects
     else:
-        # project_list = project.replace(' ','').split(',')
         projects = [looker.get_project(project) for project in project]
 
-        return projects
+    if len(projects) == 0:
+        print('No Projects Found.')
+        return
+
+    return projects
 
 def get_project_files(looker, project=None):
     if project is None:
