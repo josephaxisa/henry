@@ -12,7 +12,7 @@ import sys
 
 # host name in config.yml
 # host = 'mylooker'
-host = 'cs_eng'
+# host = 'cs_eng'
 
 # model that you wish to analyze
 # model = ['ML, postgres']
