@@ -12,7 +12,7 @@ import sys
 
 # host name in config.yml
 # host = 'mylooker'
-# host = 'cs_eng'
+host = 'cs_eng'
 
 # model that you wish to analyze
 # model = ['ML, postgres']
@@ -25,29 +25,18 @@ timeframe = '90 days'
 
 def main():
     parser = argparse.ArgumentParser()
-
-    # auth arguments
-    parser.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
-    parser.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
-    parser.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
-    parser.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
-
-    subparsers = parser.add_subparsers(title='Subcommands', description='Valid Subcommands', help='additional help')
-
-    # parser for ls command
-    ls_parser = subparsers.add_parser('ls', help='ls help')
-    ls_parser.add_argument('-a','--all', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-p','--project', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-m','--model', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-e','--explore', action='store_true', help='Lists all projects and their tree')
-
-    # parser for fu command
-    fu_parser = subparsers.add_parser('fu', help='fu help')
+    auth = parser.add_argument_group('Authentication')
+    auth.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    auth.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
+    auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
+    auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
 
     args = vars(parser.parse_args())
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
     looker = authenticate(**auth_args)
-
+    # def get_field_usage(looker, model=None, timeframe, aggregation=None)
+    pprint(get_field_usage(looker, model ,'90 days', aggregation = 'model'))
+    # pprint(get_views(looker))
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -118,6 +107,11 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
 
     return list(set(fields))
 
+def get_views(looker,project=None, model=None, explore=None, scoped_names=0):
+    fields = get_explore_fields(looker, model=None, explore=None, scoped_names=0)
+    views = [field.split('.')[0] for field in fields]
+    return list(set(views))
+
 def get_projects(looker, project=None):
     if project is None:
         projects = looker.get_projects()
@@ -177,7 +171,7 @@ def schema_project_models(looker, project=None):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-def get_field_usage(looker, model, timeframe, aggregation=None):
+def get_field_usage(looker, model, timeframe , aggregation):
 
     body={
         "model":"i__looker",
@@ -188,7 +182,6 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
     }
 
     response = looker.run_inline_query("json", body)
-
     formatted_fields = []
     for row in response:
         fields = []
@@ -202,45 +195,63 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
         formatted_fields.extend([model + '.' + explore + '.' + field + '.' + str(run_count) for field in fields])
 
     aggregator_count = []
-    if aggregation == 'field':
+    aggregator = []
 
+    if aggregation == 'field':
         for row in formatted_fields:
-            field = '.'.join(row.split('.')[0:3])
+            field = '.'.join(row.split('.')[2:4])
+            aggregator.append(field)
             count = int(row.split('.')[4])
             aggregator_count.append({
                 'aggregator': field,
                 'count': count
             })
+        fields = get_explore_fields(looker, model=[model])
+        [aggregator_count.append({'aggregator': field,'count': 0}) for field in fields]
 
     if aggregation == 'view':
         for row in formatted_fields:
             view = row.split('.')[2]
+            aggregator.append(view)
             count = int(row.split('.')[4])
             aggregator_count.append({
                 'aggregator': view,
                 'count': count
             })
+        views = get_views(looker, model = [model])
+        [aggregator_count.append({'aggregator': view,'count': 0}) for view in views]
+
     if aggregation == 'explore':
         for row in formatted_fields:
             explore = row.split('.')[1]
+            aggregator.append(explore)
             count = int(row.split('.')[4])
             aggregator_count.append({
                 'aggregator': explore,
                 'count': count
             })
+        explores = get_explores(looker, model=[model])
+        [aggregator_count.append({'aggregator': explore,'count': 0}) for explore in explores]
+
     if aggregation == 'model':
         for row in formatted_fields:
             model = row.split('.')[0]
+            aggregator.append(model)
             count = int(row.split('.')[4])
             aggregator_count.append({
                 'aggregator': model,
                 'count': count
             })
+        models = get_models(looker, model=[model])
+        [aggregator_count.append({'aggregator': model,'count': 0}) for model in models]
 
     c = Counter()
-    for v in aggregator_count:
-        c[v['aggregator']] += v['count']
+
+    for value in aggregator_count:
+        c[value['aggregator']] += value['count']
+
     return dict(c)
+    # return aggregator_count
 
 
 # resturns a list of dictionaries in the format of {'model':'model_name', 'explores': ['explore_name1',...]}
