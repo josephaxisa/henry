@@ -27,12 +27,21 @@ def main():
     parser = argparse.ArgumentParser()
 
     # auth arguments
-    parser.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
-    parser.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
-    parser.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
-    parser.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
+    parser.add_argument('--host', type=str, default=host,
+                        required=('--client_id' or '--client_secret') in sys.argv,
+                        help='# Looker Host, Default: localhost')
+    parser.add_argument('--port', type=int, default=19999,
+                        help='# Looker API Port, Default: 19999')
+    parser.add_argument('--client_id', type=str,
+                        required='--client_secret' in sys.argv,
+                        help="# API3 Client Id")
+    parser.add_argument('--client_secret', type=str,
+                        required='--client_id' in sys.argv,
+                        help="# API3 Client Secret")
 
-    subparsers = parser.add_subparsers(title='Subcommands', description='Valid Subcommands', help='additional help')
+    subparsers = parser.add_subparsers(title='Subcommands', dest='command',
+                                       description='Valid Subcommands',
+                                       help='additional help')
 
     # parser for ls command
     ls_parser = subparsers.add_parser('ls', help='ls help')
@@ -41,10 +50,12 @@ def main():
                            action='store_true',
                            help='Lists all projects and their tree')
     ls_parser.add_argument('-p', '--project',
-                           action='store_true',
+                           type=str,
+                           nargs='*',
                            help='Lists all projects')
     ls_parser.add_argument('-m', '--model',
-                           action='store_true',
+                           type=str,
+                           nargs='*',
                            help='Lists all models')
     ls_parser.add_argument('-e', '--explore',
                            action='store_const', const=get_explores,
@@ -53,18 +64,35 @@ def main():
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
 
-    args = vars(parser.parse_args())
+    args = vars(parser.parse_args())  # Namespace object
+    print(args)
     auth_args = {k: args[k] for k in ('host', 'port', 'client_id', 'client_secret')}
-    looker = authenticate(**auth_args)
-    # def get_field_usage(looker, model=None, timeframe, aggregation=None)
-    pprint(get_field_usage(looker, model, '90 days', aggregation = 'model'))
-    # pprint(get_views(looker))
 
+    # authenticate
+    looker = authenticate(**auth_args)
+
+    # map subcommand to function
+    if args['command'] == 'ls':
+        # do ls stuff
+        ls_args = {k: args[k] for k in ('all', 'project', 'model', 'explore')}
+        ls(looker, **ls_args)
+    elif args['command'] == 'fu':
+        # do fu stuff
+        print('fu stuff')
+    else:
+        print('No command passed')
 
 
 # ls func
-def ls(**kwargs):
-
+def ls(looker, **kwargs):
+    if kwargs['all']:
+        pprint('all')
+    elif kwargs['project']:
+        pprint(get_projects(looker, project=kwargs['project']))
+    elif kwargs['model']:
+        pprint(get_models(looker, project=kwargs['project'], model=kwargs['model']))
+    elif kwargs['explore']:
+        pprint(get_explores(looker, project=kwargs['project'], model=kwargs['model']))
     return
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
@@ -103,7 +131,6 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
-    print('here')
     explores = []
     if project is not None and model is None:
         # if project is specified, get all models in that project
@@ -142,21 +169,23 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
     return list(set(fields))
 
 
-def get_views(looker,project=None, model=None, explore=None, scoped_names=0):
+def get_views(looker, project=None, model=None, explore=None, scoped_names=0):
     fields = get_explore_fields(looker, model=None, explore=None, scoped_names=0)
     views = [field.split('.')[0] for field in fields]
     return list(set(views))
 
 
-def get_projects(looker, project=None):
+def get_projects(looker, project=None, verbose=0):
     if project is None:
         projects = looker.get_projects()
     else:
-        projects = [looker.get_project(project) for project in project]
+        projects = [looker.get_project(p) for p in project]
 
     if len(projects) == 0:
         print('No Projects Found.')
         return
+    elif verbose == 0:
+        projects = [p['id'] for p in projects]
 
     return projects
 

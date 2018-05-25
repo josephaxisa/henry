@@ -79,7 +79,7 @@ class LookerApi(object):
             f.close()
 
 # GET /projects
-    def get_projects(self,fields={}):
+    def get_projects(self, fields={}):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects')
         params = fields
         r = self.session.get(url,params=params,timeout=10)
@@ -93,8 +93,8 @@ class LookerApi(object):
             f.close()
 
 # GET /projects/{project_id}
-    def get_project(self,project=None,fields={}):
-        url = 'https://{}:{}/api/3.0/{}'.format(self.host,self.port,'projects', project)
+    def get_project(self, project=None, fields={}):
+        url = 'https://{}:{}/api/3.0/{}/{}'.format(self.host, self.port, 'projects', project)
         params = fields
         r = self.session.get(url,params=params,timeout=10)
         if r.status_code == requests.codes.ok:
