@@ -11,8 +11,6 @@ import sys
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
 host = 'mylooker'
 # host = 'cs_eng'
 # model that you wish to analyze
@@ -60,7 +58,6 @@ def main():
 def ls(**kwargs):
 
     return
-
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -208,7 +205,8 @@ def schema_project_models(looker, project=None):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-def get_field_usage(looker, model, timeframe , aggregation):
+
+def get_field_usage(looker, model, timeframe, aggregation=None):
 
     body = {
         "model": "i__looker",
@@ -256,8 +254,8 @@ def get_field_usage(looker, model, timeframe , aggregation):
                 'aggregator': view,
                 'count': count
             })
-        views = get_views(looker, model = [model])
-        [aggregator_count.append({'aggregator': view,'count': 0}) for view in views]
+        views = get_views(looker, model=[model])
+        [aggregator_count.append({'aggregator': view, 'count': 0}) for view in views]
 
     if aggregation == 'explore':
         for row in formatted_fields:
@@ -269,7 +267,7 @@ def get_field_usage(looker, model, timeframe , aggregation):
                 'count': count
             })
         explores = get_explores(looker, model=[model])
-        [aggregator_count.append({'aggregator': explore,'count': 0}) for explore in explores]
+        [aggregator_count.append({'aggregator': explore, 'count': 0}) for explore in explores]
 
     if aggregation == 'model':
         for row in formatted_fields:
@@ -281,7 +279,7 @@ def get_field_usage(looker, model, timeframe , aggregation):
                 'count': count
             })
         models = get_models(looker, model=[model])
-        [aggregator_count.append({'aggregator': model,'count': 0}) for model in models]
+        [aggregator_count.append({'aggregator': model, 'count': 0}) for model in models]
 
     c = Counter()
 
