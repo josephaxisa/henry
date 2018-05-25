@@ -75,7 +75,6 @@ def main():
     if args['command'] == 'ls':
         # do ls stuff
         ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
-        print(ls_args)
         ls(looker, **ls_args)
     elif args['command'] == 'fu':
         # do fu stuff
@@ -86,16 +85,16 @@ def main():
 
 # ls func
 def ls(looker, **kwargs):
-    print(kwargs)
     if kwargs['project'] is not False:
         p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
         pprint(get_projects(looker, project=p))
     elif kwargs['model'] is not False and kwargs['explore'] is False:
         m = None if len(kwargs['model']) == 0 else kwargs['model']
-        pprint(get_models(looker, model=m))
+        pprint(get_models(looker, model=m, scoped_names=1))
     elif kwargs['explore']:
-        pprint(get_explores(looker, project=None, model=kwargs['model']))
+        pprint(get_explores(looker, project=None, model=kwargs['model'], scoped_names=1))
     return
+
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -282,7 +281,7 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
                 'count': count
             })
         fields = get_explore_fields(looker, model=[model])
-        [aggregator_count.append({'aggregator': field,'count': 0}) for field in fields]
+        [aggregator_count.append({'aggregator': field, 'count': 0}) for field in fields]
 
     if aggregation == 'view':
         for row in formatted_fields:
@@ -358,7 +357,8 @@ def tree_maker(dict):
     return(tree_str)
 
 
-# returns an instanstiated Looker object using the credentials supplied by the auth argument group
+# returns an instanstiated Looker object using the
+# credentials supplied by the auth argument group
 def authenticate(**kwargs):
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
