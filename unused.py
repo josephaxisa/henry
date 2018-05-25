@@ -13,7 +13,8 @@ import sys
 # host name in config.yml
 # host = 'mylooker'
 host = 'cs_eng'
-
+host = 'mylooker'
+# host = 'cs_eng'
 # model that you wish to analyze
 # model = ['ML, postgres']
 model = 'thelook'
@@ -25,11 +26,24 @@ timeframe = '90 days'
 
 def main():
     parser = argparse.ArgumentParser()
-    auth = parser.add_argument_group('Authentication')
-    auth.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
-    auth.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
-    auth.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
-    auth.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
+
+    # auth arguments
+    parser.add_argument('--host', type=str, default=host, required=('--client_id' or 'client_secret') in sys.argv, help='# Looker Host, Default: localhost')
+    parser.add_argument('--port', type=int, default=19999, help='# Looker API Port, Default: 19999')
+    parser.add_argument('--client_id', type=str, required='--client_secret' in sys.argv, help="# API3 Client Id")
+    parser.add_argument('--client_secret', type=str, required='--client_id' in sys.argv, help="# API3 Client Secret")
+
+    subparsers = parser.add_subparsers(title='Subcommands', description='Valid Subcommands', help='additional help')
+
+    # parser for ls command
+    ls_parser = subparsers.add_parser('ls', help='ls help')
+    ls_parser.add_argument('-a','--all', action='store_true', help='Lists all projects and their tree')
+    ls_parser.add_argument('-p','--project', action='store_true', help='Lists all projects')
+    ls_parser.add_argument('-m','--model', action='store_true', help='Lists all models')
+    ls_parser.add_argument('-e','--explore', action='store_true', help='Lists all explores')
+
+    # parser for fu command
+    fu_parser = subparsers.add_parser('fu', help='fu help')
 
     args = vars(parser.parse_args())
     auth_args = {k: args[k] for k in ('host','port','client_id','client_secret')}
@@ -37,6 +51,8 @@ def main():
     # def get_field_usage(looker, model=None, timeframe, aggregation=None)
     pprint(get_field_usage(looker, model ,'90 days', aggregation = 'model'))
     # pprint(get_views(looker))
+
+
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
@@ -107,21 +123,24 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
 
     return list(set(fields))
 
+
 def get_views(looker,project=None, model=None, explore=None, scoped_names=0):
     fields = get_explore_fields(looker, model=None, explore=None, scoped_names=0)
     views = [field.split('.')[0] for field in fields]
     return list(set(views))
 
+
 def get_projects(looker, project=None):
     if project is None:
         projects = looker.get_projects()
-
-        return projects
     else:
-        # project_list = project.replace(' ','').split(',')
         projects = [looker.get_project(project) for project in project]
 
-        return projects
+    if len(projects) == 0:
+        print('No Projects Found.')
+        return
+
+    return projects
 
 def get_project_files(looker, project=None):
     if project is None:
