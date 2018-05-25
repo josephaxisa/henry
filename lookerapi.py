@@ -8,6 +8,7 @@ import datetime
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
 class LookerApi(object):
 
     def __init__(self, token, secret, host, port):
