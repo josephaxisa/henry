@@ -11,11 +11,11 @@ import sys
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-host = 'mylooker'
-# host = 'cs_eng'
+# host = 'mylooker'
+host = 'cs_eng'
 # model that you wish to analyze
 # model = ['ML, postgres']
-model = 'thelook'
+model = ['thelook']
 # model = 'calendar, e_commerce'
 # projects = ['the_look_fabio']
 
@@ -82,6 +82,9 @@ def main():
     else:
         print('No command passed')
 
+    pprint(aggregate_usage(looker, None, timeframe, aggregation = 'model'))
+    # pprint(get_field_usage(looker, timeframe, None )['model'])
+    # get_explore_fields(looker, model = ['thelook'])
 
 # ls func
 def ls(looker, **kwargs):
@@ -95,11 +98,9 @@ def ls(looker, **kwargs):
         pprint(get_explores(looker, project=None, model=kwargs['model'], scoped_names=1))
     return
 
-
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
-
 
 # function that returns list of model definitions (verbose=1) or model names (verbose=0). Allows the user to specify a project name, a model name or nothing at all.
 # project paramater is a string while model parameter is a list.
@@ -129,7 +130,6 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
     return models
 
-
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
     explores = []
@@ -151,7 +151,6 @@ def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
             explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
 
     return explores
-
 
 # returns a list of scoped fields of explores for a given model or explore
 def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
@@ -244,17 +243,27 @@ def schema_project_models(looker, project=None):
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
 
-def get_field_usage(looker, model, timeframe, aggregation=None):
-
+def get_field_usage(looker, timeframe, model=None, project = None):
+    if model is None:
+        model = ','.join(get_models(looker))
+    else:
+         model = ','.join(model)
     body = {
-        "model": "i__looker",
-        "view": "history",
-        "fields": ["query.model", "query.view", "query.formatted_fields", "query.formatted_filters", "query.sorts", "query.formatted_pivots", "history.query_run_count"],
-        "filters": {"history.created_date": timeframe, "query.model": model},
-        "limit": "50000"
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.model", "query.view", "query.formatted_fields",
+                        "query.formatted_filters", "query.sorts",
+                        "query.formatted_pivots", "history.query_run_count"],
+            "filters": {"history.created_date": timeframe, "query.model": model},
+            "limit": "50000"
     }
-
     response = looker.run_inline_query("json", body)
+    return {'response': response, 'model': model.split(',')}
+
+def aggregate_usage(looker, timeframe, model, aggregation=None):
+    field_usage = get_field_usage(looker, model, timeframe)
+    response = field_usage['response']
+    models = field_usage['model']
     formatted_fields = []
     for row in response:
         fields = []
@@ -267,7 +276,6 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
         fields.extend(parse(row['query.sorts']))
         formatted_fields.extend([model + '.' + explore + '.' + field + '.' +
                                 str(run_count) for field in fields])
-
     aggregator_count = []
     aggregator = []
 
@@ -280,7 +288,10 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
                 'aggregator': field,
                 'count': count
             })
-        fields = get_explore_fields(looker, model=[model])
+
+        fields = [get_explore_fields(looker, model = [m]) for m in models]
+        # flatten the list
+        fields = [y for x in fields for y in x]
         [aggregator_count.append({'aggregator': field, 'count': 0}) for field in fields]
 
     if aggregation == 'view':
@@ -292,7 +303,10 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
                 'aggregator': view,
                 'count': count
             })
-        views = get_views(looker, model=[model])
+
+        views = [get_views(looker, model = [model]) for model in models]
+        # flatten the list
+        views = [y for x in views for y in x]
         [aggregator_count.append({'aggregator': view, 'count': 0}) for view in views]
 
     if aggregation == 'explore':
@@ -304,7 +318,9 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
                 'aggregator': explore,
                 'count': count
             })
-        explores = get_explores(looker, model=[model])
+        explores = [get_explores(looker, model=[model]) for model in models]
+        # flatten the list
+        explores = [y for x in explores for y in x]
         [aggregator_count.append({'aggregator': explore, 'count': 0}) for explore in explores]
 
     if aggregation == 'model':
@@ -317,6 +333,9 @@ def get_field_usage(looker, model, timeframe, aggregation=None):
                 'count': count
             })
         models = get_models(looker, model=[model])
+        models = [get_explores(looker, model=[model]) for model in models]
+        # flatten the list
+        models = [y for x in models for y in x]
         [aggregator_count.append({'aggregator': model, 'count': 0}) for model in models]
 
     c = Counter()
