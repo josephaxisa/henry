@@ -37,10 +37,18 @@ def main():
     # parser for ls command
     ls_parser = subparsers.add_parser('ls', help='ls help')
     ls_parser.set_defaults(func=ls)
-    ls_parser.add_argument('-a', '--all', action='store_true', help='Lists all projects and their tree')
-    ls_parser.add_argument('-p', '--project', action='store_true', help='Lists all projects')
-    ls_parser.add_argument('-m', '--model', action='store_true', help='Lists all models')
-    ls_parser.add_argument('-e', '--explore', action='store_const', const=get_explores, help='Lists all explores')
+    ls_parser.add_argument('-a', '--all',
+                           action='store_true',
+                           help='Lists all projects and their tree')
+    ls_parser.add_argument('-p', '--project',
+                           action='store_true',
+                           help='Lists all projects')
+    ls_parser.add_argument('-m', '--model',
+                           action='store_true',
+                           help='Lists all models')
+    ls_parser.add_argument('-e', '--explore',
+                           action='store_const', const=get_explores,
+                           help='Lists all explores')
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
@@ -49,7 +57,7 @@ def main():
     auth_args = {k: args[k] for k in ('host', 'port', 'client_id', 'client_secret')}
     looker = authenticate(**auth_args)
     # def get_field_usage(looker, model=None, timeframe, aggregation=None)
-    pprint(get_field_usage(looker, model ,'90 days', aggregation = 'model'))
+    pprint(get_field_usage(looker, model, '90 days', aggregation = 'model'))
     # pprint(get_views(looker))
 
 
@@ -83,7 +91,7 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
     # error handling in case response is empty
     try:
-        models = list(filter(lambda x: if x['has_content'] is True, models))
+        models = list(filter(lambda x: x['has_content'] is True, models))
         if verbose == 0:
             models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
     except:
