@@ -46,26 +46,26 @@ def main():
     # parser for ls command
     ls_parser = subparsers.add_parser('ls', help='ls help')
     ls_parser.set_defaults(func=ls)
-    ls_parser.add_argument('-a', '--all',
-                           action='store_true',
-                           help='Lists all projects and their tree')
     ls_parser.add_argument('-p', '--project',
                            type=str,
-                           nargs='*',
+                           default=False,  # when -p is not called
+                           const=None,  # when -p is called w/o arg
+                           nargs='?',
                            help='Lists all projects')
     ls_parser.add_argument('-m', '--model',
                            type=str,
-                           nargs='*',
+                           nargs='+' if '-e' in sys.argv else '*',
+                           const=None,
+                           required='-e' in sys.argv,
                            help='Lists all models')
     ls_parser.add_argument('-e', '--explore',
-                           action='store_const', const=get_explores,
+                           action='store_true',
                            help='Lists all explores')
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
 
     args = vars(parser.parse_args())  # Namespace object
-    print(args)
     auth_args = {k: args[k] for k in ('host', 'port', 'client_id', 'client_secret')}
 
     # authenticate
@@ -74,7 +74,8 @@ def main():
     # map subcommand to function
     if args['command'] == 'ls':
         # do ls stuff
-        ls_args = {k: args[k] for k in ('all', 'project', 'model', 'explore')}
+        ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
+        print(ls_args)
         ls(looker, **ls_args)
     elif args['command'] == 'fu':
         # do fu stuff
@@ -85,14 +86,15 @@ def main():
 
 # ls func
 def ls(looker, **kwargs):
-    if kwargs['all']:
-        pprint('all')
-    elif kwargs['project']:
-        pprint(get_projects(looker, project=kwargs['project']))
-    elif kwargs['model']:
-        pprint(get_models(looker, project=kwargs['project'], model=kwargs['model']))
+    print(kwargs)
+    if kwargs['project'] is not False:
+        p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
+        pprint(get_projects(looker, project=p))
+    elif kwargs['model'] is not False and kwargs['explore'] is False:
+        m = None if len(kwargs['model']) == 0 else kwargs['model']
+        pprint(get_models(looker, model=m))
     elif kwargs['explore']:
-        pprint(get_explores(looker, project=kwargs['project'], model=kwargs['model']))
+        pprint(get_explores(looker, project=None, model=kwargs['model']))
     return
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
