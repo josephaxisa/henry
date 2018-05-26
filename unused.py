@@ -28,7 +28,8 @@ def main():
 
     # auth arguments
     parser.add_argument('--host', type=str, default=host,
-                        required=('--client_id' or '--client_secret') in sys.argv,
+                        required=('--client_id' or
+                                  '--client_secret') in sys.argv,
                         help='# Looker Host, Default: localhost')
     parser.add_argument('--port', type=int, default=19999,
                         help='# Looker API Port, Default: 19999')
