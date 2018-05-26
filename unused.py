@@ -82,9 +82,10 @@ def main():
     else:
         print('No command passed')
 
-    pprint(aggregate_usage(looker, None, timeframe, aggregation = 'model'))
+    pprint(aggregate_usage(looker, None, timeframe, aggregation='model'))
     # pprint(get_field_usage(looker, timeframe, None )['model'])
     # get_explore_fields(looker, model = ['thelook'])
+
 
 # ls func
 def ls(looker, **kwargs):
@@ -98,9 +99,11 @@ def ls(looker, **kwargs):
         pprint(get_explores(looker, project=None, model=kwargs['model'], scoped_names=1))
     return
 
+
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
+
 
 # function that returns list of model definitions (verbose=1) or model names (verbose=0). Allows the user to specify a project name, a model name or nothing at all.
 # project paramater is a string while model parameter is a list.
@@ -130,6 +133,7 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
     return models
 
+
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
     explores = []
@@ -151,6 +155,7 @@ def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
             explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
 
     return explores
+
 
 # returns a list of scoped fields of explores for a given model or explore
 def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
@@ -243,22 +248,24 @@ def schema_project_models(looker, project=None):
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
 
-def get_field_usage(looker, timeframe, model=None, project = None):
+def get_field_usage(looker, timeframe, model=None, project=None):
     if model is None:
         model = ','.join(get_models(looker))
     else:
-         model = ','.join(model)
+        model = ','.join(model)
     body = {
             "model": "i__looker",
             "view": "history",
             "fields": ["query.model", "query.view", "query.formatted_fields",
-                        "query.formatted_filters", "query.sorts",
-                        "query.formatted_pivots", "history.query_run_count"],
-            "filters": {"history.created_date": timeframe, "query.model": model},
+                       "query.formatted_filters", "query.sorts",
+                       "query.formatted_pivots", "history.query_run_count"],
+            "filters": {"history.created_date": timeframe,
+                        "query.model": model},
             "limit": "50000"
     }
     response = looker.run_inline_query("json", body)
     return {'response': response, 'model': model.split(',')}
+
 
 def aggregate_usage(looker, timeframe, model, aggregation=None):
     field_usage = get_field_usage(looker, model, timeframe)
@@ -289,7 +296,7 @@ def aggregate_usage(looker, timeframe, model, aggregation=None):
                 'count': count
             })
 
-        fields = [get_explore_fields(looker, model = [m]) for m in models]
+        fields = [get_explore_fields(looker, model=[m]) for m in models]
         # flatten the list
         fields = [y for x in fields for y in x]
         [aggregator_count.append({'aggregator': field, 'count': 0}) for field in fields]
@@ -304,7 +311,7 @@ def aggregate_usage(looker, timeframe, model, aggregation=None):
                 'count': count
             })
 
-        views = [get_views(looker, model = [model]) for model in models]
+        views = [get_views(looker, model=[model]) for model in models]
         # flatten the list
         views = [y for x in views for y in x]
         [aggregator_count.append({'aggregator': view, 'count': 0}) for view in views]
