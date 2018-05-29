@@ -105,15 +105,22 @@ def main():
 def ls(looker, **kwargs):
     if kwargs['project'] is not False:
         p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
-        r = get_project_files(looker, project=p)
+        projects = get_project_files(looker, project=p)
+        r = get_info(projects, type='project')
         for i in r:
             s = '{} (models: {}, views: {})'.format(i['project'], i['models'], i['views'])
             print(s)
     elif kwargs['model'] is not False and kwargs['explore'] is False:
         m = None if len(kwargs['model']) == 0 else kwargs['model']
-        pprint(get_models(looker, model=m, scoped_names=1))
+        models = get_models(looker, model=m, verbose=1, scoped_names=1)
+        r = get_info(models, type='model')
+        for i in r:
+            s = '{}.{} (explores: {}, views: {})'.format(i['project'], i['model'], i['explores'], i['views'])
+            print(s)
     elif kwargs['explore']:
         pprint(get_explores(looker, project=None, model=kwargs['model'], scoped_names=1))
+
+
     return
 
 
@@ -152,6 +159,39 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
     return models
 
+
+# returns model name, project name, # explores and # views from model json
+def get_info(data, type):
+    # get model model info
+
+    valid_types = {'project', 'model', 'explore'}
+    info = []
+
+    if type not in valid_types:
+        raise ValueError('get_info: type must be one of %r.' % valid_types)
+    elif type == 'project':
+        for p in data:
+            metadata = list(map(lambda x:
+                                'model' if x['type'] == 'model' else
+                                ('view' if x['type'] == 'view' else None), p['files']))
+            info.append({
+                    'project': p['project'],
+                    'models': metadata.count('model'),
+                    'views': metadata.count('view')
+            })
+    elif type == 'model':
+        for m in data:
+            info.append({
+                    'project': m['project_name'],
+                    'model': m['name'],
+                    'explores': len(m['explores']),
+                    'views': len(set([vn['name'] for vn in m['explores']]))
+            })
+    else:
+        # explore stuff
+        print('explore stuff')
+
+    return info
 
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
@@ -213,6 +253,7 @@ def get_projects(looker, project=None, verbose=0):
 
     return projects
 
+
 # Function that returns a json describing a project
 def get_project_files(looker, project=None):
     if project is None:
@@ -224,15 +265,10 @@ def get_project_files(looker, project=None):
     project_data = []
     for project in project_names:
         project_files = looker.get_project_files(project)
-        project_info = list(map(lambda x:
-                                'model' if x['type'] == 'model' else
-                                ('view' if x['type'] == 'view' else None),
-                                project_files))
+
         project_data.append({
                 'project': project,
-                'files': project_files,
-                'models': project_info.count('model'),
-                'views': project_info.count('view')
+                'files': project_files
         })
 
     return project_data
