@@ -11,8 +11,8 @@ import sys
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-# host = 'mylooker'
-host = 'cs_eng'
+host = 'mylooker'
+# host = 'cs_eng'
 # model that you wish to analyze
 # model = ['ML, postgres']
 model = ['thelook']
@@ -62,6 +62,7 @@ def main():
     ls_parser.add_argument('-m', '--model',
                            type=str,
                            nargs='+' if '-e' in sys.argv else '*',
+                           default=False,
                            const=None,
                            required='-e' in sys.argv,
                            help='Lists all models')
@@ -83,8 +84,9 @@ def main():
     if args['command'] == 'ls':
         # do ls stuff
         ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
-        if not (ls_args['project'] or ls_args['model'] or ls_args['explore']):
-                parser.error('No action requested.')
+        if (ls_args['project'] is False and ls_args['model'] is False
+                and ls_args['explore'] is False):
+            parser.error('No action requested. Try ls --help for help')
         else:
             ls(looker, **ls_args)
     elif args['command'] == 'fu':
@@ -93,16 +95,20 @@ def main():
     else:
         print('No command passed')
 
-    pprint(aggregate_usage(looker, None, timeframe, aggregation='model'))
+    # pprint(aggregate_usage(looker, None, timeframe, aggregation='model'))
     # pprint(get_field_usage(looker, timeframe, None )['model'])
     # get_explore_fields(looker, model = ['thelook'])
 
 
 # ls func
+# If project flagged was used, call get_projects with list of projects or None.
 def ls(looker, **kwargs):
     if kwargs['project'] is not False:
         p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
-        pprint(get_projects(looker, project=p))
+        r, mc, vc = get_project_files(looker, project=p)
+        for idx, i in enumerate(r):
+            s = '{} (models: {}, views: {})'.format(i['project'], mc[idx], vc[idx])
+            print(s)
     elif kwargs['model'] is not False and kwargs['explore'] is False:
         m = None if len(kwargs['model']) == 0 else kwargs['model']
         pprint(get_models(looker, model=m, scoped_names=1))
@@ -116,8 +122,9 @@ def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
 
-# function that returns list of model definitions (verbose=1) or model names (verbose=0). Allows the user to specify a project name, a model name or nothing at all.
-# project paramater is a string while model parameter is a list.
+# function that returns list of model definitions (verbose=1) or model names
+# (verbose=0). Allows the user to specify a project name, a model name or
+# nothing at all. project paramater is a string while model parameter is a list
 def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
     if project is None and model is None:
         models = looker.get_models()
@@ -127,7 +134,8 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
         models = list(filter(lambda x: x['project_name'] == project, response))
     elif project is not None and model is not None:
         # if both project and model paramaters are specified
-        print('Warning: Project parameter ignored. Model names are unique across projects in Looker.')
+        print('''Warning: Project parameter ignored.
+              Model names are unique across projects in Looker.''')
         models = [looker.get_model(m) for m in model]
     else:
         # in case project parameter wasn't passed but model was. Behaves as above.
@@ -214,14 +222,22 @@ def get_project_files(looker, project=None):
         project_names = project
 
     project_data = []
+    model_count = []
+    view_count = []
     for project in project_names:
         project_files = looker.get_project_files(project)
         project_data.append({
                 'project': project,
                 'files': project_files
         })
+        project_info = list(map(lambda x:
+                                'model' if x['type'] == 'model' else
+                                ('view' if x['type'] == 'view' else None),
+                                project_files))
+        model_count.append(project_info.count('model'))
+        view_count.append(project_info.count('view'))
 
-    return project_data
+    return project_data, model_count, view_count
 
 
 # builds a dictionary from a list of fields, in them form of
