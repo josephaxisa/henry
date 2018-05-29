@@ -27,24 +27,30 @@ def main():
     parser = argparse.ArgumentParser()
 
     # auth arguments
-    parser.add_argument('--host', type=str, default=host,
-                        required=('--client_id' or
-                                  '--client_secret') in sys.argv,
-                        help='# Looker Host, Default: localhost')
-    parser.add_argument('--port', type=int, default=19999,
-                        help='# Looker API Port, Default: 19999')
-    parser.add_argument('--client_id', type=str,
-                        required='--client_secret' in sys.argv,
-                        help="# API3 Client Id")
-    parser.add_argument('--client_secret', type=str,
-                        required='--client_id' in sys.argv,
-                        help="# API3 Client Secret")
+    auth_parser = parser.add_argument_group("Authentication")
+    auth_parser.add_argument('--host', type=str, default=host,
+                             required=('--client_id' or
+                                       '--client_secret') in sys.argv,
+                             help='# Looker Host, Default: localhost')
+    auth_parser.add_argument('--port', type=int, default=19999,
+                             help='# Looker API Port, Default: 19999')
+    auth_parser.add_argument('--client_id', type=str,
+                             required='--client_secret' in sys.argv,
+                             help="# API3 Client Id")
+    auth_parser.add_argument('--client_secret', type=str,
+                             required='--client_id' in sys.argv,
+                             help="# API3 Client Secret")
 
-    subparsers = parser.add_subparsers(title='Subcommands', dest='command',
+    subparsers = parser.add_subparsers(title='Subcommands',
+                                       dest='command',
                                        description='Valid Subcommands',
                                        help='additional help')
+    # subparsers.required = True # works, but might do without for now.
 
     # parser for ls command
+    # -p:
+    # -m: can specify one or more models
+    # -e: lists all explores
     ls_parser = subparsers.add_parser('ls', help='ls help')
     ls_parser.set_defaults(func=ls)
     ls_parser.add_argument('-p', '--project',
@@ -67,7 +73,8 @@ def main():
     fu_parser = subparsers.add_parser('fu', help='fu help')
 
     args = vars(parser.parse_args())  # Namespace object
-    auth_args = {k: args[k] for k in ('host', 'port', 'client_id', 'client_secret')}
+    auth_params = ('host', 'port', 'client_id', 'client_secret')
+    auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
@@ -76,7 +83,10 @@ def main():
     if args['command'] == 'ls':
         # do ls stuff
         ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
-        ls(looker, **ls_args)
+        if not (ls_args['project'] or ls_args['model'] or ls_args['explore']):
+                parser.error('No action requested.')
+        else:
+            ls(looker, **ls_args)
     elif args['command'] == 'fu':
         # do fu stuff
         print('fu stuff')
