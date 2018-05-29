@@ -82,8 +82,8 @@ def main():
 
     # map subcommand to function
     if args['command'] == 'ls':
-        # do ls stuff
         ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
+        # in case no arguments where passed with the ls cmd
         if (ls_args['project'] is False and ls_args['model'] is False
                 and ls_args['explore'] is False):
             parser.error('No action requested. Try ls --help for help')
@@ -105,9 +105,9 @@ def main():
 def ls(looker, **kwargs):
     if kwargs['project'] is not False:
         p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
-        r, mc, vc = get_project_files(looker, project=p)
-        for idx, i in enumerate(r):
-            s = '{} (models: {}, views: {})'.format(i['project'], mc[idx], vc[idx])
+        r = get_project_files(looker, project=p)
+        for i in r:
+            s = '{} (models: {}, views: {})'.format(i['project'], i['models'], i['views'])
             print(s)
     elif kwargs['model'] is not False and kwargs['explore'] is False:
         m = None if len(kwargs['model']) == 0 else kwargs['model']
@@ -213,7 +213,7 @@ def get_projects(looker, project=None, verbose=0):
 
     return projects
 
-
+# Function that returns a json describing a project
 def get_project_files(looker, project=None):
     if project is None:
         projects = looker.get_projects()
@@ -222,22 +222,20 @@ def get_project_files(looker, project=None):
         project_names = project
 
     project_data = []
-    model_count = []
-    view_count = []
     for project in project_names:
         project_files = looker.get_project_files(project)
-        project_data.append({
-                'project': project,
-                'files': project_files
-        })
         project_info = list(map(lambda x:
                                 'model' if x['type'] == 'model' else
                                 ('view' if x['type'] == 'view' else None),
                                 project_files))
-        model_count.append(project_info.count('model'))
-        view_count.append(project_info.count('view'))
+        project_data.append({
+                'project': project,
+                'files': project_files,
+                'models': project_info.count('model'),
+                'views': project_info.count('view')
+        })
 
-    return project_data, model_count, view_count
+    return project_data
 
 
 # builds a dictionary from a list of fields, in them form of
