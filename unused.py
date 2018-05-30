@@ -47,48 +47,50 @@ def main():
                                        help='additional help')
     # subparsers.required = True # works, but might do without for now.
 
-    # parser for ls command
-    # -p:
-    # -m: can specify one or more models
-    # -e: lists all explores
     ls_parser = subparsers.add_parser('ls', help='ls help')
-    ls_parser.set_defaults(func=ls)
-    ls_parser.add_argument('-p', '--project',
+    ls_parser.set_defaults(which=None)
+    ls_subparsers = ls_parser.add_subparsers()
+    projects_sc = ls_subparsers.add_parser('projects')
+    models_sc = ls_subparsers.add_parser('models')
+    explores_sc = ls_subparsers.add_parser('explores')
+
+    # project subcommand
+    projects_sc.set_defaults(which='projects')
+
+    # models subcommand
+    models_sc.set_defaults(which='models')
+    models_sc.add_argument('-p', '--project',
                            type=str,
-                           default=False,  # when -p is not called
-                           const=None,  # when -p is called w/o arg
-                           nargs='?',
-                           help='Lists all projects')
-    ls_parser.add_argument('-m', '--model',
-                           type=str,
-                           nargs='+' if '-e' in sys.argv else '*',
-                           default=False,
-                           const=None,
-                           required='-e' in sys.argv,
-                           help='Lists all models')
-    ls_parser.add_argument('-e', '--explore',
-                           action='store_true',
-                           help='Lists all explores')
+                           default=None,  # when -p is not called
+                           help='Filter on project')
+
+    # explores subcommand
+    explores_sc.set_defaults(which='explores')
+    explores_sc.add_argument('-p', '--project',
+                             default=None,  # when -p is not called
+                             help='Filter on project')
+
+    explores_sc.add_argument('-m', '--model',
+                             default=None,
+                             help='Filter on models')
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
-
     args = vars(parser.parse_args())  # Namespace object
+    print(args)
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
+    explores = get_explores(looker, model=['postgres'], verbose=1)
 
     # map subcommand to function
     if args['command'] == 'ls':
-        ls_args = {k: args[k] for k in ('project', 'model', 'explore')}
-        # in case no arguments where passed with the ls cmd
-        if (ls_args['project'] is False and ls_args['model'] is False
-                and ls_args['explore'] is False):
-            parser.error('No action requested. Try ls --help for help')
+        if args['which'] is None:
+            parser.error("No command")
         else:
-            ls(looker, **ls_args)
+            ls(looker, **args)
     elif args['command'] == 'fu':
         # do fu stuff
         print('fu stuff')
@@ -103,24 +105,28 @@ def main():
 # ls func
 # If project flagged was used, call get_projects with list of projects or None.
 def ls(looker, **kwargs):
-    if kwargs['project'] is not False:
-        p = kwargs['project'].split(' ') if kwargs['project'] is not None else None
-        projects = get_project_files(looker, project=p)
+    if kwargs['which'] == 'projects':
+        projects = get_project_files(looker)
         r = get_info(projects, type='project')
         for i in r:
             s = '{} (models: {}, views: {})'.format(i['project'], i['models'], i['views'])
             print(s)
-    elif kwargs['model'] is not False and kwargs['explore'] is False:
-        m = None if len(kwargs['model']) == 0 else kwargs['model']
-        models = get_models(looker, model=m, verbose=1, scoped_names=1)
+
+    elif kwargs['which'] == 'models':
+        p = kwargs['project']
+        models = get_models(looker, project=p, verbose=1)
         r = get_info(models, type='model')
         for i in r:
             s = '{}.{} (explores: {}, views: {})'.format(i['project'], i['model'], i['explores'], i['views'])
             print(s)
-    elif kwargs['explore']:
-        pprint(get_explores(looker, project=None, model=kwargs['model'], scoped_names=1))
-
-
+    else:
+        p = kwargs['project']
+        m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
+        explores = get_explores(looker, project=p, model=m, verbose=1)
+        r = get_info(explores, type='explore')
+        for i in r:
+            s = '{} (views: {}, fields: {})'.format(i['explore'], i['views'], i['fields'])
+            print(s)
     return
 
 
@@ -145,7 +151,7 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
               Model names are unique across projects in Looker.''')
         models = [looker.get_model(m) for m in model]
     else:
-        # in case project parameter wasn't passed but model was. Behaves as above.
+        # if project parameter wasn't passed but model was. Behaves as above.
         models = [looker.get_model(m) for m in model]
 
     # error handling in case response is empty
@@ -173,7 +179,8 @@ def get_info(data, type):
         for p in data:
             metadata = list(map(lambda x:
                                 'model' if x['type'] == 'model' else
-                                ('view' if x['type'] == 'view' else None), p['files']))
+                                ('view' if x['type'] == 'view' else None),
+                                p['files']))
             info.append({
                     'project': p['project'],
                     'models': metadata.count('model'),
@@ -189,9 +196,16 @@ def get_info(data, type):
             })
     else:
         # explore stuff
-        print('explore stuff')
-
+        for e in data:
+            info.append({
+                    'project': e['source_file'], # only keep what's before the .dot
+                    'model': e['model_name'],
+                    'explore': e['name'],
+                    'views': len(e['scopes']),
+                    'fields': len(e['fields']['dimensions'])+len(e['fields']['measures'])+len(e['fields']['filters'])
+            })
     return info
+
 
 # returns a list of explores in a given project and/or model
 def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
@@ -203,10 +217,12 @@ def get_explores(looker, project=None, model=None, scoped_names=0, verbose=0):
         # if no project or model are specified, get all models
         model_list = get_models(looker, verbose=1)
     else:
-        # if project and model are specified or if project is not specified but model is.
+        # if project and model are specified or if project is not specified
+        # but model is.
         model_list = get_models(looker, model=model, verbose=1)
 
-    # if verbose = 1, then return explore bodies otherwise return explore names which can be fully scoped with project name
+    # if verbose = 1, then return explore bodies otherwise return explore names
+    # which can be fully scoped with project name
     for mdl in model_list:
         if verbose == 1:
             explores.extend([looker.get_explore(model_name=mdl['name'], explore_name=explore['name']) for explore in mdl['explores']])
@@ -223,7 +239,8 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
 
     if explore is not None:
         # filter list based on explore names supplied
-        explore_list = list(filter(lambda x: x['name'] == explore, explore_list))
+        explore_list = list(filter(lambda x: x['name'] == explore,
+                                   explore_list))
 
     for explore in explore_list:
         fields.extend([(explore['model_name']+'.')*scoped_names+dimension['name'] for dimension in explore['fields']['dimensions']])
@@ -234,7 +251,8 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
 
 
 def get_views(looker, project=None, model=None, explore=None, scoped_names=0):
-    fields = get_explore_fields(looker, model=None, explore=None, scoped_names=0)
+    fields = get_explore_fields(looker, model=None,
+                                explore=None, scoped_names=0)
     views = [field.split('.')[0] for field in fields]
     return list(set(views))
 
