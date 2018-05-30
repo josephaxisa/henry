@@ -106,8 +106,8 @@ def ls(looker, **kwargs):
         r = get_info(projects, type='project')
         #print(r)
         for i in r:
-            s = '{} (models: {}, views: {})'.format(i['project'], i['model_count'], i['view_count'])
-            print(s)
+            #s = '{} (models: {}, views: {})'.format(i['project'], i['model_count'], i['view_count'])
+            print(i['_project'])
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
@@ -115,8 +115,7 @@ def ls(looker, **kwargs):
         r = get_info(models, type='model')
         #print(r)
         for i in r:
-            s = '{}.{} (explores: {}, views: {})'.format(i['project'], i['model'], i['explore_count'], i['view_count'])
-            print(s)
+            print(i['_model'])
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
@@ -124,8 +123,7 @@ def ls(looker, **kwargs):
         r = get_info(explores, type='explore')
         #print(r)
         for i in r:
-            s = '{} (views: {}, fields: {})'.format(i['explore'], i['view_count'], i['field_count'])
-            print(s)
+            print(i['_explore'])
     return
 
 
@@ -180,11 +178,13 @@ def get_info(data, type):
                                 ('view' if x['type'] == 'view' else None),
                                 p['files']))
 
-            model_count = metadata.count('model'),
+            model_count = metadata.count('model')
             view_count = metadata.count('view')
             _project = '{} (models: {}, views: {})'.format(p['project'],
-                                                         model_count,
-                                                         view_count)
+                                                           model_count,
+                                                           view_count)
+
+            print(_project)
             info.append({
                     'project': p['project'],
                     '_project': _project,
@@ -193,7 +193,7 @@ def get_info(data, type):
             })
     elif type == 'model':
         for m in data:
-            explore_count = len(m['explores']),
+            explore_count = len(m['explores'])
             view_count = len(set([vn['name'] for vn in m['explores']]))
             _model = '{} (explores: {}, views {})'.format(m['name'],
                                                           explore_count,
