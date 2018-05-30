@@ -78,7 +78,6 @@ def main():
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
     args = vars(parser.parse_args())  # Namespace object
-    print(args)
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
 
@@ -98,10 +97,6 @@ def main():
     else:
         print('No command passed')
 
-    # pprint(aggregate_usage(looker, None, timeframe, aggregation='model'))
-    # pprint(get_field_usage(looker, timeframe, None )['model'])
-    # get_explore_fields(looker, model = ['thelook'])
-
 
 # ls func
 # If project flagged was used, call get_projects with list of projects or None.
@@ -109,24 +104,27 @@ def ls(looker, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
         r = get_info(projects, type='project')
+        #print(r)
         for i in r:
-            s = '{} (models: {}, views: {})'.format(i['project'], i['models'], i['views'])
+            s = '{} (models: {}, views: {})'.format(i['project'], i['model_count'], i['view_count'])
             print(s)
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         models = get_models(looker, project=p, verbose=1)
         r = get_info(models, type='model')
+        #print(r)
         for i in r:
-            s = '{}.{} (explores: {}, views: {})'.format(i['project'], i['model'], i['explores'], i['views'])
+            s = '{}.{} (explores: {}, views: {})'.format(i['project'], i['model'], i['explore_count'], i['view_count'])
             print(s)
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         explores = get_explores(looker, project=p, model=m, verbose=1)
         r = get_info(explores, type='explore')
+        #print(r)
         for i in r:
-            s = '{} (views: {}, fields: {})'.format(i['explore'], i['views'], i['fields'])
+            s = '{} (views: {}, fields: {})'.format(i['explore'], i['view_count'], i['field_count'])
             print(s)
     return
 
@@ -184,16 +182,16 @@ def get_info(data, type):
                                 p['files']))
             info.append({
                     'project': p['project'],
-                    'models': metadata.count('model'),
-                    'views': metadata.count('view')
+                    'model_count': metadata.count('model'),
+                    'view_count': metadata.count('view')
             })
     elif type == 'model':
         for m in data:
             info.append({
                     'project': m['project_name'],
                     'model': m['name'],
-                    'explores': len(m['explores']),
-                    'views': len(set([vn['name'] for vn in m['explores']]))
+                    'explore_count': len(m['explores']),
+                    'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
     else:
         # explore stuff
@@ -202,8 +200,8 @@ def get_info(data, type):
                     'project': e['source_file'], # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    'views': len(e['scopes']),
-                    'fields': len(e['fields']['dimensions'])+len(e['fields']['measures'])+len(e['fields']['filters'])
+                    'view_count': len(e['scopes']),
+                    'field_count': len(e['fields']['dimensions'])+len(e['fields']['measures'])+len(e['fields']['filters'])
             })
     return info
 
