@@ -167,7 +167,6 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 # returns model name, project name, # explores and # views from model json
 def get_info(data, type):
-    # get model model info
 
     valid_types = {'project', 'model', 'explore'}
     info = []
