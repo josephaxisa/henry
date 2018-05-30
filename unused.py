@@ -66,11 +66,12 @@ def main():
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
-    explores_sc.add_argument('-p', '--project',
+    group = explores_sc.add_mutually_exclusive_group()
+    group.add_argument('-p', '--project',
                              default=None,  # when -p is not called
                              help='Filter on project')
 
-    explores_sc.add_argument('-m', '--model',
+    group.add_argument('-m', '--model',
                              default=None,
                              help='Filter on models')
 
