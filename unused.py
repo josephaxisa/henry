@@ -179,29 +179,48 @@ def get_info(data, type):
                                 'model' if x['type'] == 'model' else
                                 ('view' if x['type'] == 'view' else None),
                                 p['files']))
+
+            model_count = metadata.count('model'),
+            view_count = metadata.count('view')
+            _project = '{} (models: {}, views: {})'.format(p['project'],
+                                                         model_count,
+                                                         view_count)
             info.append({
                     'project': p['project'],
-                    'model_count': metadata.count('model'),
-                    'view_count': metadata.count('view')
+                    '_project': _pname,
+                    'model_count': model_count,
+                    'view_count': view_count,
             })
     elif type == 'model':
         for m in data:
+            explore_count = len(m['explores']),
+            view_count = len(set([vn['name'] for vn in m['explores']]))
+            _mname = '{} (explores: {}, views {})'.format(m['name'],
+                                                          explore_count,
+                                                          view_count)
             info.append({
                     'project': m['project_name'],
                     'model': m['name'],
+                    '_model': _mname,
                     'explore_count': len(m['explores']),
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
     else:
         # explore stuff
         for e in data:
+            view_count = len(e['scopes'])
+            field_count = len(e['fields']['dimensions'] +
+                              e['fields']['measures'] +
+                              e['fields']['filters'])
+            _ename = '{} (views: {}, fields {})'.format(e['name'],
+                                                        view_count,
+                                                        field_count)
             info.append({
                     'project': e['source_file'], # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    'view_count': len(e['scopes']),
-                    'field_count': len(e['fields']['dimensions'])+len(e['fields']['measures'])+len(e['fields']['filters'])
-            })
+                    '_explore': _ename
+                    })
     return info
 
 
