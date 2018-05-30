@@ -187,7 +187,7 @@ def get_info(data, type):
                                                          view_count)
             info.append({
                     'project': p['project'],
-                    '_project': _pname,
+                    '_project': _project,
                     'model_count': model_count,
                     'view_count': view_count,
             })
@@ -195,13 +195,13 @@ def get_info(data, type):
         for m in data:
             explore_count = len(m['explores']),
             view_count = len(set([vn['name'] for vn in m['explores']]))
-            _mname = '{} (explores: {}, views {})'.format(m['name'],
+            _model = '{} (explores: {}, views {})'.format(m['name'],
                                                           explore_count,
                                                           view_count)
             info.append({
                     'project': m['project_name'],
                     'model': m['name'],
-                    '_model': _mname,
+                    '_model': _model,
                     'explore_count': len(m['explores']),
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
@@ -212,16 +212,31 @@ def get_info(data, type):
             field_count = len(e['fields']['dimensions'] +
                               e['fields']['measures'] +
                               e['fields']['filters'])
-            _ename = '{} (views: {}, fields {})'.format(e['name'],
+            _explore = '{} (views: {}, fields {})'.format(e['name'],
                                                         view_count,
                                                         field_count)
             info.append({
                     'project': e['source_file'], # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    '_explore': _ename
+                    '_explore': _explore
                     })
     return info
+
+
+# takes in a list of dictionaries. Dictionary keys
+# MUST be in ('project'/'model'/'explore' and *_count )
+def make_tree(data, group_field):
+
+    if group_field == 'project':
+        dict.fromkeys('project')
+
+
+    elif group_field=='model':
+        print('models')
+
+    elif group__field=='explore':
+        print('explores')
 
 
 # returns a list of explores in a given project and/or model
