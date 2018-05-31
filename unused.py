@@ -8,7 +8,7 @@ from itertools import groupby
 import re
 import argparse
 import sys
-
+from operator import itemgetter
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
 host = 'mylooker'
@@ -83,14 +83,14 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-    explores = get_explores(looker, model=['postgres'], verbose=1)
 
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
             parser.error("No command")
         else:
-            ls(looker, **args)
+            result = ls(looker, **args)
+            print(result)
     elif args['command'] == 'fu':
         # do fu stuff
         print('fu stuff')
@@ -104,27 +104,20 @@ def ls(looker, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
         r = get_info(projects, type='project')
-        #print(r)
-        for i in r:
-            #s = '{} (models: {}, views: {})'.format(i['project'], i['model_count'], i['view_count'])
-            print(i['_project'])
+        result = tree(r, 'project')
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         models = get_models(looker, project=p, verbose=1)
         r = get_info(models, type='model')
-        #print(r)
-        for i in r:
-            print(i['_model'])
+        result = tree(r, 'model')
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         explores = get_explores(looker, project=p, model=m, verbose=1)
         r = get_info(explores, type='explore')
-        #print(r)
-        for i in r:
-            print(i['_explore'])
-    return
+        result = tree(r, 'explore')
+    return result
 
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
@@ -184,20 +177,20 @@ def get_info(data, type):
                                                            model_count,
                                                            view_count)
 
-            print(_project)
             info.append({
                     'project': p['project'],
                     '_project': _project,
                     'model_count': model_count,
                     'view_count': view_count,
             })
+
     elif type == 'model':
         for m in data:
             explore_count = len(m['explores'])
             view_count = len(set([vn['name'] for vn in m['explores']]))
-            _model = '{} (explores: {}, views {})'.format(m['name'],
-                                                          explore_count,
-                                                          view_count)
+            _model = '{} (explores: {}, views: {})'.format(m['name'],
+                                                           explore_count,
+                                                           view_count)
             info.append({
                     'project': m['project_name'],
                     'model': m['name'],
@@ -212,11 +205,11 @@ def get_info(data, type):
             field_count = len(e['fields']['dimensions'] +
                               e['fields']['measures'] +
                               e['fields']['filters'])
-            _explore = '{} (views: {}, fields {})'.format(e['name'],
-                                                        view_count,
-                                                        field_count)
+            _explore = '{} (views: {}, fields: {})'.format(e['name'],
+                                                           view_count,
+                                                           field_count)
             info.append({
-                    'project': e['source_file'], # only keep what's before the .dot
+                    'project': e['project_name'],  # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
                     '_explore': _explore
@@ -225,18 +218,25 @@ def get_info(data, type):
 
 
 # takes in a list of dictionaries. Dictionary keys
-# MUST be in ('project'/'model'/'explore' and *_count )
-def make_tree(data, group_field):
-
+# MUST be in ('project', 'model', 'explore' and their *_ equivalent )
+def tree(data, group_field):
+    output = ""
     if group_field == 'project':
-        dict.fromkeys('project')
-
-
-    elif group_field=='model':
-        print('models')
-
-    elif group__field=='explore':
-        print('explores')
+        output += 'Projects:\n'
+        for i in data:
+            output += ('    ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_project'] + '\n')
+    elif group_field == 'model':
+        for key, group in groupby(data, key=lambda data: data['project']):
+            output += str(key) + ':\n'
+            for i in group:
+                output += ('   ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_model'] + '\n')
+    elif group_field == 'explore':
+        for key, group in groupby(data, itemgetter('project', 'model')):
+            output += str(key[0]) + ':\n'  # project
+            output += ('    ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + key[1] + '\n')  # model
+            for i in group:
+                output += ('\t' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_explore'] + '\n')
+    return output
 
 
 # returns a list of explores in a given project and/or model
