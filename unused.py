@@ -205,8 +205,10 @@ def get_info(data, type):
             field_count = len(e['fields']['dimensions'] +
                               e['fields']['measures'] +
                               e['fields']['filters'])
-            _explore = '{} (views: {}, fields: {})'.format(e['name'],
+            join_count = len(e['joins'])
+            _explore = '{} (views: {}, joins: {}, fields: {})'.format(e['name'],
                                                            view_count,
+                                                           join_count,
                                                            field_count)
             info.append({
                     'project': e['project_name'],  # only keep what's before the .dot
