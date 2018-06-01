@@ -9,6 +9,8 @@ import re
 import argparse
 import sys
 from operator import itemgetter
+
+
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
 host = 'mylooker'
@@ -56,6 +58,9 @@ def main():
 
     # project subcommand
     projects_sc.set_defaults(which='projects')
+    projects_sc.add_argument('--sortby',
+                             dest='sortkey',
+                             choices=['models', 'views'])
 
     # models subcommand
     models_sc.set_defaults(which='models')
@@ -63,6 +68,10 @@ def main():
                            type=str,
                            default=None,  # when -p is not called
                            help='Filter on project')
+
+    models_sc.add_argument('--sortby',
+                           dest='sortkey',
+                           choices=['explores', 'views'])
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
@@ -74,6 +83,10 @@ def main():
     group.add_argument('-m', '--model',
                              default=None,
                              help='Filter on models')
+
+    explores_sc.add_argument('--sortby',
+                             dest='sortkey',
+                             choices=['fields', 'joins', 'views'])
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
@@ -103,19 +116,19 @@ def main():
 def ls(looker, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
-        r = get_info(projects, type='project')
+        r = get_info(projects, type='project', sort_key=kwargs['sortkey'])
         result = tree(r, 'project')
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         models = get_models(looker, project=p, verbose=1)
-        r = get_info(models, type='model')
+        r = get_info(models, type='model', sort_key=kwargs['sortkey'])
         result = tree(r, 'model')
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         explores = get_explores(looker, project=p, model=m, verbose=1)
-        r = get_info(explores, type='explore')
+        r = get_info(explores, type='explore', sort_key=kwargs['sortkey'])
         result = tree(r, 'explore')
     return result
 
@@ -157,9 +170,13 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 
 # returns model name, project name, # explores and # views from model json
-def get_info(data, type):
+def get_info(data, type, sort_key=None):
 
     valid_types = {'project', 'model', 'explore'}
+    sorts = {'models': 'model_count', 'views': 'view_count', 'explores': 'explore_count', 'joins': 'join_count', 'fields':'field_count', 
+             'model': 'model', 'project': 'project', 'explore': 'explore'} # based on type
+    sk = sorts[sort_key] if sort_key is not None else sorts[type]
+    reverse_flag = False if sort_key is None else True
     info = []
 
     if type not in valid_types:
@@ -184,6 +201,8 @@ def get_info(data, type):
                     'view_count': view_count,
             })
 
+            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
+
     elif type == 'model':
         for m in data:
             explore_count = len(m['explores'])
@@ -198,6 +217,8 @@ def get_info(data, type):
                     'explore_count': len(m['explores']),
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
+
+            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
     else:
         # explore stuff
         for e in data:
@@ -207,15 +228,21 @@ def get_info(data, type):
                               e['fields']['filters'])
             join_count = len(e['joins'])
             _explore = '{} (views: {}, joins: {}, fields: {})'.format(e['name'],
-                                                           view_count,
-                                                           join_count,
-                                                           field_count)
+                                                                      view_count,
+                                                                      join_count,
+                                                                      field_count)
             info.append({
                     'project': e['project_name'],  # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    '_explore': _explore
+                    '_explore': _explore,
+                    'view_count': view_count,
+                    'join_count': join_count,
+                    'field_count': field_count
                     })
+
+            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
+
     return info
 
 
