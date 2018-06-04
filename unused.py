@@ -9,6 +9,8 @@ import re
 import argparse
 import sys
 from operator import itemgetter
+
+
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
 host = 'mylooker'
@@ -56,6 +58,9 @@ def main():
 
     # project subcommand
     projects_sc.set_defaults(which='projects')
+    projects_sc.add_argument('--sortby',
+                             dest='sortkey',
+                             choices=['models', 'views'])
 
     # models subcommand
     models_sc.set_defaults(which='models')
@@ -63,6 +68,10 @@ def main():
                            type=str,
                            default=None,  # when -p is not called
                            help='Filter on project')
+
+    models_sc.add_argument('--sortby',
+                           dest='sortkey',
+                           choices=['explores', 'views'])
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
@@ -75,6 +84,10 @@ def main():
                              default=None,
                              help='Filter on models')
 
+    explores_sc.add_argument('--sortby',
+                             dest='sortkey',
+                             choices=['fields', 'joins', 'views'])
+
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
     args = vars(parser.parse_args())  # Namespace object
@@ -83,7 +96,7 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-
+    print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='explore')))
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
@@ -99,23 +112,23 @@ def main():
 
 
 # ls func
-# If project flagged was used, call get_projects with list of projects or None.
+# If project flagˇ was used, call get_projects with list of projects or None.
 def ls(looker, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
-        r = get_info(projects, type='project')
+        r = get_info(projects, type='project', sort_key=kwargs['sortkey'])
         result = tree(r, 'project')
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         models = get_models(looker, project=p, verbose=1)
-        r = get_info(models, type='model')
+        r = get_info(models, type='model', sort_key=kwargs['sortkey'])
         result = tree(r, 'model')
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         explores = get_explores(looker, project=p, model=m, verbose=1)
-        r = get_info(explores, type='explore')
+        r = get_info(explores, type='explore', sort_key=kwargs['sortkey'])
         result = tree(r, 'explore')
     return result
 
@@ -157,9 +170,13 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 
 # returns model name, project name, # explores and # views from model json
-def get_info(data, type):
-
+def get_info(data, type, sort_key=None):
+    # TODO change sorts dict to more intuitive and consistent names.
     valid_types = {'project', 'model', 'explore'}
+    sorts = {'models': 'model_count', 'views': 'view_count', 'explores': 'explore_count', 'joins': 'join_count', 'fields':'field_count',
+             'model': 'model', 'project': 'project', 'explore': 'explore'} # based on type
+    sk = sorts[sort_key] if sort_key is not None else sorts[type]
+    reverse_flag = False if sort_key is None else True
     info = []
 
     if type not in valid_types:
@@ -198,22 +215,31 @@ def get_info(data, type):
                     'explore_count': len(m['explores']),
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
-    else:
+
+    elif type == 'explore':
         # explore stuff
         for e in data:
             view_count = len(e['scopes'])
             field_count = len(e['fields']['dimensions'] +
                               e['fields']['measures'] +
                               e['fields']['filters'])
-            _explore = '{} (views: {}, fields: {})'.format(e['name'],
-                                                           view_count,
-                                                           field_count)
+            join_count = len(e['joins'])
+            _explore = '{} (views: {}, joins: {}, fields: {})'.format(e['name'],
+                                                                      view_count,
+                                                                      join_count,
+                                                                      field_count)
             info.append({
                     'project': e['project_name'],  # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    '_explore': _explore
+                    '_explore': _explore,
+                    'view_count': view_count,
+                    'join_count': join_count,
+                    'field_count': field_count
                     })
+
+    info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
+
     return info
 
 
@@ -358,10 +384,9 @@ def schema_project_models(looker, project=None):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-
 def get_field_usage(looker, timeframe, model=None, project=None):
     if model is None:
-        model = ','.join(get_models(looker))
+        model = ','.join(get_models(looker)) # can return models that have had no queries run against them as well (since this is from an API end point)
     else:
         model = ','.join(model)
     body = {
@@ -374,12 +399,23 @@ def get_field_usage(looker, timeframe, model=None, project=None):
                         "query.model": model},
             "limit": "50000"
     }
+
     response = looker.run_inline_query("json", body)
+
     return {'response': response, 'model': model.split(',')}
 
 
-def aggregate_usage(looker, timeframe, model, aggregation=None):
-    field_usage = get_field_usage(looker, model, timeframe)
+def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
+
+    # make sure agg_level specified is recognised
+    valid_agg_levels = ('field', 'view', 'explore', 'model')
+    if aggregation not in valid_agg_levels:
+        raise ValueError('agg_level: type must be one of %r.' % valid_agg_levels)
+
+    # get usage across all models or for a specified model
+    field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
+
+    # parse response
     response = field_usage['response']
     models = field_usage['model']
     formatted_fields = []
@@ -443,9 +479,9 @@ def aggregate_usage(looker, timeframe, model, aggregation=None):
 
     if aggregation == 'model':
         for row in formatted_fields:
-            model = row.split('.')[0]
-            aggregator.append(model)
-            count = int(row.split('.')[4])
+            model = row.split('.')[0] # take out model
+            aggregator.append(model) # append the model
+            count = int(row.split('.')[4]) # get the count
             aggregator_count.append({
                 'aggregator': model,
                 'count': count
@@ -453,7 +489,9 @@ def aggregate_usage(looker, timeframe, model, aggregation=None):
         models = get_models(looker, model=[model])
         models = [get_explores(looker, model=[model]) for model in models]
         # flatten the list
+        print(models)
         models = [y for x in models for y in x]
+        print(models)
         [aggregator_count.append({'aggregator': model, 'count': 0}) for model in models]
 
     c = Counter()
