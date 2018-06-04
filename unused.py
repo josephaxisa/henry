@@ -96,7 +96,7 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-
+    print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='field')))
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
@@ -112,7 +112,7 @@ def main():
 
 
 # ls func
-# If project flagged was used, call get_projects with list of projects or None.
+# If project flagˇ was used, call get_projects with list of projects or None.
 def ls(looker, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
@@ -171,9 +171,9 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 # returns model name, project name, # explores and # views from model json
 def get_info(data, type, sort_key=None):
-
+    # TODO change sorts dict to more intuitive and consistent names.
     valid_types = {'project', 'model', 'explore'}
-    sorts = {'models': 'model_count', 'views': 'view_count', 'explores': 'explore_count', 'joins': 'join_count', 'fields':'field_count', 
+    sorts = {'models': 'model_count', 'views': 'view_count', 'explores': 'explore_count', 'joins': 'join_count', 'fields':'field_count',
              'model': 'model', 'project': 'project', 'explore': 'explore'} # based on type
     sk = sorts[sort_key] if sort_key is not None else sorts[type]
     reverse_flag = False if sort_key is None else True
@@ -201,8 +201,6 @@ def get_info(data, type, sort_key=None):
                     'view_count': view_count,
             })
 
-            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
-
     elif type == 'model':
         for m in data:
             explore_count = len(m['explores'])
@@ -218,7 +216,6 @@ def get_info(data, type, sort_key=None):
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
 
-            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
     else:
         # explore stuff
         for e in data:
@@ -241,7 +238,7 @@ def get_info(data, type, sort_key=None):
                     'field_count': field_count
                     })
 
-            info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
+    info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
 
     return info
 
@@ -387,7 +384,6 @@ def schema_project_models(looker, project=None):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-
 def get_field_usage(looker, timeframe, model=None, project=None):
     if model is None:
         model = ','.join(get_models(looker))
@@ -407,8 +403,8 @@ def get_field_usage(looker, timeframe, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
-def aggregate_usage(looker, timeframe, model, aggregation=None):
-    field_usage = get_field_usage(looker, model, timeframe)
+def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
+    field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
     response = field_usage['response']
     models = field_usage['model']
     formatted_fields = []
