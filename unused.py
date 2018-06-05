@@ -9,6 +9,11 @@ import re
 import argparse
 import sys
 from operator import itemgetter
+<<<<<<< HEAD
+=======
+from spinnerthread import SpinnerThread
+import threading
+>>>>>>> master
 
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
@@ -84,6 +89,10 @@ def main():
                                 default=None,
                                 help='Filter on models')
 
+    explores_sc.add_argument('--sortby',
+                             dest='sortkey',
+                             choices=['fields', 'joins', 'views'])
+
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
     fu_parser.set_defaults(which=None)
@@ -107,15 +116,25 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
+<<<<<<< HEAD
     #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, agg_level='explore')))
 
+=======
+    #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='field')))
+>>>>>>> master
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
             parser.error("No command")
         else:
-            result = ls(looker, **args)
-            print(result)
+            #result = ls(looker, **args)
+            spinner_thread = SpinnerThread()
+            spinner_thread.start()
+            task = threading.Thread(target=ls(looker, **args))
+            task.start()
+            #print(result)
+            task.join()
+            spinner_thread.stop()
     elif args['command'] == 'fu':
         # do fu stuff
         print('fu stuff')
@@ -142,7 +161,8 @@ def ls(looker, **kwargs):
         explores = get_explores(looker, project=p, model=m, verbose=1)
         r = get_info(explores, type='explore', sort_key=kwargs['sortkey'])
         result = tree(r, 'explore')
-    return result
+    sys.stdout.write('\b')
+    sys.stdout.write(result)
 
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
@@ -228,7 +248,11 @@ def get_info(data, type, sort_key=None):
                     'view_count': len(set([vn['name'] for vn in m['explores']]))
             })
 
+<<<<<<< HEAD
     elif type == 'explore':
+=======
+    else:
+>>>>>>> master
         # explore stuff
         for e in data:
             view_count = len(e['scopes'])
@@ -417,6 +441,7 @@ def get_field_usage(looker, timeframe, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
+<<<<<<< HEAD
 def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     # make sure agg_level specified is recognised
@@ -427,6 +452,10 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
     # get usage across all models or for a specified model
     field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
 
+=======
+def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
+    field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
+>>>>>>> master
     response = field_usage['response']
     models = field_usage['model']
     formatted_fields = []
