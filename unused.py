@@ -14,12 +14,9 @@ from operator import itemgetter
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
 host = 'mylooker'
-# host = 'cs_eng'
+
 # model that you wish to analyze
-# model = ['ML, postgres']
 model = ['thelook']
-# model = 'calendar, e_commerce'
-# projects = ['the_look_fabio']
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -75,28 +72,43 @@ def main():
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
-    group = explores_sc.add_mutually_exclusive_group()
-    group.add_argument('-p', '--project',
-                             default=None,  # when -p is not called
-                             help='Filter on project')
-
-    group.add_argument('-m', '--model',
-                             default=None,
-                             help='Filter on models')
-
     explores_sc.add_argument('--sortby',
                              dest='sortkey',
                              choices=['fields', 'joins', 'views'])
+    explores_group = explores_sc.add_mutually_exclusive_group()
+    explores_group.add_argument('-p', '--project',
+                                default=None,  # when -p is not called
+                                help='Filter on project')
+
+    explores_group.add_argument('-m', '--model',
+                                default=None,
+                                help='Filter on models')
 
     # parser for fu command
     fu_parser = subparsers.add_parser('fu', help='fu help')
+    fu_parser.set_defaults(which=None)
+    fu_group = fu_parser.add_mutually_exclusive_group()
+    fu_group.add_argument('-a', '--all',
+                          action='store_true',
+                          default=None,
+                          help='List everything')
+    fu_group.add_argument('-u', '--unused',
+                          action='store_true',
+                          default=None,
+                          help='Filter on unused content')
+    fu_parser.add_argument('--agg_level',
+                           choices=['model', 'view', 'explore', 'field'],
+                           help='Aggregate level')
+
+    # parse arguments passed in
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
-    print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='explore')))
+    #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, agg_level='explore')))
+
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
@@ -405,17 +417,16 @@ def get_field_usage(looker, timeframe, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
-def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
+def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     # make sure agg_level specified is recognised
     valid_agg_levels = ('field', 'view', 'explore', 'model')
-    if aggregation not in valid_agg_levels:
+    if agg_level not in valid_agg_levels:
         raise ValueError('agg_level: type must be one of %r.' % valid_agg_levels)
 
     # get usage across all models or for a specified model
     field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
 
-    # parse response
     response = field_usage['response']
     models = field_usage['model']
     formatted_fields = []
@@ -433,7 +444,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
     aggregator_count = []
     aggregator = []
 
-    if aggregation == 'field':
+    if agg_level == 'field':
         for row in formatted_fields:
             field = '.'.join(row.split('.')[2:4])
             aggregator.append(field)
@@ -448,7 +459,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
         fields = [y for x in fields for y in x]
         [aggregator_count.append({'aggregator': field, 'count': 0}) for field in fields]
 
-    if aggregation == 'view':
+    if agg_level == 'view':
         for row in formatted_fields:
             view = row.split('.')[2]
             aggregator.append(view)
@@ -463,7 +474,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
         views = [y for x in views for y in x]
         [aggregator_count.append({'aggregator': view, 'count': 0}) for view in views]
 
-    if aggregation == 'explore':
+    if agg_level == 'explore':
         for row in formatted_fields:
             explore = row.split('.')[1]
             aggregator.append(explore)
@@ -477,7 +488,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
         explores = [y for x in explores for y in x]
         [aggregator_count.append({'aggregator': explore, 'count': 0}) for explore in explores]
 
-    if aggregation == 'model':
+    if agg_level == 'model':
         for row in formatted_fields:
             model = row.split('.')[0] # take out model
             aggregator.append(model) # append the model
