@@ -9,6 +9,8 @@ import re
 import argparse
 import sys
 from operator import itemgetter
+from spinnerthread import SpinnerThread
+import threading
 
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
@@ -96,14 +98,20 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-    print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='field')))
+    #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='field')))
     # map subcommand to function
     if args['command'] == 'ls':
         if args['which'] is None:
             parser.error("No command")
         else:
-            result = ls(looker, **args)
-            print(result)
+            #result = ls(looker, **args)
+            spinner_thread = SpinnerThread()
+            spinner_thread.start()
+            task = threading.Thread(target=ls(looker, **args))
+            task.start()
+            #print(result)
+            task.join()
+            spinner_thread.stop()
     elif args['command'] == 'fu':
         # do fu stuff
         print('fu stuff')
@@ -130,7 +138,8 @@ def ls(looker, **kwargs):
         explores = get_explores(looker, project=p, model=m, verbose=1)
         r = get_info(explores, type='explore', sort_key=kwargs['sortkey'])
         result = tree(r, 'explore')
-    return result
+    sys.stdout.write('\b')
+    sys.stdout.write(result)
 
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
