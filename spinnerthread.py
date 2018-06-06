@@ -11,7 +11,9 @@ class SpinnerThread(threading.Thread):
         self._stopevent = threading.Event()
 
     def stop(self):
+        sys.stdout.write('\b')
         self._stopevent.set()
+
     def _spin(self):
 
         while not self._stopevent.isSet():

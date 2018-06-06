@@ -1,7 +1,6 @@
 import yaml
 import json
 from lookerapi import LookerApi
-from pprint import pprint
 from collections import defaultdict
 from collections import Counter
 from itertools import groupby
@@ -9,12 +8,11 @@ import re
 import argparse
 import sys
 from operator import itemgetter
-<<<<<<< HEAD
-=======
 from spinnerthread import SpinnerThread
 import threading
->>>>>>> master
-
+import queue
+from tabulate import tabulate
+import requests
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
@@ -51,12 +49,15 @@ def main():
                                        help='additional help')
     # subparsers.required = True # works, but might do without for now.
 
-    ls_parser = subparsers.add_parser('ls', help='ls help')
+    health_subparser = subparsers.add_parser('pulse', help='analyze help')
+
+    ls_parser = subparsers.add_parser('analyze', help='analyze help')
     ls_parser.set_defaults(which=None)
     ls_subparsers = ls_parser.add_subparsers()
     projects_sc = ls_subparsers.add_parser('projects')
     models_sc = ls_subparsers.add_parser('models')
     explores_sc = ls_subparsers.add_parser('explores')
+    views_sc = ls_subparsers.add_parser('views')
 
     # project subcommand
     projects_sc.set_defaults(which='projects')
@@ -88,27 +89,7 @@ def main():
     explores_group.add_argument('-m', '--model',
                                 default=None,
                                 help='Filter on models')
-
-    explores_sc.add_argument('--sortby',
-                             dest='sortkey',
-                             choices=['fields', 'joins', 'views'])
-
     # parser for fu command
-    fu_parser = subparsers.add_parser('fu', help='fu help')
-    fu_parser.set_defaults(which=None)
-    fu_group = fu_parser.add_mutually_exclusive_group()
-    fu_group.add_argument('-a', '--all',
-                          action='store_true',
-                          default=None,
-                          help='List everything')
-    fu_group.add_argument('-u', '--unused',
-                          action='store_true',
-                          default=None,
-                          help='Filter on unused content')
-    fu_parser.add_argument('--agg_level',
-                           choices=['model', 'view', 'explore', 'field'],
-                           help='Aggregate level')
-
     # parse arguments passed in
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret')
@@ -116,54 +97,138 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-<<<<<<< HEAD
+    check_version(looker)
     #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, agg_level='explore')))
-
-=======
-    #print(json.dumps(aggregate_usage(looker, timeframe=timeframe, model=None, aggregation='field')))
->>>>>>> master
+    #print(tabulate(test, headers='keys', tablefmt='grid'))
+    q = queue.Queue()
     # map subcommand to function
-    if args['command'] == 'ls':
+    if args['command'] == 'analyze':
         if args['which'] is None:
             parser.error("No command")
         else:
             #result = ls(looker, **args)
             spinner_thread = SpinnerThread()
             spinner_thread.start()
-            task = threading.Thread(target=ls(looker, **args))
+            task = threading.Thread(target=ls, args=[looker, q], kwargs=args)
             task.start()
-            #print(result)
             task.join()
             spinner_thread.stop()
+            print(q.get())
     elif args['command'] == 'fu':
         # do fu stuff
-        print('fu stuff')
+        print('fu')
+        # spinner_thread = SpinnerThread()
+        # spinner_thread.start()
+        # task = threading.Thread(target=fu, args=[looker, q], kwargs=args)
+        # task.start()
+        # task.join()
+        # spinner_thread.stop()
+        # print(q.get())
+    #    if args['which']
     else:
         print('No command passed')
 
 
+# fu Function
+def fu(looker, queue, **kwargs):
+    result = aggregate_usage(looker, agg_level=kwargs['agg_level'])
+    queue.put(result)
+
+def check_scheduled_plans(looker):
+    body = {
+            "model": "i__looker",
+            "view": "scheduled_plan",
+            "fields": ["scheduled_job.status", "scheduled_job.count"],
+            "filters": {
+                        "scheduled_plan.run_once": "no",
+                        "scheduled_job.status": "-NULL"
+                       },
+            "limit": "50000"
+            }
+
+    response = looker.run_inline_query("json", body)
+
+    print(response)
+
+def get_model_query_count(looker):
+    body = {
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.model", "history.query_run_count"],
+            "limit": "50000"
+            }
+
+    response = looker.run_inline_query("json", body)
+
+    x = {}
+    for r in response:
+        x[r['query.model']] = r['history.query_run_count']
+    return(x)
+
+
+def check_integrations(looker):
+    response = looker.get_integrations()
+    integrations = []
+    for r in response:
+        if r['enabled']:
+            integrations.append(r['label'])
+
+    result = None if len(integrations) == 0 else integrations
+
+    return result
+
+def check_legacy_features(looker):
+    response = looker.get_legacy_features()
+    _result = []
+    for r in response:
+        if r['enabled'] is True:
+            _result.append(r['name'])
+
+    result = _result if len(_result) > 0 else "Pass"
+    return result
+
+def check_connections(looker, connection_name=None):
+    result = []
+    if connection_name is None:
+        connection_name = [c['name'] for c in looker.get_connections()]
+    for c in connection_name:
+        looker.test_connection(connection_name=c)
+        result.append({'name': c,
+                       'status': looker.test_connection(connection_name=c)
+                       })
+    return result
+
+def check_version(looker):
+    version = looker.get_version()['looker_release_version']
+
+    session = requests.Session()
+    latest_version = session.get('https://learn.looker.com:19999/versions').json()['looker_release_version']
+
+    return version, latest_version
+
+
 # ls func
 # If project flagˇ was used, call get_projects with list of projects or None.
-def ls(looker, **kwargs):
+def ls(looker, queue, **kwargs):
     if kwargs['which'] == 'projects':
         projects = get_project_files(looker)
-        r = get_info(projects, type='project', sort_key=kwargs['sortkey'])
-        result = tree(r, 'project')
+        r = get_info(looker, projects, type='project', sort_key=kwargs['sortkey'])
+        result = tabulate(r, headers='keys', tablefmt='simple', numalign='center')
 
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         models = get_models(looker, project=p, verbose=1)
-        r = get_info(models, type='model', sort_key=kwargs['sortkey'])
-        result = tree(r, 'model')
+        r = get_info(looker, models, type='model', sort_key=kwargs['sortkey'])
+        result = tabulate(r, headers='keys', tablefmt='simple', numalign='center')
     else:
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         explores = get_explores(looker, project=p, model=m, verbose=1)
-        r = get_info(explores, type='explore', sort_key=kwargs['sortkey'])
-        result = tree(r, 'explore')
-    sys.stdout.write('\b')
-    sys.stdout.write(result)
-
+        r = get_info(looker, explores, type='explore', sort_key=kwargs['sortkey'])
+        result = tabulate(r, headers='keys', tablefmt='simple', numalign='center')
+    #sys.stdout.write('\b')
+    #sys.stdout.write(result)
+    queue.put(result)
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -202,7 +267,7 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
 
 
 # returns model name, project name, # explores and # views from model json
-def get_info(data, type, sort_key=None):
+def get_info(looker, data, type, sort_key=None):
     # TODO change sorts dict to more intuitive and consistent names.
     valid_types = {'project', 'model', 'explore'}
     sorts = {'models': 'model_count', 'views': 'view_count', 'explores': 'explore_count', 'joins': 'join_count', 'fields':'field_count',
@@ -222,37 +287,30 @@ def get_info(data, type, sort_key=None):
 
             model_count = metadata.count('model')
             view_count = metadata.count('view')
-            _project = '{} (models: {}, views: {})'.format(p['project'],
-                                                           model_count,
-                                                           view_count)
-
+            git_tests = test_git_connection(looker, project=p['name'])
             info.append({
-                    'project': p['project'],
-                    '_project': _project,
+                    'project': p['name'],
                     'model_count': model_count,
                     'view_count': view_count,
+                    'Git Connection': git_tests,
+                    'Pull Requests': p['pr_mode'],
+                    'Validation Required': p['validation_required']
             })
 
     elif type == 'model':
+        query_count = get_model_query_count(looker)
         for m in data:
             explore_count = len(m['explores'])
             view_count = len(set([vn['name'] for vn in m['explores']]))
-            _model = '{} (explores: {}, views: {})'.format(m['name'],
-                                                           explore_count,
-                                                           view_count)
             info.append({
                     'project': m['project_name'],
                     'model': m['name'],
-                    '_model': _model,
                     'explore_count': len(m['explores']),
-                    'view_count': len(set([vn['name'] for vn in m['explores']]))
+                    'view_count': len(set([vn['name'] for vn in m['explores']])),
+                    'query_run_count': query_count[m['name']] if m['name'] in query_count else 0
             })
 
-<<<<<<< HEAD
     elif type == 'explore':
-=======
-    else:
->>>>>>> master
         # explore stuff
         for e in data:
             view_count = len(e['scopes'])
@@ -260,18 +318,35 @@ def get_info(data, type, sort_key=None):
                               e['fields']['measures'] +
                               e['fields']['filters'])
             join_count = len(e['joins'])
-            _explore = '{} (views: {}, joins: {}, fields: {})'.format(e['name'],
-                                                                      view_count,
-                                                                      join_count,
-                                                                      field_count)
             info.append({
-                    'project': e['project_name'],  # only keep what's before the .dot
                     'model': e['model_name'],
                     'explore': e['name'],
-                    '_explore': _explore,
                     'view_count': view_count,
                     'join_count': join_count,
-                    'field_count': field_count
+                    'unused_joins': 'y',
+                    'field_count': field_count,
+                    'Hidden': e['hidden'],
+                    'Has Description': 'No' if e['description'] is None else 'Yes',
+                    'query_count': 'x'
+                    })
+
+    elif type == 'views':
+        # explore stuff
+        for e in data:
+            view_count = len(e['scopes'])
+            field_count = len(e['fields']['dimensions'] +
+                              e['fields']['measures'] +
+                              e['fields']['filters'])
+            join_count = len(e['joins'])
+            info.append({
+                    'model': e['model_name'],
+                    'explore': e['name'],
+                    'view_count': view_count,
+                    'join_count': join_count,
+                    'unused_joins': 'y',
+                    'field_count': field_count,
+                    'Has Description (Yes/No)': 'No' if e['description'] is None else 'Yes',
+                    'query_count': 'x'
                     })
 
     info = sorted(info, key=itemgetter(sk), reverse=reverse_flag)
@@ -289,7 +364,7 @@ def tree(data, group_field):
             output += ('    ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_project'] + '\n')
     elif group_field == 'model':
         for key, group in groupby(data, key=lambda data: data['project']):
-            output += str(key) + ':\n'
+            output += str(key) + ':\n' # project
             for i in group:
                 output += ('   ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_model'] + '\n')
     elif group_field == 'explore':
@@ -369,17 +444,19 @@ def get_projects(looker, project=None, verbose=0):
 # Function that returns a json describing a project
 def get_project_files(looker, project=None):
     if project is None:
-        projects = looker.get_projects()
-        project_names = [project['id'] for project in projects]
+        project_names = looker.get_projects()
     else:
         project_names = project
 
     project_data = []
     for project in project_names:
-        project_files = looker.get_project_files(project)
+        project_files = looker.get_project_files(project['id'])
 
         project_data.append({
-                'project': project,
+                'name': project['id'],
+                'pr_mode': project['pull_request_mode'],
+                'validation_required': project['validation_required'],
+                'git_remote_url': project['git_remote_url'],
                 'files': project_files
         })
 
@@ -417,7 +494,6 @@ def schema_project_models(looker, project=None):
         })
     return schema
 
-
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
 def get_field_usage(looker, timeframe, model=None, project=None):
@@ -441,7 +517,12 @@ def get_field_usage(looker, timeframe, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
-<<<<<<< HEAD
+# returns a dictionary in the form of {field/explore/model/view: name,
+#                                                         count: # uses}
+# model names - not scoped (they're unique)
+# view names - not scoped
+# explores - model scoped
+# fields - explore scoped
 def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     # make sure agg_level specified is recognised
@@ -452,10 +533,6 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
     # get usage across all models or for a specified model
     field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
 
-=======
-def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
-    field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
->>>>>>> master
     response = field_usage['response']
     models = field_usage['model']
     formatted_fields = []
@@ -529,9 +606,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
         models = get_models(looker, model=[model])
         models = [get_explores(looker, model=[model]) for model in models]
         # flatten the list
-        print(models)
         models = [y for x in models for y in x]
-        print(models)
         [aggregator_count.append({'aggregator': model, 'count': 0}) for model in models]
 
     c = Counter()
@@ -540,7 +615,6 @@ def aggregate_usage(looker, model=None, timeframe='90 days', aggregation=None):
         c[value['aggregator']] += value['count']
 
     return dict(c)
-    # return aggregator_count
 
 
 # resturns a list of dictionaries in the format of
@@ -603,6 +677,21 @@ def authenticate(**kwargs):
             return
 
     return looker
+
+def test_git_connection(looker, project):
+    # enter dev mode
+    looker.update_session(mode='dev')
+    # obtain tests available
+    tests = [test['id'] for test in looker.git_connection_tests(project_id=project)]
+    test_result = []
+    result = ''
+    for idx, test in enumerate(tests):
+        s = '({}/{}) {}'.format(idx+1, len(tests), test)
+        #r = looker.run_git_connection_test(project_id=project, test_id=test) # seems to be broken
+        result += (s+': PASS'+'\n')
+
+    result = result if "fail" in test_result else 'OK'
+    return result
 
 
 if __name__ == "__main__":

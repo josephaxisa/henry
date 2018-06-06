@@ -187,3 +187,60 @@ class LookerApi(object):
             return r.status_code
 
         return
+
+
+# GET /connections
+    def get_connections(self):
+        url = 'https://{}:{}/api/3.0/connections'.format(self.host, self.port)
+
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+        return
+
+
+# PUT /connections/{connection_name}/test
+    def test_connection(self, connection_name):
+        url = 'https://{}:{}/api/3.0/connections/{}/test'.format(self.host, self.port, connection_name)
+
+        r = self.session.put(url)
+
+        if r.status_code == requests.codes.ok:
+            return 'Pass'
+        else:
+            return r.status_code
+
+# GET /legacy_features
+    def get_legacy_features(self):
+        url = 'https://{}:{}/api/3.0/legacy_features'.format(self.host, self.port)
+
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+# GET /integrations
+    def get_integrations(self):
+        url = 'https://{}:{}/api/3.0/integrations'.format(self.host, self.port)
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+# GET /versions
+    def get_version(self):
+        url = 'https://{}:{}/api/3.0/versions'.format(self.host, self.port)
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
