@@ -137,9 +137,8 @@ class LookerApi(object):
 # PATCH session
     def update_session(self, mode):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'session')
-        print(url)
         body = { 'workspace_id' : str(mode)}
-        print(mode)
+
         r = self.session.patch(url, json=body)
 
         if r.status_code == requests.codes.ok:
@@ -149,9 +148,36 @@ class LookerApi(object):
 
         return
 
-# GET sessopm
+# GET session
     def get_session(self):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'session')
+
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+        return
+
+# GET /projects/{project_id}/git_connection_tests
+    def git_connection_tests(self, project_id):
+        url = ('https://{}:{}/api/3.0/projects/{}'
+               '/git_connection_tests').format(self.host, self.port, project_id)
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+        return
+
+# GET /projects/{project_id}/git_connection_tests/{test_id}
+    def run_git_connection_test(self, project_id, test_id):
+        url = ('https://{}:{}/api/3.0/projects/{}'
+               '/git_connection_tests/{}').format(self.host, self.port, project_id, test_id)
 
         r = self.session.get(url)
 
