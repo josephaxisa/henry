@@ -133,3 +133,31 @@ class LookerApi(object):
             f = open('api_errors.txt', 'a+')
             f.write(error_message)
             f.close()
+
+# PATCH session
+    def update_session(self, mode):
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'session')
+        print(url)
+        body = { 'workspace_id' : str(mode)}
+        print(mode)
+        r = self.session.patch(url, json=body)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+        return
+
+# GET sessopm
+    def get_session(self):
+        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'session')
+
+        r = self.session.get(url)
+
+        if r.status_code == requests.codes.ok:
+            return r.json()
+        else:
+            return r.status_code
+
+        return
