@@ -165,7 +165,7 @@ def main():
             #result = ls(looker, **args)
             spinner_thread = SpinnerThread()
             spinner_thread.start()
-            task = threading.Thread(target=ls, args=[looker, q], kwargs=args)
+            task = threading.Thread(target=analyze, args=[looker, q], kwargs=args)
             task.start()
             task.join()
             spinner_thread.stop()
@@ -178,7 +178,7 @@ def main():
 
 # ls func
 # If project flagˇ was used, call get_projects with list of projects or None.
-def ls(looker, queue, **kwargs):
+def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     if kwargs['which'] == 'projects':
         p = kwargs['project'] if kwargs['project'] is not None else None
