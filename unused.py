@@ -127,27 +127,28 @@ def main():
 
     # VACUUM Subcommand
     vacuum_parser = subparsers.add_parser('vacuum', help='analyze help')
+    vacuum_parser.set_defaults(which=None)
     vacuum_subparsers = vacuum_parser.add_subparsers()
-    vacuum_projects = vacuum_subparsers.add_parser('projects')
     vacuum_models = vacuum_subparsers.add_parser('models')
     vacuum_explores = vacuum_subparsers.add_parser('explores')
     vacuum_views = vacuum_subparsers.add_parser('views')
 
-    vacuum_projects.add_argument('-p', '--project',
-                                 type=str,
-                                 default=None,  # when -p is not called
-                                 help='Filter on project')
-
     vacuum_models.set_defaults(which='models')
-    vacuum_models.add_argument('-p', '--project',
-                                type=str,
-                                default=None,  # when -p is not called
-                                help='Filter on project')
-    vacuum_models.add_argument('-model', '--model',
+    vacuum_models.add_argument('-m', '--model',
                                type=str,
                                default=None,  # when -p is not called
                                help='Filter on model')
 
+    vacuum_models.add_argument('--timeframe',
+                               type=int,
+                               default=90,  # when -p is not called
+                               help='Timeframe (between 0 and 90)')
+
+
+    vacuum_models.add_argument('--max_queries',
+                               type=int,
+                               default=0,  # when -p is not called
+                               help='Query threshold')
 
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret')
@@ -155,8 +156,7 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-    print(get_used_explore_fields(looker, model='postgres', explore=['order_items']))
-
+    print(args)
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -173,11 +173,17 @@ def main():
             print(q.get())
     elif args['command'] == 'vacuum':
         # do fu stuff
-        print('vacuum')
+        spinner_thread = SpinnerThread()
+        spinner_thread.start()
+        task = threading.Thread(target=vacuum, args=[looker, q], kwargs=args)
+        task.start()
+        task.join()
+        spinner_thread.stop()
+        print(q.get())
     else:
         print('No command passed')
 
-# ls func
+# analyze func
 # If project flagˇ was used, call get_projects with list of projects or None.
 def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
@@ -196,9 +202,16 @@ def analyze(looker, queue, **kwargs):
         r = get_explore_usage(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
 
-    #sys.stdout.write('\b')
-    #sys.stdout.write(result)
     queue.put(result)
+    return
+
+def vacuum(looker, queue, **kwargs):
+    if kwargs['which'] == 'models':
+        m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
+        r = vacuum_models(looker, model=m, max_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
+        result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
+    queue.put(result)
+    return
 
 # parses strings for view_name.field_name and returns a list (empty if no matches)
 def parse(string):
@@ -349,11 +362,13 @@ def get_project_files(looker, project=None):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-def get_field_usage(looker, timeframe, model=None, project=None):
+def get_field_usage(looker, timeframe=90, model=None, project=None):
     if model is None:
         model = ','.join(get_models(looker)) # can return models that have had no queries run against them as well (since this is from an API end point)
     else:
         model = ','.join(model)
+
+    timeframe = str(timeframe) + ' days'
     body = {
             "model": "i__looker",
             "view": "history",
@@ -444,7 +459,7 @@ def get_project_usage(looker, project=None, sortkey=None, limit=None):
     return info
 
 
-def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0, sortkey=None, limit=None):
+def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=None, limit=None, threshold=0):
 
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, verbose=1)
@@ -454,7 +469,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
     info = []
     if len(explores) == 0:
         raise FileNotFoundError("No matching explores found.")
-    elif verbose == 0:
+    else:
         for e in explores:
             _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'])
             used_fields = list(_used_fields.keys())
@@ -498,10 +513,11 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
 # query.model is the model
 # query.fields/filters_used is view.field (but view is the view name used in the explore)
 # to uniquely identify fields, explore.view.field should be used. or even better, model.explore.view.field
-def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None):
+def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None, timeframe=90):
         m = model.replace('_', '^_') + ',' if model is not None else ''
         m += "-i^_^_looker"
         e = ','.join(explore).replace('_', '^_')
+        timeframe = str(timeframe) + ' days'
         body = {
                 "model": "i__looker",
                 "view": "history",
@@ -646,6 +662,21 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     return dict(c)
 
+def vacuum_models(looker, model=None, timeframe=90, max_queries=0):
+
+    explores = get_explores(looker, model=model, verbose=1)
+    info = []
+    for e in explores:
+        _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe)
+        query_count = sum(_used_fields.values())
+        if query_count <= max_queries:
+            info.append({
+                    'model': e['model_name'],
+                    'explore': e['name'],
+                    'query_count': query_count,
+                    })
+
+    return info
 
 # resturns a list of dictionaries in the format of
 # {'model':'model_name', 'explores': ['explore_name1',...]}
@@ -726,7 +757,8 @@ def check_scheduled_plans(looker):
     print(response)
 
 
-def get_used_models(looker):
+def get_used_models(looker, timeframe=90):
+    timeframe = str(timeframe) + ' days'
     body = {
             "model": "i__looker",
             "view": "history",
