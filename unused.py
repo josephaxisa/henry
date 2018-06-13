@@ -150,12 +150,13 @@ def main():
 
 
     args = vars(parser.parse_args())  # Namespace object
-    print(args)
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
+    print(get_used_explore_fields(looker, model='postgres', explore=['order_items']))
+
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -170,9 +171,9 @@ def main():
             task.join()
             spinner_thread.stop()
             print(q.get())
-    elif args['command'] == 'fu':
+    elif args['command'] == 'vacuum':
         # do fu stuff
-        print('fu')
+        print('vacuum')
     else:
         print('No command passed')
 
@@ -447,7 +448,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
 
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, verbose=1)
-
+    bcolor = colors.Colors()
     # Step 2 - get stats if verbose == 0 else get actual fields
     explores_usage = {}
     info = []
@@ -455,11 +456,12 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
         raise FileNotFoundError("No matching explores found.")
     elif verbose == 0:
         for e in explores:
-            used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'])
-            _exposed_fields = (e['fields']['dimensions'] +
+            _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'])
+            used_fields = list(_used_fields.keys())
+            _exposed_fields = (e['fields']['dimensions'] +  # these are view scoped
                               e['fields']['measures'] +
                               e['fields']['filters'])
-            exposed_fields = [e['model_name']+'.'+x['name'] for x in _exposed_fields]
+            exposed_fields = [e['model_name']+'.'+e['name']+'.'+x['name'] for x in _exposed_fields]
             all_fields = list(filter(lambda x: x['name']=="ALL_FIELDS", e['sets']))[0]['value']
             unused_fields = set(exposed_fields) - set(used_fields)
             view_count = len(e['scopes'])
@@ -467,7 +469,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
                               e['fields']['measures'] +
                               e['fields']['filters'])
             join_count = len(e['joins'])
-            query_count = sum(used_fields.values())
+            query_count = sum(_used_fields.values())
             used_views = len(set([i.split('.')[0] for i in used_fields]))
             used_joins_count = used_views - 1 if used_views >= 1 else 0
             unused_joins_count = join_count - used_joins_count
@@ -478,8 +480,9 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
                     'join_count': join_count,
                     'unused_joins': unused_joins_count,
                     'field_count': field_count,
+                    'unused_fields': len(unused_fields),
                     'Hidden': e['hidden'],
-                    'Has Description': 'No' if e['description'] is None else 'Yes',
+                    'Has Description': (bcolor.FAIL + 'No' + bcolor.ENDC) if e['description'] is None else 'Yes',
                     'query_count': query_count,
                     })
 
@@ -491,6 +494,10 @@ def get_explore_usage(looker, project=None, model=None, explore=None, verbose=0,
 
 # function that runs i__looker query and returns fully scoped fields used
 # remember explore names are not unique, filter on model as well
+# query.explore is the actual explore name
+# query.model is the model
+# query.fields/filters_used is view.field (but view is the view name used in the explore)
+# to uniquely identify fields, explore.view.field should be used. or even better, model.explore.view.field
 def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None):
         m = model.replace('_', '^_') + ',' if model is not None else ''
         m += "-i^_^_looker"
@@ -498,7 +505,7 @@ def get_used_explore_fields(looker, project=None, model=None, explore=None, view
         body = {
                 "model": "i__looker",
                 "view": "history",
-                "fields": ["query.view", "query.formatted_fields",
+                "fields": ["query.model", "query.view", "query.formatted_fields",
                            "query.formatted_filters", "query.sorts",
                            "query.formatted_pivots", "history.query_run_count"],
                 "filters": {"history.created_date": timeframe,
@@ -506,27 +513,27 @@ def get_used_explore_fields(looker, project=None, model=None, explore=None, view
                             "query.view": e},
                 "limit": "50000"
         }
-
+        # returns only fields used from a given explore
         response = looker.run_inline_query("json", body)
 
         formatted_fields = []
         for row in response:
             fields = []
             explore = row['query.view']
-            #model = row['query.model']
+            model = row['query.model']
             run_count = row['history.query_run_count']
             fields.extend(parse(row['query.formatted_fields']))
             fields.extend(parse(row['query.formatted_filters']))
             fields.extend(parse(row['query.formatted_pivots']))
             fields.extend(parse(row['query.sorts']))
-            formatted_fields.extend([field+'.'+str(run_count) for field in fields])
+            formatted_fields.extend([model+'.'+explore+'.'+field+'.'+str(run_count) for field in fields])
 
         field_name = []
         field_use_count = []
         for row in formatted_fields:
-            field = '.'.join(row.split('.')[:-1])
-            field_name.append(field)
-            count = int(row.split('.')[2])
+            field = '.'.join(row.split('.')[:-1])  # remove the count
+            field_name.append(field)  # fields are model.explore.view scoped
+            count = int(row.split('.')[-1])
             field_use_count.append({
                 'field_name': field,
                 'count': count
