@@ -155,6 +155,7 @@ def main():
     vacuum_explores.add_argument('-m', '--model',
                                  type=str,
                                  default=None,  # when -p is not called
+                                 required=('--explore') in sys.argv,
                                  help='Filter on model')
 
     vacuum_explores.add_argument('-e', '--explore',
@@ -180,6 +181,7 @@ def main():
     # authenticate
     looker = authenticate(**auth_args)
     print(args)
+    print(get_unused_explores(looker, model='ecommerce'))
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -231,10 +233,10 @@ def analyze(looker, queue, **kwargs):
 def vacuum(looker, queue, **kwargs):
     if kwargs['which'] == 'models':
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = vacuum_models(looker, model=m, max_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
-        result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
+        r = vacuum_models(looker, model=m, min_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
+        result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
     if kwargs['which'] == 'explores':
-        r = vacuum_explores(looker, model=kwargs['model'], explore=kwargs['explore'], max_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
+        r = vacuum_explores(looker, model=kwargs['model'], explore=kwargs['explore'], min_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
         result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
     queue.put(result)
     return
@@ -695,19 +697,22 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     return dict(c)
 
-def vacuum_models(looker, model=None, timeframe=90, max_queries=0):
+def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
 
-    explores = get_explores(looker, model=model, verbose=1)
+    if model is None:
+        model = get_models(looker)
+    #     explores = get_explores(looker, model=model, verbose=1)
+    # else:
+    used_models = get_used_models(looker, timeframe)
     info = []
-    for e in explores:
-        _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe)
-        query_count = sum(_used_fields.values())
-        if query_count <= max_queries:
-            info.append({
-                    'model': e['model_name'],
-                    'explore': e['name'],
-                    'query_count': query_count,
-                    })
+    for m in model:
+        explores = [e['name'] for e in get_explores(looker, model=[m], verbose=1)]
+        unused_explores = get_unused_explores(looker, model=m, timeframe=timeframe, min_queries=min_queries)
+        query_run_count = used_models[m] if m in used_models.keys() else 0
+        info.append({
+                'model': m,
+                'unused_explores': 'ALL' if query_run_count == 0 else ('\n').join(unused_explores),
+                'model_query_run_count': query_run_count})
 
     return info
 
@@ -752,19 +757,6 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, max_queries=
                     })
 
     return info
-
-
-# resturns a list of dictionaries in the format of
-# {'model':'model_name', 'explores': ['explore_name1',...]}
-def get_models_explores(looker, model):
-    schema = []
-    for model in get_models(looker, model):
-        d = {'model': model['name'],
-             'explores': [explore['name'] for explore in model['explores']]
-             }
-        schema.append(d)
-
-    return(schema)
 
 
 # returns an instanstiated Looker object using the
@@ -852,6 +844,38 @@ def get_used_models(looker, timeframe=90):
         x[r['query.model']] = r['history.query_run_count']
     return(x)
 
+
+def get_used_explores(looker, model=None, timeframe=90, min_queries=0):
+    timeframe = str(timeframe) + ' days'
+    min_queries = '>=' + str(min_queries)
+    m = model.replace('_', '^_') + ',' if model is not None else ''
+    body = {
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.view", "history.query_run_count"],
+            "filters": {"history.created_date": timeframe,
+                        "query.model": m,
+                        "history.query_run_count": min_queries
+                        },
+            "limit": "50000"
+            }
+
+    response = looker.run_inline_query("json", body)
+
+    x = {}
+    for r in response:
+        x[r['query.view']] = r['history.query_run_count']
+    return(x)
+
+
+def get_unused_explores(looker, model=None, timeframe=90, min_queries=0):
+    used_explores = get_used_explores(looker, model=model, timeframe=timeframe, min_queries=min_queries)
+    used_explores = used_explores.keys()
+    model = [model] if model is not None else None
+    all_explores = get_explores(looker, model=model)
+    unused_explores = list(set(all_explores) - set(used_explores))
+
+    return unused_explores
 
 def check_integrations(looker):
     response = looker.get_integrations()
