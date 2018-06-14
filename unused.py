@@ -25,9 +25,9 @@ model = ['thelook']
 # How far you wish to look back
 timeframe = '90 days'
 
+colors = colors.Colors()
 
 def main():
-    bcolor = colors.Colors()
     parser = argparse.ArgumentParser()
 
     # auth arguments
@@ -71,13 +71,14 @@ def main():
                              nargs=2,
                              metavar=('ORDER_FIELD', 'ASC/DESC'),
                              dest='sortkey')
-    projects_sc.add_argument('--plain',
-                             default=None,
-                             action='store_true')
     projects_sc.add_argument('--limit',
                              type=int,
                              default=None,
                              nargs=1)
+    projects_sc.add_argument('--plain',
+                             default=None,
+                             action='store_true')
+
 
 
     # models subcommand
@@ -104,6 +105,14 @@ def main():
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
+    explores_group = explores_sc.add_mutually_exclusive_group()
+    explores_group.add_argument('-p', '--project',
+                                default=None,  # when -p is not called
+                                help='Filter on project')
+
+    explores_group.add_argument('-m', '--model',
+                                default=None,
+                                help='Filter on models')
     explores_sc.add_argument('--order_by',
                              nargs=2,
                              metavar=('ORDER_FIELD', 'ASC/DESC'),
@@ -115,14 +124,7 @@ def main():
     explores_sc.add_argument('--plain',
                              default=None,
                              action='store_true')
-    explores_group = explores_sc.add_mutually_exclusive_group()
-    explores_group.add_argument('-p', '--project',
-                                default=None,  # when -p is not called
-                                help='Filter on project')
 
-    explores_group.add_argument('-m', '--model',
-                                default=None,
-                                help='Filter on models')
 
 
     # VACUUM Subcommand
@@ -142,13 +144,12 @@ def main():
     vacuum_models.add_argument('--timeframe',
                                type=int,
                                default=90,  # when -p is not called
-                               help='Timeframe (between 0 and 90)')
+                               help='Usage period to examine (in the range of 0-90 days). Default: 90 days.')
 
-
-    vacuum_models.add_argument('--max_queries',
+    vacuum_models.add_argument('--min_queries',
                                type=int,
                                default=0,  # when -p is not called
-                               help='Query threshold')
+                               help='Vacuum threshold. Explores with less queries in the given usage period will be vacuumed. Default: 0 queries.')
 
 
     vacuum_explores.set_defaults(which='explores')
@@ -169,7 +170,7 @@ def main():
                                  help='Timeframe (between 0 and 90)')
 
 
-    vacuum_explores.add_argument('--max_queries',
+    vacuum_explores.add_argument('--min_queries',
                                  type=int,
                                  default=0,  # when -p is not called
                                  help='Query threshold')
@@ -180,8 +181,6 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-    print(args)
-    print(get_unused_explores(looker, model='ecommerce'))
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -209,7 +208,7 @@ def main():
         print('No command passed')
 
 # analyze func
-# If project flagˇ was used, call get_projects with list of projects or None.
+# If project flag was used, call get_projects with list of projects or None.
 def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     if kwargs['which'] == 'projects':
@@ -231,12 +230,12 @@ def analyze(looker, queue, **kwargs):
     return
 
 def vacuum(looker, queue, **kwargs):
+    m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
     if kwargs['which'] == 'models':
-        m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = vacuum_models(looker, model=m, min_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
+        r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
         result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
     if kwargs['which'] == 'explores':
-        r = vacuum_explores(looker, model=kwargs['model'], explore=kwargs['explore'], min_queries=kwargs['max_queries'], timeframe=kwargs['timeframe'])
+        r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
         result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
     queue.put(result)
     return
@@ -498,7 +497,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=No
 
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, verbose=1)
-    bcolor = colors.Colors()
+
     # Step 2 - get stats if verbose == 0 else get actual fields
     explores_usage = {}
     info = []
@@ -532,7 +531,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=No
                     'field_count': field_count,
                     'unused_fields': len(unused_fields),
                     'Hidden': e['hidden'],
-                    'Has Description': (bcolor.FAIL + 'No' + bcolor.ENDC) if e['description'] is None else 'Yes',
+                    'Has Description': (colors.FAIL + 'No' + colors.ENDC) if e['description'] is None else 'Yes',
                     'query_count': query_count,
                     })
 
@@ -548,10 +547,11 @@ def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=No
 # query.model is the model
 # query.fields/filters_used is view.field (but view is the view name used in the explore)
 # to uniquely identify fields, explore.view.field should be used. or even better, model.explore.view.field
-def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None, timeframe=90):
+def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None, timeframe=90, min_queries=0):
         m = model.replace('_', '^_') + ',' if model is not None else ''
         m += "-i^_^_looker"
         e = ','.join(explore).replace('_', '^_')
+        min_queries = '>=' + str(min_queries)
         timeframe = str(timeframe) + ' days'
         body = {
                 "model": "i__looker",
@@ -561,7 +561,8 @@ def get_used_explore_fields(looker, project=None, model=None, explore=None, view
                            "query.formatted_pivots", "history.query_run_count"],
                 "filters": {"history.created_date": timeframe,
                             "query.model": m,
-                            "query.view": e},
+                            "query.view": e,
+                            "history.query_run_count": min_queries},
                 "limit": "50000"
         }
         # returns only fields used from a given explore
@@ -697,6 +698,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
 
     return dict(c)
 
+
 def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
 
     if model is None:
@@ -709,20 +711,21 @@ def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
         explores = [e['name'] for e in get_explores(looker, model=[m], verbose=1)]
         unused_explores = get_unused_explores(looker, model=m, timeframe=timeframe, min_queries=min_queries)
         query_run_count = used_models[m] if m in used_models.keys() else 0
+        unused_explores = ('\n').join(unused_explores)
         info.append({
                 'model': m,
-                'unused_explores': 'ALL' if query_run_count == 0 else ('\n').join(unused_explores),
+                'unused_explores': 'ALL' if query_run_count == 0 else (unused_explores if len(unused_explores)>0 else 'None'),
                 'model_query_run_count': query_run_count})
 
     return info
 
 
-def vacuum_explores(looker, model=None, explore=None, timeframe=90, max_queries=0):
+def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=0):
 
     explores = get_explores(looker, model=model, explore=explore, verbose=1)
     info = []
     for e in explores:
-        _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe)
+        _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
         used_fields = list(_used_fields.keys())
         _exposed_fields = (e['fields']['dimensions'] +  # these are view scoped
                           e['fields']['measures'] +
@@ -738,16 +741,16 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, max_queries=
         unused_joins = ('\n').join(_unused_joins) if len(_unused_joins)>0 else "N/A"
 
         # only keep fields that belong to used joins (unused joins fields don't matter)
-        pattern = ('|').join(list(used_joins)) if len(used_joins) > 0 else '?!.*' # don't match anything
+        # if no used joins, then don't match anything
+        pattern = ('|').join(list(used_joins)) if ((len(used_joins) > 0) and len(all_joins) > 0) else ('!?.*' if (len(all_joins) > 0 and len(used_joins) == 0) else '.*')
         unused_fields = []
         for field in _unused_fields:
             f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
             if f is not None:
                 unused_fields.append(f.group(0))
-
         unused_fields = sorted(unused_fields)
         unused_fields = ('\n').join(unused_fields)
-        if query_count <= max_queries:
+        if query_count <= min_queries:
             info.append({
                     'model': e['model_name'],
                     'explore': e['name'],
@@ -797,16 +800,17 @@ def test_git_connection(looker, project):
     looker.update_session(mode='dev')
     # obtain tests available
     tests = [test['id'] for test in looker.git_connection_tests(project_id=project)]
-    test_result = []
-    result = ''
+    verbose_result = ''
+    fail_flag = 0
     for idx, test in enumerate(tests):
         s = '({}/{}) {}'.format(idx+1, len(tests), test)
-        #r = looker.run_git_connection_test(project_id=project, test_id=test) # seems to be broken
-        result += (s+': PASS'+'\n')
+        r = looker.run_git_connection_test(project_id=project, test_id=test) # seems to be broken
+        verbose_result += colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n' # (s+': '+r['status']+'\n')
+        if r['status'] != 'pass':
+            fail_flag = 1
 
-    result = result if "fail" in test_result else 'OK'
+    result = verbose_result if fail_flag == 1 else 'OK'
     return result
-
 
 def check_scheduled_plans(looker):
     body = {
@@ -934,9 +938,9 @@ def check_version(looker):
     latest_version = re.findall(r'(\d.\d+)', latest_version)[0]
 
     if version == latest_version:
-        return "Looker version " + version + " (" + bcolor.BOLD + bcolor.OKGREEN + "PASS" + bcolor.ENDC + ')'
+        return "Looker version " + version + " (" + colors.BOLD + colors.OKGREEN + "PASS" + colors.ENDC + ')'
     else:
-        return "Looker version " + version + " (" + bcolor.BOLD + bcolor.FAIL + "FAIL" + bcolor.ENDC + ')'
+        return "Looker version " + version + " (" + colors.BOLD + colors.FAIL + "FAIL" + colors.ENDC + ')'
 
 if __name__ == "__main__":
     main()
