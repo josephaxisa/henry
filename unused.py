@@ -28,7 +28,10 @@ timeframe = '90 days'
 colors = colors.Colors()
 
 def main():
-    parser = argparse.ArgumentParser()
+    with open('logo.txt', 'r') as myfile:
+        descStr=myfile.read()
+
+    parser = argparse.ArgumentParser(description=descStr, formatter_class=argparse.RawTextHelpFormatter)
 
     # auth arguments
     auth_parser = parser.add_argument_group("Authentication")
@@ -51,7 +54,7 @@ def main():
                                        help='additional help')
     # subparsers.required = True # works, but might do without for now.
 
-    health_subparser = subparsers.add_parser('pulse', help='analyze help')
+    health_subparser = subparsers.add_parser('pulse', help='pulse help')
 
     ls_parser = subparsers.add_parser('analyze', help='analyze help')
     ls_parser.set_defaults(which=None)
@@ -70,14 +73,17 @@ def main():
     projects_sc.add_argument('--order_by',
                              nargs=2,
                              metavar=('ORDER_FIELD', 'ASC/DESC'),
-                             dest='sortkey')
+                             dest='sortkey',
+                             help='Sort results by a field')
     projects_sc.add_argument('--limit',
                              type=int,
                              default=None,
-                             nargs=1)
+                             nargs=1,
+                             help='Limit results. No limit by default')
     projects_sc.add_argument('--plain',
                              default=None,
-                             action='store_true')
+                             action='store_true',
+                             help='Show results in a table format without the gridlines')
 
 
 
@@ -94,14 +100,17 @@ def main():
     models_sc.add_argument('--order_by',
                            nargs=2,
                            metavar=('ORDER_FIELD', 'ASC/DESC'),
-                           dest='sortkey')
+                           dest='sortkey',
+                           help='Sort results by a field')
     models_sc.add_argument('--limit',
                            type=int,
                            default=None,
-                           nargs=1)
+                           nargs=1,
+                           help='Limit results. No limit by default')
     models_sc.add_argument('--plain',
                            default=None,
-                           action='store_true')
+                           action='store_true',
+                           help='Show results in a table format without the gridlines')
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
@@ -112,18 +121,21 @@ def main():
 
     explores_group.add_argument('-m', '--model',
                                 default=None,
-                                help='Filter on models')
+                                help='Filter on model')
     explores_sc.add_argument('--order_by',
                              nargs=2,
                              metavar=('ORDER_FIELD', 'ASC/DESC'),
-                             dest='sortkey')
+                             dest='sortkey',
+                             help='Sort results by a field')
     explores_sc.add_argument('--limit',
                              type=int,
                              default=None,
-                             nargs=1)
+                             nargs=1,
+                             help='Limit results. No limit by default')
     explores_sc.add_argument('--plain',
                              default=None,
-                             action='store_true')
+                             action='store_true',
+                             help='Show results in a table format without the gridlines')
 
 
 
