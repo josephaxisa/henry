@@ -178,7 +178,7 @@ def main():
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
-
+    print(args)
     # authenticate
     looker = authenticate(**auth_args)
     q = queue.Queue()
@@ -231,6 +231,7 @@ def analyze(looker, queue, **kwargs):
 
 def vacuum(looker, queue, **kwargs):
     m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
+    print(m)
     if kwargs['which'] == 'models':
         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
         result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
@@ -298,33 +299,29 @@ def tree(data, group_field):
 
 
 # returns a list of explores in a given project and/or model
+# model must be a list. everything else is a string
 def get_explores(looker, project=None, model=None, explore=None, scoped_names=0, verbose=0):
     explores = []
     if explore is not None:
-        if model is None:
-            raise ValueError("Model name is required")
-        else:
-            explores.extend([looker.get_explore(model_name=model, explore_name=explore)])
-            return explores
-
-    if project is not None and model is None:
-        # if project is specified, get all models in that project
-        model_list = get_models(looker, project=project, verbose=1)
-    elif project is None and model is None:
-        # if no project or model are specified, get all models
-        model_list = get_models(looker, verbose=1)
+        explores.extend([looker.get_explore(model_name=model[0], explore_name=explore)])
     else:
-        # if project and model are specified or if project is not specified
-        # but model is.
-        model_list = get_models(looker, model=model, verbose=1)
-
-    # if verbose = 1, then return explore bodies otherwise return explore names
-    # which can be fully scoped with project name
-    for mdl in model_list:
-        if verbose == 1:
-                explores.extend([looker.get_explore(model_name=mdl['name'], explore_name=explore['name']) for explore in mdl['explores']])
+        if project is not None and model is None:
+            # if project is specified, get all models in that project
+            model_list = get_models(looker, project=project, verbose=1)
+        elif project is None and model is None:
+            # if no project or model are specified, get all models
+            model_list = get_models(looker, verbose=1)
         else:
-            explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
+            # if project and model are specified or if project is not specified
+            # but model is.
+            model_list = get_models(looker, model=model, verbose=1)
+        # if verbose = 1, then return explore bodies otherwise return explore names
+        # which can be fully scoped with project name
+        for mdl in model_list:
+            if verbose == 1:
+                explores.extend([looker.get_explore(model_name=mdl['name'], explore_name=explore['name']) for explore in mdl['explores']])
+            else:
+                explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
 
     return explores
 
@@ -340,9 +337,9 @@ def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
                                    explore_list))
 
     for explore in explore_list:
-        fields.extend([(explore['model_name']+'.')*scoped_names+dimension['name'] for dimension in explore['fields']['dimensions']])
-        fields.extend([(explore['model_name']+'.')*scoped_names+measure['name'] for measure in explore['fields']['measures']])
-        fields.extend([(explore['model_name']+'.')*scoped_names+fltr['name'] for fltr in explore['fields']['filters']])
+        fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+dimension['name'] for dimension in explore['fields']['dimensions'] if dimension['hidden'] is not True])
+        fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+measure['name'] for measure in explore['fields']['measures'] if measure['hidden'] is not True])
+        fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+fltr['name'] for fltr in explore['fields']['filters'] if fltr['hidden'] is not True])
 
     return list(set(fields))
 
@@ -507,10 +504,7 @@ def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=No
         for e in explores:
             _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'])
             used_fields = list(_used_fields.keys())
-            _exposed_fields = (e['fields']['dimensions'] +  # these are view scoped
-                              e['fields']['measures'] +
-                              e['fields']['filters'])
-            exposed_fields = [e['model_name']+'.'+e['name']+'.'+x['name'] for x in _exposed_fields]
+            exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
             all_fields = list(filter(lambda x: x['name']=="ALL_FIELDS", e['sets']))[0]['value']
             unused_fields = set(exposed_fields) - set(used_fields)
             view_count = len(e['scopes'])
@@ -699,6 +693,7 @@ def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
     return dict(c)
 
 
+# get list of models and consider any explores below the specified threshold as unused
 def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
 
     if model is None:
@@ -714,35 +709,36 @@ def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
         unused_explores = ('\n').join(unused_explores)
         info.append({
                 'model': m,
-                'unused_explores': 'ALL' if query_run_count == 0 else (unused_explores if len(unused_explores)>0 else 'None'),
+                'unused_explores': unused_explores if len(unused_explores)>0 else 'None',
                 'model_query_run_count': query_run_count})
 
     return info
 
 
+# returns explores, their unused joins as well as unused fields. Fields are
+# considered unused if they are below the min_queries threshold
+# similary, joins are considered unused if they all their feilds are below
+# the thresold
 def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=0):
-
     explores = get_explores(looker, model=model, explore=explore, verbose=1)
     info = []
     for e in explores:
+        # get field usage from i__looker using all the views inside explore, returns fields in the form of model.explore.view.field
         _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
         used_fields = list(_used_fields.keys())
-        _exposed_fields = (e['fields']['dimensions'] +  # these are view scoped
-                          e['fields']['measures'] +
-                          e['fields']['filters'])
-        exposed_fields = [e['model_name']+'.'+e['name']+'.'+x['name'] for x in _exposed_fields]
+        # get fields in the field picker in the form of model.explore.view.field
+        exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
         _unused_fields = set(exposed_fields) - set(used_fields)
+
         # remove scoping
-        query_count = sum(_used_fields.values())
         all_joins = set(e['scopes'])
-        all_joins.remove(e['name'])
-        used_joins = set([i.split('.')[1] for i in used_fields])
+        used_joins = set([i.split('.')[2] for i in used_fields])
         _unused_joins = list(all_joins - used_joins)
         unused_joins = ('\n').join(_unused_joins) if len(_unused_joins)>0 else "N/A"
 
         # only keep fields that belong to used joins (unused joins fields don't matter)
         # if no used joins, then don't match anything
-        pattern = ('|').join(list(used_joins)) if ((len(used_joins) > 0) and len(all_joins) > 0) else ('!?.*' if (len(all_joins) > 0 and len(used_joins) == 0) else '.*')
+        pattern = ('|').join(list(used_joins)) if ((len(used_joins) > 0) and len(all_joins) > 0) else '?!.*'
         unused_fields = []
         for field in _unused_fields:
             f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
@@ -750,14 +746,12 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
                 unused_fields.append(f.group(0))
         unused_fields = sorted(unused_fields)
         unused_fields = ('\n').join(unused_fields)
-        if query_count <= min_queries:
-            info.append({
-                    'model': e['model_name'],
-                    'explore': e['name'],
-                    'unused_joins': unused_joins,
-                    'unused_fields': unused_fields,
-                    'query_count': query_count,
-                    })
+        info.append({
+                'model': e['model_name'],
+                'explore': e['name'],
+                'unused_joins': unused_joins,
+                'unused_fields': unused_fields,
+                })
 
     return info
 
