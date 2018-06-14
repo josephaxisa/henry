@@ -178,7 +178,7 @@ def main():
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret')
     auth_args = {k: args[k] for k in auth_params}
-    print(args)
+
     # authenticate
     looker = authenticate(**auth_args)
     q = queue.Queue()
@@ -213,17 +213,17 @@ def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     if kwargs['which'] == 'projects':
         p = kwargs['project'] if kwargs['project'] is not None else None
-        r = get_project_usage(looker, project=kwargs['project'], sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        r = analyze_projects(looker, project=kwargs['project'], sortkey=kwargs['sortkey'], limit=kwargs['limit'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = get_model_usage(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
     elif kwargs['which'] == 'explores':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = get_explore_usage(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
 
     queue.put(result)
@@ -231,7 +231,6 @@ def analyze(looker, queue, **kwargs):
 
 def vacuum(looker, queue, **kwargs):
     m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-    print(m)
     if kwargs['which'] == 'models':
         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
         result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
@@ -416,7 +415,7 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
-def get_model_usage(looker, project=None, model=None, verbose=0, sortkey=None, limit=None):
+def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None):
     models = get_models(looker, project=project, model=model, verbose=1)
     used_models = get_used_models(looker)
 
@@ -462,7 +461,7 @@ def limit_results(data, limit=None):
         return data
 
 
-def get_project_usage(looker, project=None, sortkey=None, limit=None):
+def analyze_projects(looker, project=None, sortkey=None, limit=None):
     projects = get_project_files(looker, project=project)
     info = []
 
@@ -490,7 +489,7 @@ def get_project_usage(looker, project=None, sortkey=None, limit=None):
     return info
 
 
-def get_explore_usage(looker, project=None, model=None, explore=None, sortkey=None, limit=None, threshold=0):
+def analyze_explores(looker, project=None, model=None, explore=None, sortkey=None, limit=None, threshold=0):
 
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, verbose=1)
@@ -732,25 +731,31 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
 
         # remove scoping
         all_joins = set(e['scopes'])
+        all_joins.remove(e['name'])
         used_joins = set([i.split('.')[2] for i in used_fields])
+
         _unused_joins = list(all_joins - used_joins)
         unused_joins = ('\n').join(_unused_joins) if len(_unused_joins)>0 else "N/A"
 
-        # only keep fields that belong to used joins (unused joins fields don't matter)
-        # if no used joins, then don't match anything
-        pattern = ('|').join(list(used_joins)) if ((len(used_joins) > 0) and len(all_joins) > 0) else '?!.*'
+        # only keep fields that belong to used joins (unused joins fields
+        # don't matter) if there's at least one used join (including the base view).
+        # else don't match anything
+        pattern = ('|').join(list(used_joins)) if len(used_joins)>0 else 'ALL'
         unused_fields = []
-        for field in _unused_fields:
-            f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
-            if f is not None:
-                unused_fields.append(f.group(0))
-        unused_fields = sorted(unused_fields)
-        unused_fields = ('\n').join(unused_fields)
+        if pattern != 'ALL':
+            for field in _unused_fields:
+                f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
+                if f is not None:
+                    unused_fields.append(f.group(0))
+            unused_fields = sorted(unused_fields)
+            unused_fields = ('\n').join(unused_fields)
+        else:
+            unused_fields = pattern
         info.append({
                 'model': e['model_name'],
                 'explore': e['name'],
                 'unused_joins': unused_joins,
-                'unused_fields': unused_fields,
+                'unused_fields': unused_fields
                 })
 
     return info
