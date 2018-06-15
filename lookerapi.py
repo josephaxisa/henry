@@ -11,21 +11,29 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class LookerApi(object):
 
-    def __init__(self, token, secret, host, port):
+    def __init__(self, id, secret, host, port, access_token):
 
-        self.token = token
+        self.id = id
         self.secret = secret
         self.host = host
         self.port = port
+        self.access_token = access_token
 
         self.session = requests.Session()
         self.session.verify = False
 
-        self.auth()
+        self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
+
+        # if not valid anymore, authenticate again
+        if self.__get_me() == 401:
+            self.auth()
+
+    def get_access_token(self):
+        return self.access_token
 
     def auth(self):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'login')
-        params = {'client_id': self.token,
+        params = {'client_id': self.id,
                   'client_secret': self.secret
                   }
         r = self.session.post(url, params=params, timeout=60)
@@ -33,8 +41,17 @@ class LookerApi(object):
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
         if r.status_code != requests.codes.ok:
             print('Authentication failed.')
-
+        else:
+            self.access_token = access_token
         return
+
+# GET /user - meant for use by the class itself
+    def __get_me(self):
+        url = 'https://{}:{}/api/3.0/user'.format(self.host, self.port)
+
+        r = self.session.get(url)
+
+        return r.status_code
 
 # GET /lookml_models/
     def get_models(self, fields={}):

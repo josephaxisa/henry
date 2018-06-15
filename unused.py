@@ -47,6 +47,10 @@ def main():
     auth_parser.add_argument('--client_secret', type=str,
                              required='--client_id' in sys.argv,
                              help="# API3 Client Secret")
+    auth_parser.add_argument('--persist', action='store_true',
+                             help='Store auth token for subsequent API calls')
+    auth_parser.add_argument('--store', action='store_true',
+                             help="Store credentials inside config file")
 
     subparsers = parser.add_subparsers(title='Subcommands',
                                        dest='command',
@@ -84,7 +88,6 @@ def main():
                              default=None,
                              action='store_true',
                              help='Show results in a table format without the gridlines')
-
 
 
     # models subcommand
@@ -188,11 +191,12 @@ def main():
                                  help='Query threshold')
 
     args = vars(parser.parse_args())  # Namespace object
-    auth_params = ('host', 'port', 'client_id', 'client_secret')
+    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
+
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -787,7 +791,7 @@ def authenticate(**kwargs):
     else:
         # otherwise, find credentials in config file
         try:
-            f = open('config.yml')
+            f = open('config.yml', 'r')
             params = yaml.load(f)
             f.close()
         except:
@@ -796,17 +800,35 @@ def authenticate(**kwargs):
         try:
             my_host = params['hosts'][kwargs['host']]['host']
             my_secret = params['hosts'][kwargs['host']]['secret']  # secret
-            my_token = params['hosts'][kwargs['host']]['token']  # client_id
+            my_id = params['hosts'][kwargs['host']]['id']  # client_id
+            my_token = params['hosts'][kwargs['host']]['access_token'] #  last auth token (it will work if --persist was previously used, otherwise it fails)
             looker = LookerApi(host=my_host,
                                port=kwargs['port'],
-                               token=my_token,
-                               secret=my_secret)
+                               id=my_id,
+                               secret=my_secret,
+                               access_token=my_token)
         except:
             print('%s host not found' % kwargs['host'])
             return
 
+    # update config file with latest access token if user wants to persist session
+    if kwargs['persist']:
+        access_token = looker.get_access_token()
+        update_config_file(kwargs['host'], access_token)
+
     return looker
 
+
+def update_config_file(host, access_token):
+    f = open('config.yml', 'r+')
+    params = yaml.load(f)
+    params['hosts'][host]['access_token'] = access_token
+    f.seek(0)
+    f.write(yaml.dump(params))
+    f.truncate()
+    f.close()
+
+    return
 
 def test_git_connection(looker, project):
     # enter dev mode
