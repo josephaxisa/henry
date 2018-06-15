@@ -35,23 +35,27 @@ def main():
 
     # auth arguments
     auth_parser = parser.add_argument_group("Authentication")
+    print(('--client_id' or '--client_secret' or '--store') in sys.argv)
     auth_parser.add_argument('--host', type=str, default=host,
-                             required=('--client_id' or
-                                       '--client_secret') in sys.argv,
+                             required='--client_id' in sys.argv
+                                       or '--client_secret' in sys.argv
+                                       or '--store' in sys.argv,
                              help='# Looker Host, Default: localhost')
     auth_parser.add_argument('--port', type=int, default=19999,
                              help='# Looker API Port, Default: 19999')
     auth_parser.add_argument('--client_id', type=str,
-                             required='--client_secret' in sys.argv,
+                             required='--client_secret' in sys.argv
+                                      or '--store' in sys.argv,
                              help="# API3 Client Id")
     auth_parser.add_argument('--client_secret', type=str,
-                             required='--client_id' in sys.argv,
+                             required='--client_id' in sys.argv
+                                      or '--store' in sys.argv,
                              help="# API3 Client Secret")
     auth_parser.add_argument('--persist', action='store_true',
                              help='Store auth token for subsequent API calls')
     auth_parser.add_argument('--store', action='store_true',
                              help="Store credentials inside config file")
-
+    print(sys.argv)
     subparsers = parser.add_subparsers(title='Subcommands',
                                        dest='command',
                                        description='Valid Subcommands',
@@ -812,23 +816,24 @@ def authenticate(**kwargs):
             return
 
     # update config file with latest access token if user wants to persist session
+    if kwargs['store']:
+        with open('config.yml', 'r') as f:
+            params['hosts'][kwargs['host']] = {}
+            params['hosts'][kwargs['host']]['host'] = kwargs['host']
+            params['hosts'][kwargs['host']]['id'] = kwargs['client_id']
+            params['hosts'][kwargs['host']]['secret'] = kwargs['client_secret']
+            params['hosts'][kwargs['host']]['access_token'] = ''
+
+        with open('config.yml', 'w') as f:
+            yaml.safe_dump(params, f, default_flow_style=False)
+
     if kwargs['persist']:
-        access_token = looker.get_access_token()
-        update_config_file(kwargs['host'], access_token)
+        with open('config.yml', 'r+') as f:
+            params = yaml.safe_load(f)
+            params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
 
-    return looker
-
-
-def update_config_file(host, access_token):
-    f = open('config.yml', 'r+')
-    params = yaml.load(f)
-    params['hosts'][host]['access_token'] = access_token
-    f.seek(0)
-    f.write(yaml.dump(params))
-    f.truncate()
-    f.close()
-
-    return
+        with open('config.yml', 'w') as f:
+            yaml.safe_dump(params, f, default_flow_style=False)
 
 def test_git_connection(looker, project):
     # enter dev mode
