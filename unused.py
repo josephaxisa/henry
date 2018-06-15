@@ -752,7 +752,9 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
         # only keep fields that belong to used joins (unused joins fields
         # don't matter) if there's at least one used join (including the base view).
         # else don't match anything
-        pattern = ('|').join(list(used_joins)) if len(used_joins)>0 else 'ALL'
+        temp = list(used_joins)
+        temp.append(e['name'])
+        pattern = ('|').join(temp) if len(used_joins)>0 else 'ALL'
         unused_fields = []
         if pattern != 'ALL':
             for field in _unused_fields:
