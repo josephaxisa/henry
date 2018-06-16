@@ -104,6 +104,14 @@ def main():
                            type=str,
                            default=None,  # when -p is not called
                            help='Filter on model')
+    models_sc.add_argument('--timeframe',
+                           type=int,
+                           default=90,  # when -p is not called
+                           help='Timeframe (between 0 and 90)')
+    models_sc.add_argument('--min_queries',
+                           type=int,
+                           default=0,  # when -p is not called
+                           help='Query threshold')
     models_sc.add_argument('--order_by',
                            nargs=2,
                            metavar=('ORDER_FIELD', 'ASC/DESC'),
@@ -125,10 +133,17 @@ def main():
     explores_group.add_argument('-p', '--project',
                                 default=None,  # when -p is not called
                                 help='Filter on project')
-
     explores_group.add_argument('-m', '--model',
                                 default=None,
                                 help='Filter on model')
+    explores_sc.add_argument('--timeframe',
+                             type=int,
+                             default=90,  # when -p is not called
+                             help='Timeframe (between 0 and 90)')
+    explores_sc.add_argument('--min_queries',
+                             type=int,
+                             default=0,  # when -p is not called
+                             help='Query threshold')
     explores_sc.add_argument('--order_by',
                              nargs=2,
                              metavar=('ORDER_FIELD', 'ASC/DESC'),
@@ -238,12 +253,12 @@ def analyze(looker, queue, **kwargs):
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
     elif kwargs['which'] == 'explores':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-        r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
         result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
 
     queue.put(result)
@@ -435,9 +450,9 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
     return {'response': response, 'model': model.split(',')}
 
 
-def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None):
+def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None, timeframe=90, min_queries=0):
     models = get_models(looker, project=project, model=model, verbose=1)
-    used_models = get_used_models(looker)
+    used_models = get_used_models(looker, timeframe, min_queries)
 
     info = []
     for m in models:
@@ -509,43 +524,43 @@ def analyze_projects(looker, project=None, sortkey=None, limit=None):
     return info
 
 
-def analyze_explores(looker, project=None, model=None, explore=None, sortkey=None, limit=None, threshold=0):
+def analyze_explores(looker, project=None, model=None, explore=None, sortkey=None, limit=None, min_queries=0, timeframe=90):
 
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, verbose=1)
 
-    # Step 2 - get stats if verbose == 0 else get actual fields
+    # Step 2
     explores_usage = {}
     info = []
     if len(explores) == 0:
         raise FileNotFoundError("No matching explores found.")
     else:
         for e in explores:
-            _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'])
+            _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
             used_fields = list(_used_fields.keys())
             exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
-            all_fields = list(filter(lambda x: x['name']=="ALL_FIELDS", e['sets']))[0]['value']
             unused_fields = set(exposed_fields) - set(used_fields)
             view_count = len(e['scopes'])
-            field_count = len(e['fields']['dimensions'] +
-                              e['fields']['measures'] +
-                              e['fields']['filters'])
-            join_count = len(e['joins'])
-            query_count = sum(_used_fields.values())
-            used_views = len(set([i.split('.')[0] for i in used_fields]))
-            used_joins_count = used_views - 1 if used_views >= 1 else 0
-            unused_joins_count = join_count - used_joins_count
+            field_count = len(exposed_fields)
+            query_count = get_used_explores(looker, model=e['model_name'], explore=e['name']) #, timeframe=timeframe, min_queries=min_queries)
+
+            # joins
+            all_joins = set(e['scopes'])
+            all_joins.remove(e['name'])
+            used_joins = set([i.split('.')[2] for i in used_fields])
+            unused_joins = len(list(all_joins - used_joins))
+
             info.append({
                     'model': e['model_name'],
                     'explore': e['name'],
                     'view_count': view_count,
-                    'join_count': join_count,
-                    'unused_joins': unused_joins_count,
+                    'join_count': len(all_joins),
+                    'unused_joins': unused_joins,
                     'field_count': field_count,
                     'unused_fields': len(unused_fields),
                     'Hidden': e['hidden'],
                     'Has Description': (colors.FAIL + 'No' + colors.ENDC) if e['description'] is None else 'Yes',
-                    'query_count': query_count,
+                    'query_count': query_count[e['name']] if query_count.get(e['name']) else 0
                     })
 
         valid_values = list(info[0].keys())
@@ -838,6 +853,7 @@ def authenticate(**kwargs):
 
     return looker
 
+
 def test_git_connection(looker, project):
     # enter dev mode
     looker.update_session(mode='dev')
@@ -848,7 +864,7 @@ def test_git_connection(looker, project):
     for idx, test in enumerate(tests):
         s = '({}/{}) {}'.format(idx+1, len(tests), test)
         r = looker.run_git_connection_test(project_id=project, test_id=test) # seems to be broken
-        verbose_result += colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n' # (s+': '+r['status']+'\n')
+        verbose_result += colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n'
         if r['status'] != 'pass':
             fail_flag = 1
 
@@ -872,14 +888,16 @@ def check_scheduled_plans(looker):
     print(response)
 
 
-def get_used_models(looker, timeframe=90):
+def get_used_models(looker, timeframe=90, min_queries=0):
     timeframe = str(timeframe) + ' days'
+    min_queries = '>=' + str(min_queries)
     body = {
             "model": "i__looker",
             "view": "history",
             "fields": ["query.model", "history.query_run_count"],
             "filters": {"history.created_date": timeframe,
-                        "query.model": "-i^_^_looker"
+                        "query.model": "-i^_^_looker",
+                        "history.query_run_count": min_queries
                         },
             "limit": "50000"
             }
@@ -892,7 +910,7 @@ def get_used_models(looker, timeframe=90):
     return(x)
 
 
-def get_used_explores(looker, model=None, timeframe=90, min_queries=0):
+def get_used_explores(looker, model=None, timeframe=90, min_queries=0, explore=None):
     timeframe = str(timeframe) + ' days'
     min_queries = '>=' + str(min_queries)
     m = model.replace('_', '^_') + ',' if model is not None else ''
@@ -902,7 +920,8 @@ def get_used_explores(looker, model=None, timeframe=90, min_queries=0):
             "fields": ["query.view", "history.query_run_count"],
             "filters": {"history.created_date": timeframe,
                         "query.model": m,
-                        "history.query_run_count": min_queries
+                        "history.query_run_count": min_queries,
+                        "query.view": explore
                         },
             "limit": "50000"
             }
