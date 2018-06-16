@@ -499,8 +499,8 @@ def analyze_projects(looker, project=None, sortkey=None, limit=None):
                 'model_count': model_count,
                 'view_count': view_count,
                 'Git Connection': git_tests,
-                'Pull Requests': p['pr_mode'],
-                'Validation Required': p['validation_required']
+                'Pull Requests': p['pr_mode'] if p['pr_mode'] in ('recommended', 'required') else colors.FAIL+p['pr_mode']+colors.ENDC,
+                'Validation Required': p['validation_required'] if p['validation_required'] else colors.FAIL+str(p['validation_required'])+colors.ENDC
         })
 
     valid_values = list(info[0].keys())
@@ -772,7 +772,7 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
             unused_fields = sorted(unused_fields)
             unused_fields = ('\n').join(unused_fields)
         else:
-            unused_fields = pattern
+            unused_fields = colors.FAIL+pattern+colors.ENDC
         info.append({
                 'model': e['model_name'],
                 'explore': e['name'],
@@ -786,7 +786,7 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
 def authenticate(**kwargs):
-    filename = kwargs['path']+'/config.yml'
+    filename = kwargs['path']+'config.yml'
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
         looker = LookerApi(host=kwargs['host'],
