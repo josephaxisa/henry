@@ -35,7 +35,6 @@ def main():
 
     # auth arguments
     auth_parser = parser.add_argument_group("Authentication")
-    print(('--client_id' or '--client_secret' or '--store') in sys.argv)
     auth_parser.add_argument('--host', type=str, default=host,
                              required='--client_id' in sys.argv
                                        or '--client_secret' in sys.argv
@@ -55,7 +54,8 @@ def main():
                              help='Store auth token for subsequent API calls')
     auth_parser.add_argument('--store', action='store_true',
                              help="Store credentials inside config file")
-    print(sys.argv)
+    auth_parser.add_argument('--path', type=str, default='',
+                             help="Specify config file path")
     subparsers = parser.add_subparsers(title='Subcommands',
                                        dest='command',
                                        description='Valid Subcommands',
@@ -195,7 +195,7 @@ def main():
                                  help='Query threshold')
 
     args = vars(parser.parse_args())  # Namespace object
-    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store')
+    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
@@ -786,6 +786,7 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
 def authenticate(**kwargs):
+    filename = kwargs['path']+'/config.yml'
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
         looker = LookerApi(host=kwargs['host'],
@@ -795,7 +796,7 @@ def authenticate(**kwargs):
     else:
         # otherwise, find credentials in config file
         try:
-            f = open('config.yml', 'r')
+            f = open(filename, 'r')
             params = yaml.load(f)
             f.close()
         except:
@@ -817,23 +818,25 @@ def authenticate(**kwargs):
 
     # update config file with latest access token if user wants to persist session
     if kwargs['store']:
-        with open('config.yml', 'r') as f:
+        with open(filename, 'r') as f:
             params['hosts'][kwargs['host']] = {}
             params['hosts'][kwargs['host']]['host'] = kwargs['host']
             params['hosts'][kwargs['host']]['id'] = kwargs['client_id']
             params['hosts'][kwargs['host']]['secret'] = kwargs['client_secret']
             params['hosts'][kwargs['host']]['access_token'] = ''
 
-        with open('config.yml', 'w') as f:
+        with open(filename, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
 
     if kwargs['persist']:
-        with open('config.yml', 'r+') as f:
+        with open(filename, 'r+') as f:
             params = yaml.safe_load(f)
             params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
 
-        with open('config.yml', 'w') as f:
+        with open(filename, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
+
+    return looker
 
 def test_git_connection(looker, project):
     # enter dev mode
