@@ -34,31 +34,31 @@ def main():
 
     parser = argparse.ArgumentParser(description=descStr, formatter_class=argparse.RawTextHelpFormatter, prog='henry', add_help=False)
 
-    # auth arguments
-    auth_parser = parser.add_argument_group("Authentication")
-    auth_parser.add_argument('--host', type=str, default=host,
-                             required='--client_id' in sys.argv
-                                       or '--client_secret' in sys.argv
-                                       or '--store' in sys.argv,
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--port', type=int, default=19999,
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--client_id', type=str,
-                             required='--client_secret' in sys.argv
-                                      or '--store' in sys.argv,
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--client_secret', type=str,
-                             required='--client_id' in sys.argv
-                                      or '--store' in sys.argv,
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--persist', action='store_true',
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--store', action='store_true',
-                             help=argparse.SUPPRESS)
-    auth_parser.add_argument('--path', type=str, default='',
-                             help=argparse.SUPPRESS)
+    # # auth arguments
+    # auth_parser = parser.add_argument_group("Authentication")
+    # auth_parser.add_argument('--host', type=str, default=host,
+    #                          required='--client_id' in sys.argv
+    #                                    or '--client_secret' in sys.argv
+    #                                    or '--store' in sys.argv,
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--port', type=int, default=19999,
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--client_id', type=str,
+    #                          required='--client_secret' in sys.argv
+    #                                   or '--store' in sys.argv,
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--client_secret', type=str,
+    #                          required='--client_id' in sys.argv
+    #                                   or '--store' in sys.argv,
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--persist', action='store_true',
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--store', action='store_true',
+    #                          help=argparse.SUPPRESS)
+    # auth_parser.add_argument('--path', type=str, default='',
+    #                          help=argparse.SUPPRESS)
     subparsers = parser.add_subparsers(dest='command',
-                                       help=argparse.SUPPRESS)
+                                        help=argparse.SUPPRESS)
     parser.add_argument("-h", "--help", action="help", help=argparse.SUPPRESS)
 
     # subparsers.required = True # works, but might do without for now.
@@ -94,6 +94,29 @@ def main():
                              action='store_true',
                              help='Show results in a table format without the gridlines')
 
+    projects_auth = projects_sc.add_argument_group("Authentication")
+    projects_auth.add_argument('--host', type=str, default=host,
+                               required='--client_id' in sys.argv
+                                        or '--client_secret' in sys.argv
+                                        or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--port', type=int, default=19999,
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--client_id', type=str,
+                               required='--client_secret' in sys.argv
+                                      or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--client_secret', type=str,
+                               required='--client_id' in sys.argv
+                                      or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--persist', action='store_true',
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--store', action='store_true',
+                               help=argparse.SUPPRESS)
+    projects_auth.add_argument('--path', type=str, default='',
+                               help=argparse.SUPPRESS)
+
 
     # models subcommand
     models_sc.set_defaults(which='models')
@@ -128,6 +151,29 @@ def main():
                            action='store_true',
                            help='Show results in a table format without the gridlines')
 
+    models_auth = models_sc.add_argument_group("Authentication")
+    models_auth.add_argument('--host', type=str, default=host,
+                             required='--client_id' in sys.argv
+                                        or '--client_secret' in sys.argv
+                                        or '--store' in sys.argv,
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--port', type=int, default=19999,
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--client_id', type=str,
+                             required='--client_secret' in sys.argv
+                                      or '--store' in sys.argv,
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--client_secret', type=str,
+                             required='--client_id' in sys.argv
+                                      or '--store' in sys.argv,
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--persist', action='store_true',
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--store', action='store_true',
+                             help=argparse.SUPPRESS)
+    models_auth.add_argument('--path', type=str, default='',
+                             help=argparse.SUPPRESS)
+
     # explores subcommand
     explores_sc.set_defaults(which='explores')
     explores_group = explores_sc.add_mutually_exclusive_group()
@@ -159,7 +205,28 @@ def main():
                              default=None,
                              action='store_true',
                              help='Show results in a table format without the gridlines')
-
+    explores_auth = explores_sc.add_argument_group("Authentication")
+    explores_auth.add_argument('--host', type=str, default=host,
+                               required='--client_id' in sys.argv
+                                        or '--client_secret' in sys.argv
+                                        or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--port', type=int, default=19999,
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--client_id', type=str,
+                               required='--client_secret' in sys.argv
+                                      or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--client_secret', type=str,
+                               required='--client_id' in sys.argv
+                                      or '--store' in sys.argv,
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--persist', action='store_true',
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--store', action='store_true',
+                               help=argparse.SUPPRESS)
+    explores_auth.add_argument('--path', type=str, default='',
+                               help=argparse.SUPPRESS)
 
 
     # VACUUM Subcommand
@@ -185,6 +252,34 @@ def main():
                                type=int,
                                default=0,  # when -p is not called
                                help='Vacuum threshold. Explores with less queries in the given usage period will be vacuumed. Default: 0 queries.')
+    vacuum_models.add_argument('--plain',
+                               default=None,
+                               action='store_true',
+                               help='Show results in a table format without the gridlines')
+
+    vacuum_models_auth = vacuum_models.add_argument_group("Authentication")
+    vacuum_models_auth.add_argument('--host', type=str, default=host,
+                                    required='--client_id' in sys.argv
+                                             or '--client_secret' in sys.argv
+                                             or '--store' in sys.argv,
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--port', type=int, default=19999,
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--client_id', type=str,
+                                    required='--client_secret' in sys.argv
+                                             or '--store' in sys.argv,
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--client_secret', type=str,
+                                    required='--client_id' in sys.argv
+                                             or '--store' in sys.argv,
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--persist', action='store_true',
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--store', action='store_true',
+                                    help=argparse.SUPPRESS)
+    vacuum_models_auth.add_argument('--path', type=str, default='',
+                                    help=argparse.SUPPRESS)
+
 
 
     vacuum_explores.set_defaults(which='explores')
@@ -204,11 +299,36 @@ def main():
                                  default=90,  # when -p is not called
                                  help='Timeframe (between 0 and 90)')
 
-
     vacuum_explores.add_argument('--min_queries',
                                  type=int,
                                  default=0,  # when -p is not called
                                  help='Query threshold')
+    vacuum_explores.add_argument('--plain',
+                                 default=None,
+                                 action='store_true',
+                                 help='Show results in a table format without the gridlines')
+    vacuum_explores_auth = vacuum_explores.add_argument_group("Authentication")
+    vacuum_explores_auth.add_argument('--host', type=str, default=host,
+                                       required='--client_id' in sys.argv
+                                                or '--client_secret' in sys.argv
+                                                or '--store' in sys.argv,
+                                       help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--port', type=int, default=19999,
+                                      help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--client_id', type=str,
+                                       required='--client_secret' in sys.argv
+                                                or '--store' in sys.argv,
+                                       help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--client_secret', type=str,
+                                      required='--client_id' in sys.argv
+                                               or '--store' in sys.argv,
+                                      help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--persist', action='store_true',
+                                      help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--store', action='store_true',
+                                      help=argparse.SUPPRESS)
+    vacuum_explores_auth.add_argument('--path', type=str, default='',
+                                      help=argparse.SUPPRESS)
 
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
@@ -247,32 +367,35 @@ def main():
 # If project flag was used, call get_projects with list of projects or None.
 def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
+    headers = '' if kwargs['plain'] else 'keys'
     if kwargs['which'] == 'projects':
         p = kwargs['project'] if kwargs['project'] is not None else None
         r = analyze_projects(looker, project=kwargs['project'], sortkey=kwargs['sortkey'], limit=kwargs['limit'])
-        result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
+        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     elif kwargs['which'] == 'models':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
-        result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
+        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     elif kwargs['which'] == 'explores':
         p = kwargs['project']
         m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
-        result = tabulate(r, headers='keys', tablefmt=format, numalign='center')
+        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
 
     queue.put(result)
     return
 
 def vacuum(looker, queue, **kwargs):
     m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
+    format = 'plain' if kwargs['plain'] else 'psql'
+    headers = '' if kwargs['plain'] else 'keys'
     if kwargs['which'] == 'models':
         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-        result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
+        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     if kwargs['which'] == 'explores':
         r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-        result = tabulate(r, headers='keys', tablefmt='grid', numalign='center')
+        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     queue.put(result)
     return
 
