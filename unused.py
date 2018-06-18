@@ -120,14 +120,16 @@ def main():
 
     # models subcommand
     models_sc.set_defaults(which='models')
-    models_sc.add_argument('-p', '--project',
-                           type=str,
-                           default=None,  # when -p is not called
-                           help='Filter on project')
-    models_sc.add_argument('-model', '--model',
-                           type=str,
-                           default=None,  # when -p is not called
-                           help='Filter on model')
+    models_group = models_sc.add_mutually_exclusive_group()
+
+    models_group.add_argument('-p', '--project',
+                              type=str,
+                              default=None,  # when -p is not called
+                              help='Filter on project')
+    models_group.add_argument('-model', '--model',
+                              type=str,
+                              default=None,  # when -p is not called
+                              help='Filter on model')
     models_sc.add_argument('--timeframe',
                            type=int,
                            default=90,  # when -p is not called
@@ -368,20 +370,15 @@ def main():
 def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     headers = '' if kwargs['plain'] else 'keys'
+    p = kwargs['project']
+    m = kwargs['model'].split(' ') if ('model' in kwargs.keys() and kwargs['model'] is not None) else None
     if kwargs['which'] == 'projects':
-        p = kwargs['project'] if kwargs['project'] is not None else None
-        r = analyze_projects(looker, project=kwargs['project'], sortkey=kwargs['sortkey'], limit=kwargs['limit'])
-        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
+        r = analyze_projects(looker, project=p, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
     elif kwargs['which'] == 'models':
-        p = kwargs['project']
-        m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
-        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     elif kwargs['which'] == 'explores':
-        p = kwargs['project']
-        m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
         r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
-        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
+    result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
 
     queue.put(result)
     return
@@ -392,10 +389,9 @@ def vacuum(looker, queue, **kwargs):
     headers = '' if kwargs['plain'] else 'keys'
     if kwargs['which'] == 'models':
         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     if kwargs['which'] == 'explores':
         r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-        result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
+    result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     queue.put(result)
     return
 
