@@ -6,6 +6,7 @@ from collections import Counter
 from itertools import groupby
 import re
 import argparse
+import os
 import sys
 from operator import itemgetter
 from spinnerthread import SpinnerThread
@@ -28,10 +29,10 @@ timeframe = '90 days'
 colors = colors.Colors()
 
 def main():
-    with open('logo.txt', 'r') as myfile:
+    with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
         descStr=myfile.read()
 
-    parser = argparse.ArgumentParser(description=descStr, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(description=descStr, formatter_class=argparse.RawTextHelpFormatter, prog='henry', add_help=False)
 
     # auth arguments
     auth_parser = parser.add_argument_group("Authentication")
@@ -39,27 +40,27 @@ def main():
                              required='--client_id' in sys.argv
                                        or '--client_secret' in sys.argv
                                        or '--store' in sys.argv,
-                             help='# Looker Host, Default: localhost')
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--port', type=int, default=19999,
-                             help='# Looker API Port, Default: 19999')
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--client_id', type=str,
                              required='--client_secret' in sys.argv
                                       or '--store' in sys.argv,
-                             help="# API3 Client Id")
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--client_secret', type=str,
                              required='--client_id' in sys.argv
                                       or '--store' in sys.argv,
-                             help="# API3 Client Secret")
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--persist', action='store_true',
-                             help='Store auth token for subsequent API calls')
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--store', action='store_true',
-                             help="Store credentials inside config file")
+                             help=argparse.SUPPRESS)
     auth_parser.add_argument('--path', type=str, default='',
-                             help="Specify config file path")
-    subparsers = parser.add_subparsers(title='Subcommands',
-                                       dest='command',
-                                       description='Valid Subcommands',
-                                       help='additional help')
+                             help=argparse.SUPPRESS)
+    subparsers = parser.add_subparsers(dest='command',
+                                       help=argparse.SUPPRESS)
+    parser.add_argument("-h", "--help", action="help", help=argparse.SUPPRESS)
+
     # subparsers.required = True # works, but might do without for now.
 
     health_subparser = subparsers.add_parser('pulse', help='pulse help')
@@ -540,7 +541,6 @@ def analyze_explores(looker, project=None, model=None, explore=None, sortkey=Non
             used_fields = list(_used_fields.keys())
             exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
             unused_fields = set(exposed_fields) - set(used_fields)
-            view_count = len(e['scopes'])
             field_count = len(exposed_fields)
             query_count = get_used_explores(looker, model=e['model_name'], explore=e['name']) #, timeframe=timeframe, min_queries=min_queries)
 
@@ -553,7 +553,6 @@ def analyze_explores(looker, project=None, model=None, explore=None, sortkey=Non
             info.append({
                     'model': e['model_name'],
                     'explore': e['name'],
-                    'view_count': view_count,
                     'join_count': len(all_joins),
                     'unused_joins': unused_joins,
                     'field_count': field_count,
@@ -625,106 +624,6 @@ def get_used_explore_fields(looker, project=None, model=None, explore=None, view
             c[value['field_name']] += value['count']
 
         return dict(c)
-
-
-# returns a dictionary in the form of {field/explore/model/view: name,
-#                                                         count: # uses}
-# model names - not scoped (they're unique)
-# view names - not scoped
-# explores - model scoped
-# fields - explore scoped
-def aggregate_usage(looker, model=None, timeframe='90 days', agg_level=None):
-
-    # make sure agg_level specified is recognised
-    valid_agg_levels = ('field', 'view', 'explore', 'model')
-    if agg_level not in valid_agg_levels:
-        raise ValueError('agg_level: type must be one of %r.' % valid_agg_levels)
-
-    # get usage across all models or for a specified model
-    field_usage = get_field_usage(looker, timeframe=timeframe, model=model)
-
-    response = field_usage['response']
-    models = field_usage['model']
-    formatted_fields = []
-    for row in response:
-        fields = []
-        explore = row['query.view']
-        model = row['query.model']
-        run_count = row['history.query_run_count']
-        fields.extend(parse(row['query.formatted_fields']))
-        fields.extend(parse(row['query.formatted_filters']))
-        fields.extend(parse(row['query.formatted_pivots']))
-        fields.extend(parse(row['query.sorts']))
-        formatted_fields.extend([model + '.' + explore + '.' + field + '.' +
-                                str(run_count) for field in fields])
-    aggregator_count = []
-    aggregator = []
-
-    if agg_level == 'field':
-        for row in formatted_fields:
-            field = '.'.join(row.split('.')[2:4])
-            aggregator.append(field)
-            count = int(row.split('.')[4])
-            aggregator_count.append({
-                'aggregator': field,
-                'count': count
-            })
-
-        fields = [get_explore_fields(looker, model=[m]) for m in models]
-        # flatten the list
-        fields = [y for x in fields for y in x]
-        [aggregator_count.append({'aggregator': field, 'count': 0}) for field in fields]
-
-    if agg_level == 'view':
-        for row in formatted_fields:
-            view = row.split('.')[2]
-            aggregator.append(view)
-            count = int(row.split('.')[4])
-            aggregator_count.append({
-                'aggregator': view,
-                'count': count
-            })
-
-        views = [get_views(looker, model=[model]) for model in models]
-        # flatten the list
-        views = [y for x in views for y in x]
-        [aggregator_count.append({'aggregator': view, 'count': 0}) for view in views]
-
-    if agg_level == 'explore':
-        for row in formatted_fields:
-            explore = row.split('.')[1]
-            aggregator.append(explore)
-            count = int(row.split('.')[4])
-            aggregator_count.append({
-                'aggregator': explore,
-                'count': count
-            })
-        explores = [get_explores(looker, model=[model]) for model in models]
-        # flatten the list
-        explores = [y for x in explores for y in x]
-        [aggregator_count.append({'aggregator': explore, 'count': 0}) for explore in explores]
-
-    if agg_level == 'model':
-        for row in formatted_fields:
-            model = row.split('.')[0] # take out model
-            aggregator.append(model) # append the model
-            count = int(row.split('.')[4]) # get the count
-            aggregator_count.append({
-                'aggregator': model,
-                'count': count
-            })
-        models = get_models(looker, model=[model])
-        models = [get_explores(looker, model=[model]) for model in models]
-        # flatten the list
-        models = [y for x in models for y in x]
-        [aggregator_count.append({'aggregator': model, 'count': 0}) for model in models]
-
-    c = Counter()
-
-    for value in aggregator_count:
-        c[value['aggregator']] += value['count']
-
-    return dict(c)
 
 
 # get list of models and consider any explores below the specified threshold as unused
@@ -801,7 +700,8 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
 def authenticate(**kwargs):
-    filename = kwargs['path']+'config.yml'
+    filepath = kwargs['path']+'config.yml'
+    cleanpath = os.path.abspath(filepath)
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
         looker = LookerApi(host=kwargs['host'],
@@ -811,7 +711,7 @@ def authenticate(**kwargs):
     else:
         # otherwise, find credentials in config file
         try:
-            f = open(filename, 'r')
+            f = open(cleanpath, 'r')
             params = yaml.load(f)
             f.close()
         except:
@@ -833,23 +733,27 @@ def authenticate(**kwargs):
 
     # update config file with latest access token if user wants to persist session
     if kwargs['store']:
-        with open(filename, 'r') as f:
+        with open(cleanpath, 'r') as f:
             params['hosts'][kwargs['host']] = {}
             params['hosts'][kwargs['host']]['host'] = kwargs['host']
             params['hosts'][kwargs['host']]['id'] = kwargs['client_id']
             params['hosts'][kwargs['host']]['secret'] = kwargs['client_secret']
             params['hosts'][kwargs['host']]['access_token'] = ''
 
-        with open(filename, 'w') as f:
+        with open(cleanpath, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
 
+        os.chmod(cleanpath, 0o600)
+
     if kwargs['persist']:
-        with open(filename, 'r+') as f:
+        with open(cleanpath, 'r+') as f:
             params = yaml.safe_load(f)
             params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
 
-        with open(filename, 'w') as f:
+        with open(cleanpath, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
+
+        os.chmod(cleanpath, 0o600)
 
     return looker
 
