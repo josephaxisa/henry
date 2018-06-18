@@ -336,7 +336,10 @@ def main():
         subparser.add_argument('-o', '--output',
                                type=str,
                                default=None,
-                               help="Path and/or name of file where to save output.")
+                               help='Path and/or name of file where to save output.')
+        subparser.add_argument('-q', '--quiet',
+                               action='store_true',
+                               help='Silence output')
 
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
@@ -371,7 +374,10 @@ def main():
     else:
         print('No command passed')
 
-    print(result)
+    # silence outout if --silence flag is used
+    if not args['quiet']:
+        print(result)
+
     # save to file if --output flag is used
     if args['output']:
         with open(args['output'], 'w+') as f:
