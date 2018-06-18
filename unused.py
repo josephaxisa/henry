@@ -332,6 +332,12 @@ def main():
     vacuum_explores_auth.add_argument('--path', type=str, default='',
                                       help=argparse.SUPPRESS)
 
+    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models, vacuum_explores]:
+        subparser.add_argument('-o', '--output',
+                               type=str,
+                               default=None,
+                               help="Path and/or name of file where to save output.")
+
     args = vars(parser.parse_args())  # Namespace object
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
     auth_args = {k: args[k] for k in auth_params}
@@ -352,7 +358,7 @@ def main():
             task.start()
             task.join()
             spinner_thread.stop()
-            print(q.get())
+            result = q.get()
     elif args['command'] == 'vacuum':
         # do fu stuff
         spinner_thread = SpinnerThread()
@@ -361,9 +367,16 @@ def main():
         task.start()
         task.join()
         spinner_thread.stop()
-        print(q.get())
+        result = q.get()
     else:
         print('No command passed')
+
+    print(result)
+    # save to file if --output flag is used
+    if args['output']:
+        with open(args['output'], 'w+') as f:
+            f.write(result)
+            f.close()
 
 # analyze func
 # If project flag was used, call get_projects with list of projects or None.
