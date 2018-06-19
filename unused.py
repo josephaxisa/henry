@@ -36,6 +36,7 @@ def main():
     parser = argparse.ArgumentParser(description=descStr,
                                      formatter_class=argparse.RawTextHelpFormatter,
                                      prog='henry',
+                                     usage="""henry command subcommand [subcommand options] [global options]""",
                                      add_help=False)
 
     subparsers = parser.add_subparsers(dest='command',
@@ -46,7 +47,7 @@ def main():
 
     health_subparser = subparsers.add_parser('pulse', help='pulse help')
 
-    ls_parser = subparsers.add_parser('analyze', help='analyze help')
+    ls_parser = subparsers.add_parser('analyze', help='analyze help', usage='henry analyze')
     ls_parser.set_defaults(which=None)
     ls_subparsers = ls_parser.add_subparsers()
     projects_sc = ls_subparsers.add_parser('projects')
@@ -134,7 +135,7 @@ def main():
                              help='Limit results. No limit by default')
 
     # VACUUM Subcommand
-    vacuum_parser = subparsers.add_parser('vacuum', help='analyze help')
+    vacuum_parser = subparsers.add_parser('vacuum', help='vacuum help', usage='henry vacuum')
     vacuum_parser.set_defaults(which=None)
     vacuum_subparsers = vacuum_parser.add_subparsers()
     vacuum_models = vacuum_subparsers.add_parser('models')
@@ -180,7 +181,7 @@ def main():
                                  help='Query threshold')
 
     for subparser in [projects_sc, models_sc, explores_sc, vacuum_models, vacuum_explores]:
-        subparser.add_argument('-o', '--output',
+        subparser.add_argument('--output',
                                type=str,
                                default=None,
                                help='Path and/or name of file where to save output.')
@@ -289,7 +290,7 @@ def vacuum(looker, queue, **kwargs):
     return
 
 
-# parses strings for view_name.field_name and returns a list (empty if no matches)
+# parse strings for view_name.field_name and return a list, empty if no matches
 def parse(string):
     return re.findall(r'(\w+\.\w+)', str(string))
 
