@@ -104,13 +104,16 @@ def main():
 
     # explores subcommand
     explores_sc.set_defaults(which='explores')
-    explores_group = explores_sc.add_mutually_exclusive_group()
+    explores_group = explores_sc.add_mutually_exclusive_group(required='--explore' in sys.argv)
     explores_group.add_argument('-p', '--project',
                                 default=None,  # when -p is not called
                                 help='Filter on project')
     explores_group.add_argument('-m', '--model',
                                 default=None,
                                 help='Filter on model')
+    explores_sc.add_argument('-e', '--explore',
+                             default=None,
+                             help='Filter on model')
     explores_sc.add_argument('--timeframe',
                              type=int,
                              default=90,  # when -p is not called
@@ -266,7 +269,7 @@ def analyze(looker, queue, **kwargs):
     elif kwargs['which'] == 'models':
         r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
     elif kwargs['which'] == 'explores':
-        r = analyze_explores(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
+        r = analyze_explores(looker, project=p, model=m, explore=kwargs['explore'], sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
     result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
 
     queue.put(result)
@@ -539,7 +542,7 @@ def analyze_projects(looker, project=None, sortkey=None, limit=None):
 def analyze_explores(looker, project=None, model=None, explore=None, sortkey=None, limit=None, min_queries=0, timeframe=90):
 
     # Step 1 - get explore definitions
-    explores = get_explores(looker, project=project, model=model, verbose=1)
+    explores = get_explores(looker, project=project, model=model, explore=explore, verbose=1)
 
     # Step 2
     explores_usage = {}
