@@ -28,11 +28,15 @@ timeframe = '90 days'
 
 colors = colors.Colors()
 
+
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
-        descStr=myfile.read()
+        descStr = myfile.read()
 
-    parser = argparse.ArgumentParser(description=descStr, formatter_class=argparse.RawTextHelpFormatter, prog='henry', add_help=False)
+    parser = argparse.ArgumentParser(description=descStr,
+                                     formatter_class=argparse.RawTextHelpFormatter,
+                                     prog='henry',
+                                     add_help=False)
 
     subparsers = parser.add_subparsers(dest='command',
                                        help=argparse.SUPPRESS)
@@ -220,7 +224,6 @@ def main():
         if args['which'] is None:
             parser.error("No command")
         else:
-            #result = ls(looker, **args)
             spinner_thread = SpinnerThread()
             spinner_thread.start()
             task = threading.Thread(target=analyze, args=[looker, q], kwargs=args)
@@ -250,6 +253,7 @@ def main():
             f.write(result)
             f.close()
 
+
 # analyze func
 # If project flag was used, call get_projects with list of projects or None.
 def analyze(looker, queue, **kwargs):
@@ -267,6 +271,7 @@ def analyze(looker, queue, **kwargs):
 
     queue.put(result)
     return
+
 
 def vacuum(looker, queue, **kwargs):
     m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
@@ -578,8 +583,9 @@ def analyze_explores(looker, project=None, model=None, explore=None, sortkey=Non
 # remember explore names are not unique, filter on model as well
 # query.explore is the actual explore name
 # query.model is the model
-# query.fields/filters_used is view.field (but view is the view name used in the explore)
-# to uniquely identify fields, explore.view.field should be used. or even better, model.explore.view.field
+# query.fields are is view.field (view is the view name used in the explore)
+# to uniquely identify fields, explore.view.field should be used,
+# or even better, model.explore.view.field
 def get_used_explore_fields(looker, project=None, model=None, explore=None, view=None, timeframe=90, min_queries=0):
         m = model.replace('_', '^_') + ',' if model is not None else ''
         m += "-i^_^_looker"
@@ -675,14 +681,14 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
         used_joins = set([i.split('.')[2] for i in used_fields])
 
         _unused_joins = list(all_joins - used_joins)
-        unused_joins = ('\n').join(_unused_joins) if len(_unused_joins)>0 else "N/A"
+        unused_joins = ('\n').join(_unused_joins) if len(_unused_joins) > 0 else "N/A"
 
         # only keep fields that belong to used joins (unused joins fields
-        # don't matter) if there's at least one used join (including the base view).
-        # else don't match anything
+        # don't matter) if there's at least one used join (including the base
+        # view). else don't match anything
         temp = list(used_joins)
         temp.append(e['name'])
-        pattern = ('|').join(temp) if len(used_joins)>0 else 'ALL'
+        pattern = ('|').join(temp) if len(used_joins) > 0 else 'ALL'
         unused_fields = []
         if pattern != 'ALL':
             for field in _unused_fields:
@@ -781,6 +787,7 @@ def test_git_connection(looker, project):
     result = verbose_result if fail_flag == 1 else 'OK'
     return result
 
+
 def check_scheduled_plans(looker):
     body = {
             "model": "i__looker",
@@ -845,13 +852,17 @@ def get_used_explores(looker, model=None, timeframe=90, min_queries=0, explore=N
 
 
 def get_unused_explores(looker, model=None, timeframe=90, min_queries=0):
-    used_explores = get_used_explores(looker, model=model, timeframe=timeframe, min_queries=min_queries)
+    used_explores = get_used_explores(looker,
+                                      model=model,
+                                      timeframe=timeframe,
+                                      min_queries=min_queries)
     used_explores = used_explores.keys()
     model = [model] if model is not None else None
     all_explores = get_explores(looker, model=model)
     unused_explores = list(set(all_explores) - set(used_explores))
 
     return unused_explores
+
 
 def check_integrations(looker):
     response = looker.get_integrations()
@@ -903,7 +914,7 @@ def check_connections(looker, connection_name=None):
 
 
 def check_version(looker):
-    version = re.findall(r'(\d.\d+)',looker.get_version()['looker_release_version'])[0]
+    version = re.findall(r'(\d.\d+)', looker.get_version()['looker_release_version'])[0]
     bcolor = colors.Colors()
     session = requests.Session()
     latest_version = session.get('https://learn.looker.com:19999/versions').json()['looker_release_version']
@@ -913,6 +924,7 @@ def check_version(looker):
         return "Looker version " + version + " (" + colors.BOLD + colors.OKGREEN + "PASS" + colors.ENDC + ')'
     else:
         return "Looker version " + version + " (" + colors.BOLD + colors.FAIL + "FAIL" + colors.ENDC + ')'
+
 
 if __name__ == "__main__":
     main()
