@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import yaml
 import json
 from lookerapi import LookerApi
