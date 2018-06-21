@@ -181,7 +181,7 @@ def main():
                                  default=0,  # when -p is not called
                                  help='Query threshold')
 
-    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models, vacuum_explores]:
+    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models, vacuum_explores, health_subparser]:
         subparser.add_argument('--output',
                                type=str,
                                default=None,
@@ -222,7 +222,7 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-
+    check_query_stats(looker)
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -920,16 +920,68 @@ def check_connections(looker, connection_name=None):
 
 def check_version(looker):
     version = re.findall(r'(\d.\d+)', looker.get_version()['looker_release_version'])[0]
-    bcolor = colors.Colors()
     session = requests.Session()
-    latest_version = session.get('https://learn.looker.com:19999/versions').json()['looker_release_version']
+    latest_version = session.get('https://learn.looker.com:19999/versions').json() ['looker_release_version']
     latest_version = re.findall(r'(\d.\d+)', latest_version)[0]
-
     if version == latest_version:
         return "Looker version " + version + " (" + colors.BOLD + colors.OKGREEN + "PASS" + colors.ENDC + ')'
     else:
         return "Looker version " + version + " (" + colors.BOLD + colors.FAIL + "FAIL" + colors.ENDC + ')'
 
+
+# get number of queries run, killed, completed, errored, queued
+def check_query_type_count(looker):
+    body = {
+            "model": "i__looker",
+            "view": "history",
+            "fields": [
+                "history.query_run_count",
+                "history.status",
+                "history.created_date"
+                ],
+            "pivots": [
+                "history.status"
+                ],
+            "filters": {
+                "history.created_date": "30 days",
+                "history.status": "-NULL",
+                "history.result_source": "query",
+                "query.model": "-i^_^_looker"
+            },
+            "sorts": [
+                "history.created_date desc",
+                "history.result_source"
+                ],
+            "limit": "50000"
+            }
+
+    r = looker.run_inline_query("json", body)
+    completed = 0
+    errored = 0
+    killed = 0
+    for entry in r:
+        if 'complete' in entry['history.query_run_count']['history.status']:
+            c_i = entry['history.query_run_count']['history.status']['complete']
+        else:
+            c_i = 0
+        c_i = c_i if c_i is not None else 0
+        completed += c_i
+
+        if 'error' in entry['history.query_run_count']['history.status']:
+            e_i = entry['history.query_run_count']['history.status']['error']
+        else:
+            e_i = 0
+        e_i = e_i if e_i is not None else 0
+        errored += e_i
+
+        if 'killed' in entry['history.query_run_count']['history.status']:
+            k_i = entry['history.query_run_count']['history.status']['killed']
+        else:
+            k_i = 0
+        k_i = k_i if k_i is not None else 0
+        killed += k_i
+
+    return
 
 if __name__ == "__main__":
     main()
