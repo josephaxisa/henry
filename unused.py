@@ -272,39 +272,29 @@ def pulse(looker):
     result = check_connections(looker)
     print(result, '\n')
 
-    with trange(1, desc='Analyzing Scheduled Plans', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0) as t:
+    with trange(1, desc='Analyzing Scheduled Plans', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0) as t:
         for i in t:
-            t.postfix[1]['value'] = '-'
+            t.postfix[1]['value'] = '(RUNNING)'
             result = check_scheduled_plans(looker)
             if type(result)==list and len(result) > 0:
-                if result[0]['failure'] > 0:
-                    t.postfix[1]['value'] = "(FAIL)"
-                else:
-                    t.postfix[1]['value'] = "(PASS)"
                 result = tabulate(result, headers="keys", tablefmt='psql', numalign='center')
-            elif result == 'No Plans Found':
-                t.postfix[1]['value'] = "(WARNING)"
+            t.postfix[1]["value"] = '(COMPLETE)'
             t.update()
     print(result, end='\n\n')
 
-
-    t = trange(1, desc='Legacy Features', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0)
-    for i in t:
-        result = check_legacy_features(looker)
-        if result == 'No legacy features found':
-            t.postfix[1]['value'] = "(PASS)"
-        else:
-            t.postfix[1]['value'] = "(WARNING)"
-        t.update()
+    with trange(1, desc='Legacy Features', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0) as t:
+        for i in t:
+            t.postfix[1]['value'] = '(RUNNING)'
+            result = check_legacy_features(looker)
+            t.postfix[1]["value"] = '(COMPLETE)'
+            t.update()
     print(result, end='\n\n')
 
-    t = trange(1, desc='Version', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=80)
+    t = trange(1, desc='Version', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=["", dict(value=0)], ncols=80)
     for i in t:
+        t.postfix[1]['value'] = '(RUNNING)'
         result, status = check_version(looker)
-        if status == 'up-to-date':
-            t.postfix[1]["value"] = "(PASS)"
-        else:
-            t.postfix[1]["value"] = "(WARNING)"
+        t.postfix[1]["value"] = "(COMPLETE)"
         t.update()
     print(result, end='\n\n')
 
@@ -976,21 +966,17 @@ def get_connection_activity(looker, connection_name):
 
 def check_connections(looker, connection_name=None):
     result = []
-    flag = 0
     if connection_name is None:
         connection_name = [c['name'] for c in looker.get_connections()]
-    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], desc='Testing connections', ncols=100, miniters=0) as t:
-        for c in connection_name:
-            t.postfix[1]['value'] = "-"
+    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0) as t:
+        for idx, c in enumerate(connection_name):
+            t.postfix[1]['value'] = '(RUNNING)'
             test_result = str(looker.test_connection(connection_name=c))
             result.append({'name': c,
                            'status': 'OK' if test_result=='Pass' else 'Broken'})
                            #'query_count': get_connection_activity(looker, connection_name=c)})
-            flag = 1 if test_result != 'PASS' else (0 if flag == 0 else 1)
-            if flag == 1:
-                t.postfix[1]['value'] = "(FAIL)"
-            else:
-                t.postfix[1]['value'] = "(PASS)"
+            if idx == len(connection_name)-1:
+                t.postfix[1]['value'] = '(COMPLETE)'
             t.update()
 
     return tabulate(result, tablefmt='psql')
@@ -1008,13 +994,16 @@ def check_version(looker):
 
 def check_query_stats(looker):
     # check query stats
-    for i in trange(3, bar_format=bar, ncols=ncols, desc='Analyzing Query Stats', miniters=0):
-        if i == 0:
-            query_count = get_query_type_count(looker)
-        if i == 1:
-            query_runtime_stats = get_query_stats(looker, status='complete')
-        if i == 2:
-            query_queue_stats = get_query_stats(looker, status='pending')
+    with trange(3, bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=["", dict(value=0)], ncols=ncols, desc='Analyzing Query Stats', miniters=0) as t:
+        for i in t:
+            t.postfix[1]['value'] = '(RUNNING)'
+            if i == 0:
+                query_count = get_query_type_count(looker)
+            if i == 1:
+                query_runtime_stats = get_query_stats(looker, status='complete')
+            if i == 2:
+                query_queue_stats = get_query_stats(looker, status='pending')
+                t.postfix[1]['value'] = '(COMPLETE)'
 
     r1 = '{} queries run, {} queued, {} errored, {} killed'.format(query_count['total'], query_count['queued'], query_count['errored'], query_count['killed'])
     r2 = 'Query Runtime min/avg/max: {}/{}/{} seconds'.format(query_runtime_stats['min'], query_runtime_stats['avg'], query_runtime_stats['max'])
