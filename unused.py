@@ -234,6 +234,7 @@ def main():
         if args['which'] is None:
             parser.error("No command")
         else:
+            analyze(looker, q, **args)
             spinner_thread = SpinnerThread()
             spinner_thread.start()
             task = threading.Thread(target=analyze, args=[looker, q], kwargs=args)
@@ -256,7 +257,7 @@ def main():
         print('No command passed')
 
     # silence outout if --silence flag is used
-    result = 1
+    result = ''
     if not args['quiet']:
         print(result)
 
@@ -272,33 +273,37 @@ def pulse(looker):
     result = check_connections(looker)
     print(result, '\n')
 
-    with trange(1, desc='Analyzing Scheduled Plans', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
-        for i in t:
-            result = check_scheduled_plans(looker)
-            if type(result)==list and len(result) > 0:
-                result = tabulate(result, headers="keys", tablefmt='psql', numalign='center')
-            t.postfix[0]["value"] = '(COMPLETE)'
-            t.update()
-    print(result, end='\n\n')
-
-    with trange(1, desc='Legacy Features', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
-        for i in t:
-            result = check_legacy_features(looker)
-            t.postfix[0]["value"] = '(COMPLETE)'
-            t.update()
-    print(result, end='\n\n')
-
-    t = trange(1, desc='Version', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=80)
-    for i in t:
-        result, status = check_version(looker)
-        t.postfix[0]["value"] = "(COMPLETE)"
-        t.update()
-    print(result, end='\n\n')
-
+    # check query stats
     r1, r2, r3 = check_query_stats(looker)
     print(r1)
     print(r2)
     print(r3, end='\n\n')
+
+    # check scheduled plans
+    with trange(1, desc='(3/5) Analyzing Scheduled Plans', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
+        for i in t:
+            result = check_scheduled_plans(looker)
+            if type(result)==list and len(result) > 0:
+                result = tabulate(result, headers="keys", tablefmt='psql', numalign='center')
+            t.postfix[0]["value"] = 'DONE'
+            t.update()
+    print(result, end='\n\n')
+
+    # check enabled legacy features
+    with trange(1, desc='(4/5) Legacy Features', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
+        for i in t:
+            result = check_legacy_features(looker)
+            t.postfix[0]["value"] = 'DONE'
+            t.update()
+    print(result, end='\n\n')
+
+    # check looker version
+    t = trange(1, desc='(5/5) Version', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100)
+    for i in t:
+        result, status = check_version(looker)
+        t.postfix[0]["value"] = "DONE"
+        t.update()
+    print(result, end='\n\n')
 
     return
 
@@ -965,14 +970,14 @@ def check_connections(looker, connection_name=None):
     result = []
     if connection_name is None:
         connection_name = [c['name'] for c in looker.get_connections()]
-    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
+    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[0][value]}%s - {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0, desc='(1/5) Testing Connections') as t:
         for idx, c in enumerate(connection_name):
             test_result = str(looker.test_connection(connection_name=c))
             result.append({'name': c,
                            'status': 'OK' if test_result=='Pass' else 'Broken'})
                            #'query_count': get_connection_activity(looker, connection_name=c)})
             if idx == len(connection_name)-1:
-                t.postfix[0]['value'] = '(COMPLETE)'
+                t.postfix[0]['value'] = 'DONE'
             t.update()
 
     return tabulate(result, tablefmt='psql')
@@ -990,7 +995,7 @@ def check_version(looker):
 
 def check_query_stats(looker):
     # check query stats
-    with trange(3, bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=ncols, desc='Analyzing Query Stats', miniters=0) as t:
+    with trange(3, desc='(2/5) Analyzing Query Stats', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
         for i in t:
             if i == 0:
                 query_count = get_query_type_count(looker)
@@ -998,7 +1003,7 @@ def check_query_stats(looker):
                 query_runtime_stats = get_query_stats(looker, status='complete')
             if i == 2:
                 query_queue_stats = get_query_stats(looker, status='pending')
-                t.postfix[0]['value'] = '(COMPLETE)'
+                t.postfix[0]['value'] = 'DONE'
 
     r1 = '{} queries run, {} queued, {} errored, {} killed'.format(query_count['total'], query_count['queued'], query_count['errored'], query_count['killed'])
     r2 = 'Query Runtime min/avg/max: {}/{}/{} seconds'.format(query_runtime_stats['min'], query_runtime_stats['avg'], query_runtime_stats['max'])
