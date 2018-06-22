@@ -138,11 +138,10 @@ class LookerApi(object):
             f.close()
 
 # POST /queries/run/{result_format}
-    def run_inline_query(self, result_format, body):
+    def run_inline_query(self, result_format, body, fields={}):
         url = 'https://{}:{}/api/3.0/{}/{}/{}'.format(self.host, self.port, 'queries', 'run', result_format)
-        params = {"cache": "false"}
+        params = fields
         r = self.session.post(url, json.dumps(body), params=params, timeout=60)
-        print(r.json)
         if r.status_code == requests.codes.ok:
             return r.json()
         else:

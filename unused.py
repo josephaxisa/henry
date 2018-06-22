@@ -16,6 +16,8 @@ import queue
 from tabulate import tabulate
 import requests
 import colors
+from tqdm import tqdm
+from tqdm import trange
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
@@ -29,6 +31,10 @@ timeframe = '90 days'
 
 colors = colors.Colors()
 
+
+# progress bar specs
+bar = '{l_bar}{bar}|[{elapsed}<{remaining}]'
+ncols = 75
 
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
@@ -222,7 +228,6 @@ def main():
 
     # authenticate
     looker = authenticate(**auth_args)
-    check_query_stats(looker)
     q = queue.Queue()
     # map subcommand to function
     if args['command'] == 'analyze':
@@ -245,10 +250,13 @@ def main():
         task.join()
         spinner_thread.stop()
         result = q.get()
+    elif args['command'] == 'pulse':
+        pulse(looker)
     else:
         print('No command passed')
 
     # silence outout if --silence flag is used
+    result = 1
     if not args['quiet']:
         print(result)
 
@@ -257,6 +265,55 @@ def main():
         with open(args['output'], 'w+') as f:
             f.write(result)
             f.close()
+
+
+def pulse(looker):
+    # check connections
+    result = check_connections(looker)
+    print(result, '\n')
+
+    with trange(1, desc='Analyzing Scheduled Plans', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0) as t:
+        for i in t:
+            t.postfix[1]['value'] = '-'
+            result = check_scheduled_plans(looker)
+            if type(result)==list and len(result) > 0:
+                if result[0]['failure'] > 0:
+                    t.postfix[1]['value'] = "(FAIL)"
+                else:
+                    t.postfix[1]['value'] = "(PASS)"
+                result = tabulate(result, headers="keys", tablefmt='psql', numalign='center')
+            elif result == 'No Plans Found':
+                t.postfix[1]['value'] = "(WARNING)"
+            t.update()
+    print(result, end='\n\n')
+
+
+    t = trange(1, desc='Legacy Features', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=100, miniters=0)
+    for i in t:
+        result = check_legacy_features(looker)
+        if result == 'No legacy features found':
+            t.postfix[1]['value'] = "(PASS)"
+        else:
+            t.postfix[1]['value'] = "(WARNING)"
+        t.update()
+    print(result, end='\n\n')
+
+    t = trange(1, desc='Version', bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], ncols=80)
+    for i in t:
+        result, status = check_version(looker)
+        if status == 'up-to-date':
+            t.postfix[1]["value"] = "(PASS)"
+        else:
+            t.postfix[1]["value"] = "(WARNING)"
+        t.update()
+    print(result, end='\n\n')
+
+    r1, r2, r3 = check_query_stats(looker)
+    print(r1)
+    print(r2)
+    print(r3, end='\n\n')
+
+    return
 
 
 # analyze func
@@ -798,16 +855,28 @@ def check_scheduled_plans(looker):
             "model": "i__looker",
             "view": "scheduled_plan",
             "fields": ["scheduled_job.status", "scheduled_job.count"],
+            "pivots": ["scheduled_job.status"],
             "filters": {
                         "scheduled_plan.run_once": "no",
-                        "scheduled_job.status": "-NULL"
+                        "scheduled_job.status": "-NULL",
+                        "scheduled_job.created_date": "30 days"
                        },
             "limit": "50000"
             }
 
-    response = looker.run_inline_query("json", body)
+    r = looker.run_inline_query("json", body)
+    result = []
+    if len(r) > 0:
+        r = r[0]
+        failed = r['scheduled_job.count']['scheduled_job.status']['failure'] if r['scheduled_job.count']['scheduled_job.status']['failure'] is not None else 0
+        succeeded = r['scheduled_job.count']['scheduled_job.status']['success'] if r['scheduled_job.count']['scheduled_job.status']['success'] is not None else 0
+        result.append({'total': failed+succeeded,
+                       'failure': failed,
+                       'success': succeeded})
+        return result
+    else:
+        return "No Plans Found"
 
-    print(response)
 
 
 def get_used_models(looker, timeframe=90, min_queries=0):
@@ -886,9 +955,9 @@ def check_legacy_features(looker):
     _result = []
     for r in response:
         if r['enabled'] is True:
-            _result.append(r['name'])
+            _result.append({'Legacy Features' : r['name']})
 
-    result = _result if len(_result) > 0 else "Pass"
+    result = tabulate(_result, headers="keys", tablefmt='psql') if len(_result) > 0 else 'No legacy features found'
     return result
 
 
@@ -907,16 +976,24 @@ def get_connection_activity(looker, connection_name):
 
 def check_connections(looker, connection_name=None):
     result = []
-    print('Checking connections\' status')
+    flag = 0
     if connection_name is None:
         connection_name = [c['name'] for c in looker.get_connections()]
-    for c in connection_name:
-        looker.test_connection(connection_name=c)
-        result.append({'name': c,
-                       'status': looker.test_connection(connection_name=c),
-                       'query_count': get_connection_activity(looker, connection_name=c)})
-    return result
+    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[1][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}] " % (colors.BOLD, colors.LOOKER, colors.ENDC), postfix=["", dict(value=0)], desc='Testing connections', ncols=100, miniters=0) as t:
+        for c in connection_name:
+            t.postfix[1]['value'] = "-"
+            test_result = str(looker.test_connection(connection_name=c))
+            result.append({'name': c,
+                           'status': 'OK' if test_result=='Pass' else 'Broken'})
+                           #'query_count': get_connection_activity(looker, connection_name=c)})
+            flag = 1 if test_result != 'PASS' else (0 if flag == 0 else 1)
+            if flag == 1:
+                t.postfix[1]['value'] = "(FAIL)"
+            else:
+                t.postfix[1]['value'] = "(PASS)"
+            t.update()
 
+    return tabulate(result, tablefmt='psql')
 
 def check_version(looker):
     version = re.findall(r'(\d.\d+)', looker.get_version()['looker_release_version'])[0]
@@ -924,13 +1001,30 @@ def check_version(looker):
     latest_version = session.get('https://learn.looker.com:19999/versions').json() ['looker_release_version']
     latest_version = re.findall(r'(\d.\d+)', latest_version)[0]
     if version == latest_version:
-        return "Looker version " + version + " (" + colors.BOLD + colors.OKGREEN + "PASS" + colors.ENDC + ')'
+        return version, "up-to-date"
     else:
-        return "Looker version " + version + " (" + colors.BOLD + colors.FAIL + "FAIL" + colors.ENDC + ')'
+        return version, "outdated"
+
+
+def check_query_stats(looker):
+    # check query stats
+    for i in trange(3, bar_format=bar, ncols=ncols, desc='Analyzing Query Stats', miniters=0):
+        if i == 0:
+            query_count = get_query_type_count(looker)
+        if i == 1:
+            query_runtime_stats = get_query_stats(looker, status='complete')
+        if i == 2:
+            query_queue_stats = get_query_stats(looker, status='pending')
+
+    r1 = '{} queries run, {} queued, {} errored, {} killed'.format(query_count['total'], query_count['queued'], query_count['errored'], query_count['killed'])
+    r2 = 'Query Runtime min/avg/max: {}/{}/{} seconds'.format(query_runtime_stats['min'], query_runtime_stats['avg'], query_runtime_stats['max'])
+    r3 = 'Queuing time min/avg/max: {}/{}/{}'.format(query_queue_stats['min'], query_queue_stats['avg'], query_queue_stats['max'])
+
+    return r1, r2, r3
 
 
 # get number of queries run, killed, completed, errored, queued
-def check_query_type_count(looker):
+def get_query_type_count(looker):
     body = {
             "model": "i__looker",
             "view": "history",
@@ -955,33 +1049,78 @@ def check_query_type_count(looker):
             "limit": "50000"
             }
 
-    r = looker.run_inline_query("json", body)
+    r = looker.run_inline_query("json", body, fields={"cache": "false"})
     completed = 0
     errored = 0
     killed = 0
-    for entry in r:
-        if 'complete' in entry['history.query_run_count']['history.status']:
-            c_i = entry['history.query_run_count']['history.status']['complete']
-        else:
-            c_i = 0
-        c_i = c_i if c_i is not None else 0
-        completed += c_i
+    queued = 0
+    if(len(r) > 0):
+        for entry in r:
+            if 'complete' in entry['history.query_run_count']['history.status']:
+                c_i = entry['history.query_run_count']['history.status']['complete']
+            else:
+                c_i = 0
+            c_i = c_i if c_i is not None else 0
+            completed += c_i
 
-        if 'error' in entry['history.query_run_count']['history.status']:
-            e_i = entry['history.query_run_count']['history.status']['error']
-        else:
-            e_i = 0
-        e_i = e_i if e_i is not None else 0
-        errored += e_i
+            if 'error' in entry['history.query_run_count']['history.status']:
+                e_i = entry['history.query_run_count']['history.status']['error']
+            else:
+                e_i = 0
+            e_i = e_i if e_i is not None else 0
+            errored += e_i
 
-        if 'killed' in entry['history.query_run_count']['history.status']:
-            k_i = entry['history.query_run_count']['history.status']['killed']
-        else:
-            k_i = 0
-        k_i = k_i if k_i is not None else 0
-        killed += k_i
+            if 'killed' in entry['history.query_run_count']['history.status']:
+                k_i = entry['history.query_run_count']['history.status']['killed']
+            else:
+                k_i = 0
+            k_i = k_i if k_i is not None else 0
+            killed += k_i
 
-    return
+            if 'pending' in entry['history.query_run_count']['history.status']:
+                q_i = entry['history.query_run_count']['history.status']['pending']
+            else:
+                q_i = 0
+            q_i = q_i if q_i is not None else 0
+            queued += q_i
+
+    response = {'total': completed+errored+killed,
+                'completed': completed,
+                'errored': errored,
+                'killed': killed,
+                'queued': queued}
+
+    return response
+
+# get number of queries run, killed, completed, errored, queued
+def get_query_stats(looker, status):
+    valid_statuses = ['error', 'complete', 'pending', 'running']
+    if status not in valid_statuses:
+        raise ValueError("Invalid query status, must be in %r" % valid_statuses)
+    body = {
+            "model": "i__looker",
+            "view": "history",
+            "fields": [
+                "history.min_runtime",
+                "history.max_runtime",
+                "history.average_runtime",
+                "history.total_runtime"
+                ],
+            "filters": {
+                "history.created_date": "30 days",
+                "history.status": status,
+                "query.model": "-i^_^_looker"
+            },
+            "limit": "50000"
+            }
+
+    r = looker.run_inline_query("json", body, fields={"cache": "false"})[0]
+    response = {'min': round(r['history.min_runtime'], 2) if r['history.min_runtime'] is not None else '-',
+                'max': round(r['history.max_runtime'], 2) if r['history.max_runtime'] is not None else '-',
+                'avg': round(r['history.average_runtime'], 2) if r['history.average_runtime'] is not None else '-',
+                'total': r['history.total_runtime']}
+
+    return response
 
 if __name__ == "__main__":
     main()
