@@ -18,6 +18,7 @@ import requests
 import colors
 from tqdm import tqdm
 from tqdm import trange
+import logging.config
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
@@ -33,8 +34,10 @@ colors = colors.Colors()
 
 
 # progress bar specs
-bar = '{l_bar}{bar}|[{elapsed}<{remaining}]'
-ncols = 75
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+logger.debug('In main')
+logger.info('In main info')
 
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
