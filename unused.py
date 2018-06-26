@@ -253,11 +253,11 @@ def main():
         result = q.get()
     elif args['command'] == 'pulse':
         pulse(looker)
+        result = ''
     else:
         print('No command passed')
 
     # silence outout if --silence flag is used
-    result = ''
     if not args['quiet']:
         print(result)
 
