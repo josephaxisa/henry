@@ -125,8 +125,8 @@ class LookerApi(object):
             f.close()
 
 # GET /projects/{project_id}
-    def get_project(self, project=None, fields={}):
-        url = 'https://{}:{}/api/3.0/{}/{}'.format(self.host, self.port, 'projects', project)
+    def get_project(self, project_id=None, fields={}):
+        url = 'https://{}:{}/api/3.0/{}/{}'.format(self.host, self.port, 'projects', project_id)
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s, %s', self.host, project_id, params)
         r = self.session.get(url, params=params, timeout=60)
@@ -223,9 +223,10 @@ class LookerApi(object):
         return
 
 # GET /projects/{project_id}/git_connection_tests/{test_id}
-    def run_git_connection_test(self, project_id, test_id):
+    def run_git_connection_test(self, project_id, test_id, fields={}):
         url = ('https://{}:{}/api/3.0/projects/{}'
                '/git_connection_tests/{}').format(self.host, self.port, project_id, test_id)
+        params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s/git_connection_tests/%s, %s', self.host, project_id, test_id, params)
         r = self.session.get(url)
         self.logger.info('Request Complete: %s', r.status_code)
