@@ -230,7 +230,7 @@ def main():
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
-    logger.info('Authenticating, %s', {key: ("[FILTERED]" if value == 'client_secret' else value) for key, value in auth_args.items()})
+    logger.info('Authenticating, %s', {key: ("[FILTERED]" if key == 'client_secret' else value) for key, value in auth_args.items()})
     looker = authenticate(**auth_args)
     q = queue.Queue()
     # map subcommand to function
@@ -238,7 +238,6 @@ def main():
         if args['which'] is None:
             parser.error("No command")
         else:
-            analyze(looker, q, **args)
             spinner_thread = SpinnerThread()
             spinner_thread.start()
             task = threading.Thread(target=analyze, args=[looker, q], kwargs=args)
@@ -320,13 +319,19 @@ def analyze(looker, queue, **kwargs):
     p = kwargs['project']
     m = kwargs['model'].split(' ') if ('model' in kwargs.keys() and kwargs['model'] is not None) else None
     if kwargs['which'] == 'projects':
+        logger.info('Analyzing Projects')
+        logger.info('analyze projects params=%s', {k: kwargs[k] for k in {'project', 'sortkey', 'limit'}})
         r = analyze_projects(looker, project=p, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
     elif kwargs['which'] == 'models':
+        logger.info('Analyzing Models')
+        logger.info('analyze models params=%s', {k: kwargs[k] for k in {'project', 'model', 'timeframe', 'min_queries', 'sortkey', 'limit'}})
         r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
     elif kwargs['which'] == 'explores':
+        logger.info('Analyzing Explores')
+        logger.info('analyze explores params=%s', {k: kwargs[k] for k in {'project', 'model', 'explore', 'timeframe', 'min_queries', 'sortkey', 'limit'}})
         r = analyze_explores(looker, project=p, model=m, explore=kwargs['explore'], sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
+    logger.info('Analyze Complete')
     result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
-
     queue.put(result)
     return
 
@@ -846,7 +851,7 @@ def test_git_connection(looker, project):
     fail_flag = 0
     for idx, test in enumerate(tests):
         s = '({}/{}) {}'.format(idx+1, len(tests), test)
-        r = looker.run_git_connection_test(project_id=project, test_id=test) # seems to be broken
+        r = looker.run_git_connection_test(project_id=project, test_id=test)
         verbose_result += colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n'
         if r['status'] != 'pass':
             fail_flag = 1
