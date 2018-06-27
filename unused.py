@@ -8,6 +8,7 @@ from itertools import groupby
 import re
 import argparse
 import os
+import errno
 import sys
 from operator import itemgetter
 from spinnerthread import SpinnerThread
@@ -36,8 +37,6 @@ colors = colors.Colors()
 # progress bar specs
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
-logger.debug('In main')
-logger.info('In main info')
 
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
@@ -226,10 +225,12 @@ def main():
                                help='Show results in a table format without the gridlines')
 
     args = vars(parser.parse_args())  # Namespace object
+    logger.info('Parsing args, %s', args)
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
+    logger.info('Authenticating, %s', {key: ("[FILTERED]" if value == 'client_secret' else value) for key, value in auth_args.items()})
     looker = authenticate(**auth_args)
     q = queue.Queue()
     # map subcommand to function
@@ -773,35 +774,43 @@ def authenticate(**kwargs):
     cleanpath = os.path.abspath(filepath)
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
+        logger.info('Authing in with client_id and client_secret passed in CLI')
         looker = LookerApi(host=kwargs['host'],
                            port=kwargs['port'],
                            token=kwargs['client_id'],
                            secret=kwargs['client_secret'])
     else:
         # otherwise, find credentials in config file
+        logger.info('Opening config file from %s', cleanpath)
         try:
             f = open(cleanpath, 'r')
             params = yaml.load(f)
             f.close()
-        except:
-            print('config.yml not found.')
+        except FileNotFoundError as error:
+            logger.exception(error, exc_info=False)
+            print(error)
+            sys.exit(1)
 
         try:
+            logger.info('Fetching auth credentials')
             my_host = params['hosts'][kwargs['host']]['host']
             my_secret = params['hosts'][kwargs['host']]['secret']  # secret
             my_id = params['hosts'][kwargs['host']]['id']  # client_id
             my_token = params['hosts'][kwargs['host']]['access_token'] #  last auth token (it will work if --persist was previously used, otherwise it fails)
-            looker = LookerApi(host=my_host,
-                               port=kwargs['port'],
-                               id=my_id,
-                               secret=my_secret,
-                               access_token=my_token)
-        except:
-            print('%s host not found' % kwargs['host'])
-            return
+        except KeyError as error:
+            logger.info(error, exc_info=False)
+            print(error)
+            sys.exit(1)
+
+    looker = LookerApi(host=my_host,
+                       port=kwargs['port'],
+                       id=my_id,
+                       secret=my_secret,
+                       access_token=my_token)
 
     # update config file with latest access token if user wants to persist session
     if kwargs['store']:
+        logger.info('Saving credentials to file: %s', cleanpath)
         with open(cleanpath, 'r') as f:
             params['hosts'][kwargs['host']] = {}
             params['hosts'][kwargs['host']]['host'] = kwargs['host']
@@ -815,6 +824,7 @@ def authenticate(**kwargs):
         os.chmod(cleanpath, 0o600)
 
     if kwargs['persist']:
+        logger.info('Persisting API session')
         with open(cleanpath, 'r+') as f:
             params = yaml.safe_load(f)
             params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
