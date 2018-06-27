@@ -272,44 +272,54 @@ def main():
 
 
 def pulse(looker):
-    # check connections
+    logger.info('Checking instance pulse')
+    logger.info('Checking Connections')
     result = check_connections(looker)
-    print(result, '\n')
+    print(result, end='\n')
+    logger.info('Complete: Checking Connections')
 
     # check query stats
+    logger.info('Analyzing Query Stats')
     r1, r2, r3 = check_query_stats(looker)
     print(r1)
     print(r2)
     print(r3, end='\n\n')
+    logger.info('Complete: Analyzing Query Stats')
 
     # check scheduled plans
+    logger.info('Analyzing Query Stats')
     with trange(1, desc='(3/5) Analyzing Scheduled Plans', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
         for i in t:
             result = check_scheduled_plans(looker)
-            if type(result)==list and len(result) > 0:
+            if type(result) == list and len(result) > 0:
                 result = tabulate(result, headers="keys", tablefmt='psql', numalign='center')
             t.postfix[0]["value"] = 'DONE'
             t.update()
     print(result, end='\n\n')
+    logger.info('Complete: Analyzing Scheduled Plans')
+
 
     # check enabled legacy features
+    logger.info('Checking Legacy Features')
     with trange(1, desc='(4/5) Legacy Features', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
         for i in t:
             result = check_legacy_features(looker)
             t.postfix[0]["value"] = 'DONE'
             t.update()
     print(result, end='\n\n')
+    logger.info('Complete: Checking Legacy Features')
 
     # check looker version
+    logger.info('Checking Version')
     t = trange(1, desc='(5/5) Version', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100)
     for i in t:
         result, status = check_version(looker)
         t.postfix[0]["value"] = "DONE"
         t.update()
     print(result, end='\n\n')
+    logger.info('Complete: Checking Version')
 
     return
-
 
 # analyze func
 # If project flag was used, call get_projects with list of projects or None.

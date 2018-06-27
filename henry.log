@@ -441,3 +441,72 @@
 2018-06-27 10:17:15.061 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ML,', 'history.query_run_count': '>=0', 'query.view': 'test_explore'}, 'limit': '50000'}
 2018-06-27 10:17:15.333 [INFO|lookerapi] :: Request Complete: 200
 2018-06-27 10:17:15.334 [INFO|__main__] :: Analyze Complete
+2018-06-27 11:01:17.959 [INFO|__main__] :: Parsing args, {'command': 'pulse', 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:01:17.959 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:01:17.960 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:01:17.966 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:01:17.967 [INFO|lookerapi] :: test
+2018-06-27 11:01:18.034 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:01:18.084 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:01:39.840 [INFO|__main__] :: Parsing args, {'command': 'pulse', 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:01:39.840 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:01:39.840 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:01:39.844 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:01:39.845 [INFO|lookerapi] :: test
+2018-06-27 11:01:39.916 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:01:39.949 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:01:46.725 [INFO|__main__] :: Parsing args, {'command': 'pulse', 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:01:46.725 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:01:46.725 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:01:46.729 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:01:46.730 [INFO|lookerapi] :: test
+2018-06-27 11:01:46.795 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:01:46.826 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.458 [INFO|__main__] :: Parsing args, {'command': 'pulse', 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:02:29.458 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:02:29.458 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:02:29.462 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:02:29.463 [INFO|lookerapi] :: test
+2018-06-27 11:02:29.521 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:02:29.553 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.554 [INFO|__main__] :: Checking instance pulse
+2018-06-27 11:02:29.554 [INFO|__main__] :: (1/5) Checking Connections
+2018-06-27 11:02:29.554 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/connections, {}
+2018-06-27 11:02:29.688 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.689 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/thelook/test, {}
+2018-06-27 11:02:29.785 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.785 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/thelook_redshift/test, {}
+2018-06-27 11:02:29.881 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.881 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/bq_publicdata/test, {}
+2018-06-27 11:02:29.981 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:29.981 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/looker_bq/test, {}
+2018-06-27 11:02:30.078 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:30.078 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/rds_postgres/test, {}
+2018-06-27 11:02:30.176 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:30.177 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/connections/looker/test, {}
+2018-06-27 11:02:30.264 [INFO|lookerapi] :: Request Complete: 404
+2018-06-27 11:02:30.265 [INFO|__main__] :: Complete: Checking Connections
+2018-06-27 11:02:30.266 [INFO|__main__] :: (2/5) Analyzing Query Stats
+2018-06-27 11:02:30.266 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {'cache': 'false'}
+2018-06-27 11:02:30.266 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['history.query_run_count', 'history.status', 'history.created_date'], 'pivots': ['history.status'], 'filters': {'history.created_date': '30 days', 'history.status': '-NULL', 'history.result_source': 'query', 'query.model': '-i^_^_looker'}, 'sorts': ['history.created_date desc', 'history.result_source'], 'limit': '50000'}
+2018-06-27 11:02:30.672 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:30.673 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {'cache': 'false'}
+2018-06-27 11:02:30.673 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['history.min_runtime', 'history.max_runtime', 'history.average_runtime', 'history.total_runtime'], 'filters': {'history.created_date': '30 days', 'history.status': 'complete', 'query.model': '-i^_^_looker'}, 'limit': '50000'}
+2018-06-27 11:02:30.958 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:30.959 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {'cache': 'false'}
+2018-06-27 11:02:30.959 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['history.min_runtime', 'history.max_runtime', 'history.average_runtime', 'history.total_runtime'], 'filters': {'history.created_date': '30 days', 'history.status': 'pending', 'query.model': '-i^_^_looker'}, 'limit': '50000'}
+2018-06-27 11:02:31.221 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:31.222 [INFO|__main__] :: Complete: Analyzing Query Stats
+2018-06-27 11:02:31.222 [INFO|__main__] :: (3/5) Analyzing Query Stats
+2018-06-27 11:02:31.222 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:02:31.223 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'scheduled_plan', 'fields': ['scheduled_job.status', 'scheduled_job.count'], 'pivots': ['scheduled_job.status'], 'filters': {'scheduled_plan.run_once': 'no', 'scheduled_job.status': '-NULL', 'scheduled_job.created_date': '30 days'}, 'limit': '50000'}
+2018-06-27 11:02:31.608 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:31.609 [INFO|__main__] :: Complete: Analyzing Scheduled Plans
+2018-06-27 11:02:31.609 [INFO|__main__] :: (4/5) Checking Legacy Features
+2018-06-27 11:02:31.610 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/legacy_features, {}
+2018-06-27 11:02:31.697 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:31.697 [INFO|__main__] :: Complete: Checking Legacy Features
+2018-06-27 11:02:31.697 [INFO|__main__] :: (5/5) Checking Version
+2018-06-27 11:02:31.698 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/versions, {}
+2018-06-27 11:02:31.726 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:02:32.125 [INFO|__main__] :: Complete: Checking Version
