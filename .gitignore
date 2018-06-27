@@ -5,4 +5,4 @@ config_file.yml
 __pycache__
 test.py
 api_errors.txt
-*.txt
+*.log

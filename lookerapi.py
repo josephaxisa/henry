@@ -78,8 +78,10 @@ class LookerApi(object):
         r = self.session.get(url, params=params, timeout=60)
         if r.status_code == requests.codes.ok:
             self.logger.info('Request Complete: %s', r.status_code)
+            return r.json()
         else:
             self.logger.warning('Request Complete: %s', r.status_code)
+            return
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self, model_name=None, explore_name=None, fields={}):

@@ -1,0 +1,6 @@
+analyze explores
+
+get_explores first - we get all explores
+
+then for every explore:
+	- get_used_explore_fields -> from i__looker, no problem here

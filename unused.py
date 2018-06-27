@@ -459,6 +459,7 @@ def get_explores(looker, project=None, model=None, explore=None, scoped_names=0,
             # if project and model are specified or if project is not specified
             # but model is.
             model_list = get_models(looker, model=model, verbose=1)
+
         # if verbose = 1, then return explore bodies otherwise return explore names
         # which can be fully scoped with project name
         for mdl in model_list:
@@ -473,7 +474,7 @@ def get_explores(looker, project=None, model=None, explore=None, scoped_names=0,
 # returns a list of scoped fields of explores for a given model or explore
 def get_explore_fields(looker, model=None, explore=None, scoped_names=0):
     fields = []
-    explore_list = get_explores(looker, model=model, verbose=1)
+    explore_list = get_explores(looker, model=model, explore=explore, verbose=1)
 
     if explore is not None:
         # filter list based on explore names supplied
