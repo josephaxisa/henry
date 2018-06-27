@@ -38,6 +38,7 @@ colors = colors.Colors()
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
+#sys.tracebacklimit = -1 # enable only on shipped release
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
@@ -230,7 +231,6 @@ def main():
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
-    logger.info('Authenticating, %s', {key: ("[FILTERED]" if key == 'client_secret' else value) for key, value in auth_args.items()})
     looker = authenticate(**auth_args)
     q = queue.Queue()
     # map subcommand to function
@@ -266,9 +266,27 @@ def main():
 
     # save to file if --output flag is used
     if args['output']:
-        with open(args['output'], 'w+') as f:
-            f.write(result)
-            f.close()
+        logger.info('Saving results to file: %s', args['output'])
+        if os.path.isdir(args['output']):
+            error = IsADirectoryError(errno.EISDIR, os.strerror(errno.EISDIR), args['output'])
+            logger.error(error)
+            raise error
+        elif not (args['output'].endswith('.csv') or args['output'].endswith('.txt')):
+            error = ValueError('Output file must be CSV or TXT')
+            logger.error(error)
+            raise error
+        elif os.path.isfile(args['output']):
+            error = FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), args['output'])
+            logger.error(error)
+            raise error
+        else:
+            try:
+                f = open(args['output'], 'w+')
+                f.write(result)
+                f.close()
+                logger.info('Results succesfully saved.')
+            except Exception as e:
+                logger.error(e)
 
 
 def pulse(looker):
@@ -792,15 +810,16 @@ def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
 def authenticate(**kwargs):
+    logger.info('Authenticating into Looker API')
     filepath = kwargs['path']+'config.yml'
     cleanpath = os.path.abspath(filepath)
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
-        logger.info('Authing in with client_id and client_secret passed in CLI')
-        looker = LookerApi(host=kwargs['host'],
-                           port=kwargs['port'],
-                           token=kwargs['client_id'],
-                           secret=kwargs['client_secret'])
+        logger.info('Fetching auth params passed in CLI')
+        host = kwargs['host']
+        client_id = kwargs['client_id']
+        client_secret = kwargs['client_secret']
+        token = None
     else:
         # otherwise, find credentials in config file
         logger.info('Opening config file from %s', cleanpath)
@@ -814,30 +833,32 @@ def authenticate(**kwargs):
             sys.exit(1)
 
         try:
-            logger.info('Fetching auth credentials')
-            my_host = params['hosts'][kwargs['host']]['host']
-            my_secret = params['hosts'][kwargs['host']]['secret']  # secret
-            my_id = params['hosts'][kwargs['host']]['id']  # client_id
-            my_token = params['hosts'][kwargs['host']]['access_token'] #  last auth token (it will work if --persist was previously used, otherwise it fails)
+            logger.info('Fetching auth credentials from file, %s', cleanpath)
+            host = params['hosts'][kwargs['host']]['host']
+            client_secret = params['hosts'][kwargs['host']]['secret']  # secret
+            client_id = params['hosts'][kwargs['host']]['id']  # client_id
+            token = params['hosts'][kwargs['host']]['access_token'] #  last auth token (it will work if --persist was previously used, otherwise it fails)
         except KeyError as error:
             logger.info(error, exc_info=False)
             print(error)
             sys.exit(1)
 
-    looker = LookerApi(host=my_host,
+    logger.info('auth params=%s', {'host': host, 'port' : kwargs['port'], 'client_id' : client_id, 'client_secret' : "[FILTERED]"})
+    looker = LookerApi(host=host,
                        port=kwargs['port'],
-                       id=my_id,
-                       secret=my_secret,
-                       access_token=my_token)
+                       id=client_id,
+                       secret=client_secret,
+                       access_token=token)
+    logger.info('Authentication Successful')
 
     # update config file with latest access token if user wants to persist session
     if kwargs['store']:
         logger.info('Saving credentials to file: %s', cleanpath)
         with open(cleanpath, 'r') as f:
             params['hosts'][kwargs['host']] = {}
-            params['hosts'][kwargs['host']]['host'] = kwargs['host']
-            params['hosts'][kwargs['host']]['id'] = kwargs['client_id']
-            params['hosts'][kwargs['host']]['secret'] = kwargs['client_secret']
+            params['hosts'][kwargs['host']]['host'] = host
+            params['hosts'][kwargs['host']]['id'] = client_id
+            params['hosts'][kwargs['host']]['secret'] = client_secret
             params['hosts'][kwargs['host']]['access_token'] = ''
 
         with open(cleanpath, 'w') as f:
@@ -846,7 +867,7 @@ def authenticate(**kwargs):
         os.chmod(cleanpath, 0o600)
 
     if kwargs['persist']:
-        logger.info('Persisting API session')
+        logger.info('Persisting API session. Saving auth token under %s in %s', host, cleanpath)
         with open(cleanpath, 'r+') as f:
             params = yaml.safe_load(f)
             params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
@@ -903,7 +924,6 @@ def check_scheduled_plans(looker):
         return result
     else:
         return "No Plans Found"
-
 
 
 def get_used_models(looker, timeframe=90, min_queries=0):
@@ -1115,6 +1135,7 @@ def get_query_type_count(looker):
                 'queued': queued}
 
     return response
+
 
 # get number of queries run, killed, completed, errored, queued
 def get_query_stats(looker, status):
