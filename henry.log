@@ -960,3 +960,47 @@
 2018-06-27 17:37:50.266 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/MySQL/git_connection_tests/read_access, {}
 2018-06-27 17:37:51.500 [INFO|lookerapi] :: Request Complete: 200
 2018-06-27 17:37:51.500 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/MySQL/git_connection_tests/write_access, {}
+2018-06-27 17:38:00.024 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.024 [INFO|lookerapi] :: Request to 35.177.130.99 => PATCH /api/3.0/session, {'workspace_id': 'dev'}
+2018-06-27 17:38:00.117 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.117 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests, {}
+2018-06-27 17:38:00.211 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.212 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests/verify_remote, {}
+2018-06-27 17:38:00.309 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.309 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests/git_hostname_resolves, {}
+2018-06-27 17:38:00.410 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.410 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests/can_reach, {}
+2018-06-27 17:38:00.582 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:00.583 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests/read_access, {}
+2018-06-27 17:38:02.699 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:02.699 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/BigQuery/git_connection_tests/write_access, {}
+2018-06-27 17:38:14.432 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:14.433 [INFO|lookerapi] :: Request to 35.177.130.99 => PATCH /api/3.0/session, {'workspace_id': 'dev'}
+2018-06-27 17:38:14.526 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:14.526 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests, {}
+2018-06-27 17:38:14.657 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:14.657 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests/verify_remote, {}
+2018-06-27 17:38:14.757 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:14.758 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests/git_hostname_resolves, {}
+2018-06-27 17:38:14.854 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:14.854 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests/can_reach, {}
+2018-06-27 17:38:15.025 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:15.026 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests/read_access, {}
+2018-06-27 17:38:15.665 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:15.665 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/redshift/git_connection_tests/write_access, {}
+2018-06-27 17:38:16.384 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.384 [INFO|lookerapi] :: Request to 35.177.130.99 => PATCH /api/3.0/session, {'workspace_id': 'dev'}
+2018-06-27 17:38:16.472 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.472 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests, {}
+2018-06-27 17:38:16.563 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.563 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests/verify_remote, {}
+2018-06-27 17:38:16.657 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.657 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests/git_hostname_resolves, {}
+2018-06-27 17:38:16.752 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.752 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests/can_reach, {}
+2018-06-27 17:38:16.994 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:16.994 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests/read_access, {}
+2018-06-27 17:38:18.218 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:18.218 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/projects/postgres/git_connection_tests/write_access, {}
+2018-06-27 17:38:26.568 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 17:38:26.568 [INFO|__main__] :: Analyze Complete
