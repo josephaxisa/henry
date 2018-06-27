@@ -510,3 +510,289 @@
 2018-06-27 11:02:31.698 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/versions, {}
 2018-06-27 11:02:31.726 [INFO|lookerapi] :: Request Complete: 200
 2018-06-27 11:02:32.125 [INFO|__main__] :: Complete: Checking Version
+2018-06-27 11:04:53.222 [INFO|__main__] :: Parsing args, {'command': 'vacuum', 'which': 'models', 'model': None, 'timeframe': 90, 'min_queries': 0, 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:04:53.222 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:04:53.222 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:04:53.225 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:04:53.226 [INFO|lookerapi] :: test
+2018-06-27 11:04:53.285 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:04:53.333 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:53.334 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models, {}
+2018-06-27 11:04:53.684 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:53.684 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:53.684 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': '-i^_^_looker', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:04:53.957 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:53.958 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/thelook, {}
+2018-06-27 11:04:54.049 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.050 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:54.050 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'thelook,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:54.323 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.323 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/thelook, {}
+2018-06-27 11:04:54.421 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.421 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker, {}
+2018-06-27 11:04:54.512 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.513 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker/explores/pingpong, {}
+2018-06-27 11:04:54.616 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.617 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:54.617 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'sports^_tracker,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:54.888 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.888 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker, {}
+2018-06-27 11:04:54.980 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:54.980 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:04:55.075 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.075 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:04:55.175 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.175 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:04:55.298 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.300 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:04:55.417 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.418 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:04:55.550 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.553 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:04:55.654 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.654 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:04:55.758 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:55.759 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:55.760 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:56.028 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.028 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:04:56.120 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.120 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres, {}
+2018-06-27 11:04:56.216 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.216 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items, {}
+2018-06-27 11:04:56.334 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.336 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items_summary_2, {}
+2018-06-27 11:04:56.441 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.442 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:56.442 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'postgres,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:56.715 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.715 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres, {}
+2018-06-27 11:04:56.807 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.808 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML, {}
+2018-06-27 11:04:56.902 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:56.902 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/prediction, {}
+2018-06-27 11:04:57.040 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.042 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/my_new_explore, {}
+2018-06-27 11:04:57.176 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.180 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/test_explore, {}
+2018-06-27 11:04:57.317 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.320 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:57.320 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ML,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:57.603 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.603 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML, {}
+2018-06-27 11:04:57.696 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.696 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/empty_model, {}
+2018-06-27 11:04:57.786 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:57.786 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:04:57.787 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.view', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'empty^_model,', 'history.query_run_count': '>=0', 'query.view': None}, 'limit': '50000'}
+2018-06-27 11:04:58.062 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:04:58.062 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/empty_model, {}
+2018-06-27 11:04:58.155 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:27.752 [INFO|__main__] :: Parsing args, {'command': 'vacuum', 'which': 'explores', 'model': None, 'explore': None, 'timeframe': 90, 'min_queries': 0, 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:05:27.752 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:05:27.752 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:05:27.756 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:05:27.757 [INFO|lookerapi] :: test
+2018-06-27 11:05:27.818 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:05:27.857 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:27.858 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models, {}
+2018-06-27 11:05:28.006 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.006 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker/explores/pingpong, {}
+2018-06-27 11:05:28.109 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.109 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:28.207 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.208 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:28.320 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.322 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:28.447 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.449 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:28.583 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.587 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:28.689 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.690 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:28.802 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.804 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items, {}
+2018-06-27 11:05:28.919 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:28.922 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items_summary_2, {}
+2018-06-27 11:05:29.030 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:29.031 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/prediction, {}
+2018-06-27 11:05:29.362 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:29.366 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/my_new_explore, {}
+2018-06-27 11:05:29.671 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:29.673 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/test_explore, {}
+2018-06-27 11:05:29.874 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:29.877 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:29.877 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'sports^_tracker,-i^_^_looker', 'query.view': 'pingpong', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:30.151 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.151 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker, {}
+2018-06-27 11:05:30.244 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.244 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/sports_tracker/explores/pingpong, {}
+2018-06-27 11:05:30.344 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.345 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:30.345 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'distribution^_centers', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:30.643 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.643 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:30.735 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.735 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:30.833 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:30.834 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:31.181 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.182 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:31.293 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.296 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:31.431 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.434 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:31.542 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.542 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:31.646 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.647 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:31.648 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'events,users', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:31.923 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:31.924 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:32.018 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.018 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:32.124 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.124 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:32.241 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.242 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:32.356 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.358 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:32.488 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.491 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:32.632 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.633 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:32.760 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:32.762 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:32.762 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'inventory^_items,distribution^_centers,products', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:33.077 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.077 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:33.195 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.195 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:33.294 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.295 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:33.409 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.410 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:33.532 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.534 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:33.678 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.681 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:33.797 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.798 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:33.906 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:33.907 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:33.908 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'order^_items,distribution^_centers,inventory^_items,products,users', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:34.182 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.182 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:34.277 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.277 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:34.401 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.402 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:34.524 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.526 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:34.638 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.640 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:34.773 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.778 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:34.884 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:34.885 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:34.997 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.000 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:35.000 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'products,distribution^_centers', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:35.300 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.301 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:35.390 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.391 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:35.491 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.491 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:35.609 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.611 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:35.721 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.722 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:35.855 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.859 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:35.960 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:35.961 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:36.063 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.065 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:36.065 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ecommerce,-i^_^_looker', 'query.view': 'users', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:36.346 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.346 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce, {}
+2018-06-27 11:05:36.437 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.437 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/distribution_centers, {}
+2018-06-27 11:05:36.536 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.537 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/events, {}
+2018-06-27 11:05:36.649 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.650 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/inventory_items, {}
+2018-06-27 11:05:36.761 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.763 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/order_items, {}
+2018-06-27 11:05:36.894 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.897 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/products, {}
+2018-06-27 11:05:36.995 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:36.995 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ecommerce/explores/users, {}
+2018-06-27 11:05:37.100 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.101 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:37.101 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'postgres,-i^_^_looker', 'query.view': 'order^_items,my^_test^_view,users', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:37.374 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.375 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres, {}
+2018-06-27 11:05:37.467 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.468 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items, {}
+2018-06-27 11:05:37.582 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.584 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items_summary_2, {}
+2018-06-27 11:05:37.690 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.691 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:37.691 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'postgres,-i^_^_looker', 'query.view': 'order^_items^_summary^_2,users', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:37.969 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:37.970 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres, {}
+2018-06-27 11:05:38.066 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:38.066 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items, {}
+2018-06-27 11:05:38.181 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:38.183 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/postgres/explores/order_items_summary_2, {}
+2018-06-27 11:05:38.296 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:38.298 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:38.298 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ML,-i^_^_looker', 'query.view': 'prediction', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:38.609 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:38.610 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML, {}
+2018-06-27 11:05:38.702 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:38.702 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/prediction, {}
+2018-06-27 11:05:39.052 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.055 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/my_new_explore, {}
+2018-06-27 11:05:39.195 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.198 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/test_explore, {}
+2018-06-27 11:05:39.331 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.336 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:39.336 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ML,-i^_^_looker', 'query.view': 'my^_new^_explore', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:39.611 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.611 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML, {}
+2018-06-27 11:05:39.706 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.706 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/prediction, {}
+2018-06-27 11:05:39.841 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.844 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/my_new_explore, {}
+2018-06-27 11:05:39.981 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:39.984 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/test_explore, {}
+2018-06-27 11:05:40.121 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:40.126 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:05:40.126 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'query.view', 'query.formatted_fields', 'query.formatted_filters', 'query.sorts', 'query.formatted_pivots', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': 'ML,-i^_^_looker', 'query.view': 'test^_explore', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:05:40.404 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:40.405 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML, {}
+2018-06-27 11:05:40.506 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:40.506 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/prediction, {}
+2018-06-27 11:05:40.640 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:40.644 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/my_new_explore, {}
+2018-06-27 11:05:40.782 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:05:40.785 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models/ML/explores/test_explore, {}
+2018-06-27 11:05:40.919 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:09:22.174 [INFO|__main__] :: Parsing args, {'command': 'analyze', 'which': 'models', 'project': None, 'model': None, 'timeframe': 90, 'min_queries': 0, 'sortkey': None, 'limit': None, 'output': None, 'quiet': False, 'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': None, 'persist': False, 'store': False, 'path': '', 'plain': None}
+2018-06-27 11:09:22.174 [INFO|__main__] :: Authenticating, {'host': 'mylooker', 'port': 19999, 'client_id': None, 'client_secret': '[FILTERED]', 'persist': False, 'store': False, 'path': ''}
+2018-06-27 11:09:22.174 [INFO|__main__] :: Opening config file from /Users/jax/Documents/lookml_field_usage/config.yml
+2018-06-27 11:09:22.178 [INFO|__main__] :: Fetching auth credentials
+2018-06-27 11:09:22.179 [INFO|lookerapi] :: test
+2018-06-27 11:09:22.263 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/login, {'client_id': 'VBD5rczxFMdV52Ys7tDM', 'client_secret': '[FILTERED]'}
+2018-06-27 11:09:22.296 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:09:22.297 [INFO|__main__] :: Analyzing Models
+2018-06-27 11:09:22.297 [INFO|__main__] :: analyze models params={'model': None, 'project': None, 'min_queries': 0, 'timeframe': 90, 'sortkey': None, 'limit': None}
+2018-06-27 11:09:22.297 [INFO|lookerapi] :: Request to 35.177.130.99 => GET /api/3.0/lookml_models, {}
+2018-06-27 11:09:22.440 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:09:22.440 [INFO|lookerapi] :: Request to 35.177.130.99 => POST /api/3.0/queries/run/json, {}
+2018-06-27 11:09:22.441 [INFO|lookerapi] :: Query params={'model': 'i__looker', 'view': 'history', 'fields': ['query.model', 'history.query_run_count'], 'filters': {'history.created_date': '90 days', 'query.model': '-i^_^_looker', 'history.query_run_count': '>=0'}, 'limit': '50000'}
+2018-06-27 11:09:22.721 [INFO|lookerapi] :: Request Complete: 200
+2018-06-27 11:09:22.722 [INFO|__main__] :: Analyze Complete

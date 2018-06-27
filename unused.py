@@ -318,8 +318,10 @@ def pulse(looker):
         t.update()
     print(result, end='\n\n')
     logger.info('Complete: Checking Version')
+    logger.info('Complete: Checking instance pulse')
 
     return
+
 
 # analyze func
 # If project flag was used, call get_projects with list of projects or None.
@@ -351,9 +353,14 @@ def vacuum(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     headers = '' if kwargs['plain'] else 'keys'
     if kwargs['which'] == 'models':
+        logger.info('Vacuuming Models')
+        logger.info('vacuum models params=%s', {k: kwargs[k] for k in {'model', 'timeframe', 'min_queries'}})
         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
     if kwargs['which'] == 'explores':
+        logger.info('Vacuuming Explores')
+        logger.info('vacuum explores params=%s', {k: kwargs[k] for k in {'model', 'explore', 'timeframe', 'min_queries'}})
         r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
+    logger.info('Vacuum Complete')
     result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
     queue.put(result)
     return
