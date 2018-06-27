@@ -15,7 +15,6 @@ class LookerApi(object):
         logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
         self.logger = logging.getLogger(__name__)
         self.logger.propagate = 0
-        self.logger.info('test')
         self.id = id
         self.secret = secret
         self.host = host
@@ -41,13 +40,14 @@ class LookerApi(object):
                   }
         self.logger.info('Request to %s => POST /api/3.0/login, %s', self.host, {key: (value if key == 'client_id' else "[FILTERED]") for key,value in params.items()})
         r = self.session.post(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
         access_token = r.json().get('access_token')
         self.session.headers.update({'Authorization': 'token {}'.format(access_token)})
-        if r.status_code != requests.codes.ok:
-            print('Authentication failed.')
-        else:
+        if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             self.access_token = access_token
+        else:
+            self.logger.warning('Request Complete: %s', r.status_code)
+            sys.exit(1)
         return
 
 # GET /user - meant for use by the class itself
@@ -64,15 +64,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/lookml_models, %s', self.host, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /lookml_models/{{NAME}}
     def get_model(self, model_name=None, fields={}):
@@ -80,15 +76,10 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/lookml_models/%s, %s', self.host, model_name, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
         if r.status_code == requests.codes.ok:
-            return r.json()
+            self.logger.info('Request Complete: %s', r.status_code)
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
     def get_explore(self, model_name=None, explore_name=None, fields={}):
@@ -96,16 +87,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/lookml_models/%s/explores/%s, %s', self.host, model_name, explore_name, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /projects
     def get_projects(self, fields={}):
@@ -113,16 +99,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects, %s', self.host, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /projects/{project_id}
     def get_project(self, project_id=None, fields={}):
@@ -130,16 +111,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s, %s', self.host, project_id, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /projects/{project_id}/files
     def get_project_files(self, project=None, fields={}):
@@ -147,16 +123,12 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s/files, %s', self.host, project, params)
         r = self.session.get(url, params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
+        return
 
 # POST /queries/run/{result_format}
     def run_inline_query(self, result_format, body, fields={}):
@@ -165,16 +137,12 @@ class LookerApi(object):
         self.logger.info('Request to %s => POST /api/3.0/queries/run/%s, %s', self.host, result_format, params)
         self.logger.info('Query params=%s', body)
         r = self.session.post(url, json.dumps(body), params=params, timeout=60)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            error_message = str(r.status_code) + ': Call to ' + url + ' failed at ' + str(datetime.datetime.utcnow())
-            print(error_message)
-            f = open('api_errors.txt', 'a+')
-            f.write(error_message)
-            f.close()
+            self.logger.warning('Request Complete: %s', r.status_code)
+        return
 
 # PATCH session
     def update_session(self, mode):
@@ -182,13 +150,11 @@ class LookerApi(object):
         body = { 'workspace_id' : str(mode)}
         self.logger.info('Request to %s => PATCH /api/3.0/session, %s', self.host, body)
         r = self.session.patch(url, json=body)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            return r.status_code
-
+            self.logger.warning('Request Complete: %s', r.status_code)
         return
 
 # GET session
@@ -197,13 +163,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/session, %s', self.host, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            return r.status_code
-
+            self.logger.warning('Request Complete: %s', r.status_code)
         return
 
 # GET /projects/{project_id}/git_connection_tests
@@ -213,12 +177,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s/git_connection_tests, %s', self.host, project_id, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            return r.status_code
+            self.logger.warning('Request Complete: %s', r.status_code)
 
         return
 
@@ -229,11 +192,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/projects/%s/git_connection_tests/%s, %s', self.host, project_id, test_id, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
+            self.logger.warning('Request Complete: %s', r.status_code)
             return r.status_code
 
         return
@@ -245,13 +208,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/connections, %s', self.host, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
-            return r.status_code
-
+            self.logger.warning('Request Complete: %s', r.status_code)
         return
 
 
@@ -261,12 +222,12 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => POST /api/3.0/connections/%s/test, %s', self.host, connection_name, params)
         r = self.session.put(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return 'Pass'
         else:
-            return r.status_code
+            self.logger.warning('Request Complete: %s', r.status_code)
+        return
 
 # GET /legacy_features
     def get_legacy_features(self, fields={}):
@@ -274,11 +235,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => POST /api/3.0/legacy_features, %s', self.host, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
+            self.logger.warning('Request Complete: %s', r.status_code)
             return r.status_code
 
 # GET /integrations
@@ -287,11 +248,11 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => POST /api/3.0/integrations, %s', self.host, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
+            self.logger.warning('Request Complete: %s', r.status_code)
             return r.status_code
 
 # GET /versions
@@ -300,9 +261,9 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => POST /api/3.0/versions, %s', self.host, params)
         r = self.session.get(url)
-        self.logger.info('Request Complete: %s', r.status_code)
-
         if r.status_code == requests.codes.ok:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.json()
         else:
+            self.logger.info('Request Complete: %s', r.status_code)
             return r.status_code
