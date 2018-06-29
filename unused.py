@@ -23,9 +23,8 @@ import logging.config
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-host = 'mylooker'
-
-# model that you wish to analyze
+host = 'cs_eng'
+#model that you wish to analyze
 model = ['thelook']
 
 # How far you wish to look back
@@ -414,8 +413,8 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
         if verbose == 0:
             models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
     except:
-        print("No results found.")
-        return
+        # print("No results found.")
+        sys.exit(1)
 
     return models
 
@@ -563,6 +562,8 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
 
 def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None, timeframe=90, min_queries=0):
     models = get_models(looker, project=project, model=model, verbose=1)
+    if models is None:
+        sys.exit()
     used_models = get_used_models(looker, timeframe, min_queries)
 
     info = []
@@ -643,34 +644,37 @@ def analyze_explores(looker, project=None, model=None, explore=None, sortkey=Non
     # Step 2
     explores_usage = {}
     info = []
-    if len(explores) == 0:
+    if explores is None:
         raise FileNotFoundError("No matching explores found.")
     else:
         for e in explores:
-            _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
-            used_fields = list(_used_fields.keys())
-            exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
-            unused_fields = set(exposed_fields) - set(used_fields)
-            field_count = len(exposed_fields)
-            query_count = get_used_explores(looker, model=e['model_name'], explore=e['name']) #, timeframe=timeframe, min_queries=min_queries)
+            if e is None:
+                pass
+            else:
+                _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
+                used_fields = list(_used_fields.keys())
+                exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
+                unused_fields = set(exposed_fields) - set(used_fields)
+                field_count = len(exposed_fields)
+                query_count = get_used_explores(looker, model=e['model_name'], explore=e['name']) #, timeframe=timeframe, min_queries=min_queries)
 
-            # joins
-            all_joins = set(e['scopes'])
-            all_joins.remove(e['name'])
-            used_joins = set([i.split('.')[2] for i in used_fields])
-            unused_joins = len(list(all_joins - used_joins))
+                # joins
+                all_joins = set(e['scopes'])
+                all_joins.remove(e['name'])
+                used_joins = set([i.split('.')[2] for i in used_fields])
+                unused_joins = len(list(all_joins - used_joins))
 
-            info.append({
-                    'model': e['model_name'],
-                    'explore': e['name'],
-                    'join_count': len(all_joins),
-                    'unused_joins': unused_joins,
-                    'field_count': field_count,
-                    'unused_fields': len(unused_fields),
-                    'Hidden': e['hidden'],
-                    'Has Description': (colors.FAIL + 'No' + colors.ENDC) if e['description'] is None else 'Yes',
-                    'query_count': query_count[e['name']] if query_count.get(e['name']) else 0
-                    })
+                info.append({
+                        'model': e['model_name'],
+                        'explore': e['name'],
+                        'join_count': len(all_joins),
+                        'unused_joins': unused_joins,
+                        'field_count': field_count,
+                        'unused_fields': len(unused_fields),
+                        'Hidden': e['hidden'],
+                        'Has Description': (colors.FAIL + 'No' + colors.ENDC) if e['description'] is None else 'Yes',
+                        'query_count': query_count[e['name']] if query_count.get(e['name']) else 0
+                        })
 
         valid_values = list(info[0].keys())
         info = sort_results(info, valid_values, sortkey)
