@@ -23,7 +23,7 @@ import logging.config
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-host = 'cs_eng'
+host = 'lookerv54'
 #model that you wish to analyze
 model = ['thelook']
 
@@ -408,15 +408,20 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
         models = [looker.get_model(m) for m in model]
 
     # error handling in case response is empty
-    try:
+    if models[0] is None:
+        return
+    else:
         models = list(filter(lambda x: x['has_content'] is True, models))
         if verbose == 0:
             models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
-    except:
-        # print("No results found.")
-        sys.exit(1)
-
-    return models
+        return models
+    # try:
+    #     # models = list(filter(lambda x: x['has_content'] is True, models))
+    #     # if verbose == 0:
+    #     #     models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
+    # except IndexError as e:
+    #     raise(e)
+    # return models
 
 
 # takes in a list of dictionaries. Dictionary keys
@@ -446,7 +451,11 @@ def tree(data, group_field):
 def get_explores(looker, project=None, model=None, explore=None, scoped_names=0, verbose=0):
     explores = []
     if explore is not None:
-        explores.extend([looker.get_explore(model_name=model[0], explore_name=explore)])
+        e = [looker.get_explore(model_name=model[0], explore_name=explore)]
+        if e[0] is not None:
+            explores.extend(e)
+        else:
+            pass
     else:
         if project is not None and model is None:
             # if project is specified, get all models in that project
@@ -563,7 +572,7 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
 def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None, timeframe=90, min_queries=0):
     models = get_models(looker, project=project, model=model, verbose=1)
     if models is None:
-        sys.exit()
+        os._exit(1)
     used_models = get_used_models(looker, timeframe, min_queries)
 
     info = []
@@ -641,6 +650,8 @@ def analyze_explores(looker, project=None, model=None, explore=None, sortkey=Non
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, explore=explore, verbose=1)
 
+    if explores == []:
+        os._exit(1)
     # Step 2
     explores_usage = {}
     info = []
