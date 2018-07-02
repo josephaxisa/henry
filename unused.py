@@ -23,9 +23,9 @@ import logging.config
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
-host = 'lookerv54'
+host = 'mylooker'
 #model that you wish to analyze
-model = ['thelook']
+#model = ['thelook']
 
 # How far you wish to look back
 timeframe = '90 days'
@@ -1041,6 +1041,7 @@ def check_connections(looker, connection_name=None):
     result = []
     if connection_name is None:
         connection_name = [c['name'] for c in looker.get_connections()]
+    connection_name.remove('looker')
     with tqdm(total=len(connection_name), bar_format="%s%s{postfix[0][value]}%s - {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0, desc='(1/5) Testing Connections') as t:
         for idx, c in enumerate(connection_name):
             test_result = str(looker.test_connection(connection_name=c))

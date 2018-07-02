@@ -249,7 +249,6 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()
@@ -264,7 +263,7 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
+            #print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()
@@ -279,7 +278,6 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()
@@ -294,7 +292,6 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()
