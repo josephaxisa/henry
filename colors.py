@@ -8,3 +8,25 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+    # string is the original string
+    # type determines the color/label added
+    # style can be color or text
+    def format(self, string, type, style='color'):
+        formatted_string = ''
+        if style == 'color':
+            if type == 'success':
+                formatted_string += self.OKGREEN + string + self.ENDC
+            elif type == 'warning':
+                formatted_string += self.WARNING + string + self.ENDC
+            elif type == 'error':
+                formatted_string += self.FAIL + string + self.ENDC
+        elif style == 'text':
+            if type == 'success':
+                formatted_string += string
+            elif type == 'warning':
+                formatted_string += 'WARNING: ' + string
+            elif type == 'error':
+                formatted_string += 'ERROR: ' + string
+
+        return formatted_string

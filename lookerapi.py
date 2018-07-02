@@ -258,12 +258,11 @@ class LookerApi(object):
         url = 'https://{}:{}/api/3.0/connections/{}/test'.format(self.host, self.port, connection_name)
         params = fields
         self.logger.info('Request to %s => POST /api/3.0/connections/%s/test, %s', self.host, connection_name, params)
-        r = self.session.put(url)
+        r = self.session.put(url, params=params)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            #print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()

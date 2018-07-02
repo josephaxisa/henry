@@ -1050,9 +1050,13 @@ def check_connections(looker, connection_name=None):
 
     with tqdm(total=len(connections), bar_format="%s%s{postfix[0][value]}%s - {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0, desc='(1/5) Testing Connections') as t:
         for idx, (c, tests) in enumerate(connections):
-            test_result = looker.test_connection(connection_name=c, fields={'tests': tests})
-            test_result = list(set([i['message'] for i in test_result]))
-            status = ('\n').join(test_result)
+            tests = {'tests': tests}
+            results = looker.test_connection(c, tests)
+            formatted_results = []
+            for i in results:
+                formatted_results.append(colors.format(i['message'], i['status']))
+            formatted_results = list(set(formatted_results))
+            status = ('\n').join(formatted_results)
             result.append({'name': c,
                            'status': status})
             if idx == len(connections)-1:
