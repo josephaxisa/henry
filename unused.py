@@ -232,6 +232,7 @@ def main():
     # authenticate
     looker = authenticate(**auth_args)
     q = queue.Queue()
+
     # map subcommand to function
     if args['command'] == 'analyze':
         if args['which'] is None:
@@ -1039,16 +1040,22 @@ def get_connection_activity(looker, connection_name):
 
 def check_connections(looker, connection_name=None):
     result = []
+    connections = []
     if connection_name is None:
-        connection_name = [c['name'] for c in looker.get_connections()]
-    connection_name.remove('looker')
-    with tqdm(total=len(connection_name), bar_format="%s%s{postfix[0][value]}%s - {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0, desc='(1/5) Testing Connections') as t:
-        for idx, c in enumerate(connection_name):
-            test_result = str(looker.test_connection(connection_name=c))
+        for c in looker.get_connections():
+            if c['name'] != 'looker':
+                c_tests = (', ').join(c['dialect']['connection_tests'])
+                c_name = c['name']
+                connections.append((c_name, c_tests))
+
+    with tqdm(total=len(connections), bar_format="%s%s{postfix[0][value]}%s - {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0, desc='(1/5) Testing Connections') as t:
+        for idx, (c, tests) in enumerate(connections):
+            test_result = looker.test_connection(connection_name=c, fields={'tests': tests})
+            test_result = list(set([i['message'] for i in test_result]))
+            status = ('\n').join(test_result)
             result.append({'name': c,
-                           'status': 'OK' if test_result=='Pass' else 'Broken'})
-                           #'query_count': get_connection_activity(looker, connection_name=c)})
-            if idx == len(connection_name)-1:
+                           'status': status})
+            if idx == len(connections)-1:
                 t.postfix[0]['value'] = 'DONE'
             t.update()
 
