@@ -118,8 +118,9 @@ def main():
     explores_group.add_argument('-p', '--project',
                                 default=None,  # when -p is not called
                                 help='Filter on project')
-    explores_group.add_argument('-m', '--model',
-                                default=None,
+    explores_group.add_argument('-model', '--model',
+                                type=str,
+                                default=None,  # when -p is not called
                                 help='Filter on model')
     explores_sc.add_argument('-e', '--explore',
                              default=None,
@@ -316,7 +317,6 @@ def pulse(looker):
     print(result, end='\n\n')
     logger.info('Complete: Analyzing Scheduled Plans')
 
-
     # check enabled legacy features
     logger.info('Checking Legacy Features')
     with trange(1, desc='(4/5) Legacy Features', bar_format="%s%s{postfix[0][value]}%s {desc}: {percentage:3.0f}%%|{bar}|[{elapsed}<{remaining}]" % (colors.BOLD, colors.OKGREEN, colors.ENDC), postfix=[dict(value="RUNNING")], ncols=100, miniters=0) as t:
@@ -347,21 +347,22 @@ def analyze(looker, queue, **kwargs):
     format = 'plain' if kwargs['plain'] else 'psql'
     headers = '' if kwargs['plain'] else 'keys'
     p = kwargs['project']
-    m = kwargs['model'].split(' ') if ('model' in kwargs.keys() and kwargs['model'] is not None) else None
+    m = kwargs['model'] if 'model' in kwargs.keys() else None
     if kwargs['which'] == 'projects':
         logger.info('Analyzing Projects')
         logger.info('analyze projects params=%s', {k: kwargs[k] for k in {'project', 'sortkey', 'limit'}})
-        r = analyze_projects(looker, project=p, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
+        result = analyze_projects(looker, project=p, sortkey=kwargs['sortkey'], limit=kwargs['limit'])
     elif kwargs['which'] == 'models':
         logger.info('Analyzing Models')
         logger.info('analyze models params=%s', {k: kwargs[k] for k in {'project', 'model', 'timeframe', 'min_queries', 'sortkey', 'limit'}})
-        r = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
+        result = analyze_models(looker, project=p, model=m, sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
     elif kwargs['which'] == 'explores':
         logger.info('Analyzing Explores')
         logger.info('analyze explores params=%s', {k: kwargs[k] for k in {'project', 'model', 'explore', 'timeframe', 'min_queries', 'sortkey', 'limit'}})
-        r = analyze_explores(looker, project=p, model=m, explore=kwargs['explore'], sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
+        result = analyze_explores(looker, project=p, model=m, explore=kwargs['explore'], sortkey=kwargs['sortkey'], limit=kwargs['limit'], timeframe=kwargs['timeframe'], min_queries=kwargs['min_queries'])
     logger.info('Analyze Complete')
-    result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
+    if result != 'No matching results found':
+        result = tabulate(result, headers=headers, tablefmt=format, numalign='center')
     queue.put(result)
     return
 
@@ -403,26 +404,19 @@ def get_models(looker, project=None, model=None, verbose=0, scoped_names=0):
         # if both project and model paramaters are specified
         print('''Warning: Project parameter ignored.
               Model names are unique across projects in Looker.''')
-        models = [looker.get_model(m) for m in model]
+        models = [looker.get_model(model)]
     else:
         # if project parameter wasn't passed but model was. Behaves as above.
-        models = [looker.get_model(m) for m in model]
+        models = looker.get_model(model_name=model)
 
     # error handling in case response is empty
-    if models[0] is None:
+    if models is None or not models:
         return
     else:
         models = list(filter(lambda x: x['has_content'] is True, models))
         if verbose == 0:
             models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
         return models
-    # try:
-    #     # models = list(filter(lambda x: x['has_content'] is True, models))
-    #     # if verbose == 0:
-    #     #     models = [(m['project_name']+".")*scoped_names+m['name'] for m in models]
-    # except IndexError as e:
-    #     raise(e)
-    # return models
 
 
 # takes in a list of dictionaries. Dictionary keys
@@ -452,31 +446,36 @@ def tree(data, group_field):
 def get_explores(looker, project=None, model=None, explore=None, scoped_names=0, verbose=0):
     explores = []
     if explore is not None:
-        e = [looker.get_explore(model_name=model[0], explore_name=explore)]
-        if e[0] is not None:
+        e = looker.get_explore(model_name=model, explore_name=explore)
+        if e:
             explores.extend(e)
-        else:
-            pass
     else:
         if project is not None and model is None:
             # if project is specified, get all models in that project
-            model_list = get_models(looker, project=project, verbose=1)
+            models = get_models(looker, project=project, verbose=1)
         elif project is None and model is None:
             # if no project or model are specified, get all models
-            model_list = get_models(looker, verbose=1)
+            models = get_models(looker, verbose=1)
         else:
             # if project and model are specified or if project is not specified
             # but model is.
-            model_list = get_models(looker, model=model, verbose=1)
+            models = get_models(looker, model=model, verbose=1)
 
         # if verbose = 1, then return explore bodies otherwise return explore names
         # which can be fully scoped with project name
-        for mdl in model_list:
+        if models is None or not models:
+            return
+        for mdl in models:
             if verbose == 1:
-                explores.extend([looker.get_explore(model_name=mdl['name'], explore_name=explore['name']) for explore in mdl['explores']])
+                for explore in mdl['explores']:
+                    explores.extend(looker.get_explore(mdl['name'],
+                                                       explore['name']))
             else:
-                explores.extend([(mdl['project_name']+'.'+mdl['name']+'.')*scoped_names+explore['name'] for explore in mdl['explores']])
-
+                for explore in mdl['explores']:
+                    explores.extend((mdl['project_name']
+                                    + '.'
+                                    + mdl['name']+'.')*scoped_names
+                                    + explore['name'])
     return explores
 
 
@@ -573,7 +572,7 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
 def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None, timeframe=90, min_queries=0):
     models = get_models(looker, project=project, model=model, verbose=1)
     if models is None:
-        os._exit(1)
+        return 'No matching results found'
     used_models = get_used_models(looker, timeframe, min_queries)
 
     info = []
@@ -647,17 +646,14 @@ def analyze_projects(looker, project=None, sortkey=None, limit=None):
 
 
 def analyze_explores(looker, project=None, model=None, explore=None, sortkey=None, limit=None, min_queries=0, timeframe=90):
-
     # Step 1 - get explore definitions
     explores = get_explores(looker, project=project, model=model, explore=explore, verbose=1)
 
-    if explores == []:
-        os._exit(1)
     # Step 2
     explores_usage = {}
     info = []
-    if explores is None:
-        raise FileNotFoundError("No matching explores found.")
+    if explores is None or not explores:
+        return "No matching results found"
     else:
         for e in explores:
             if e is None:
@@ -902,15 +898,16 @@ def test_git_connection(looker, project):
     looker.update_session(mode='dev')
     # obtain tests available
     tests = [test['id'] for test in looker.git_connection_tests(project_id=project)]
-    verbose_result = ''
+    verbose_result = []
     fail_flag = 0
     for idx, test in enumerate(tests):
         s = '({}/{}) {}'.format(idx+1, len(tests), test)
         r = looker.run_git_connection_test(project_id=project, test_id=test)
-        verbose_result += colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n'
+        verbose_result.append(colors.format(s, r['status']))
+        #colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n'
         if r['status'] != 'pass':
             fail_flag = 1
-
+    verbose_result = ('\n').join(verbose_result)
     result = verbose_result if fail_flag == 1 else 'OK'
     return result
 

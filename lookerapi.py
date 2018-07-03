@@ -90,12 +90,14 @@ class LookerApi(object):
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
             if r.status_code == 404:
-                print("Error: Model '" + model_name + "' not found")
+                self.logger.error('Error: Model %s not found', model_name)
+                #print("Error: Model '" + model_name + "' not found")
             else:
-                print("Error: " + str(e))
-            return
+                self.logger.error(e)
+                #print("Error: " + str(e))
+            return []
         self.logger.info('Request Complete: %s', r.status_code)
-        return r.json()
+        return [r.json()]
 
 
 # GET /lookml_models/{{NAME}}/explores/{{NAME}}
@@ -109,13 +111,13 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            if r.status_code == 404:
-                print("Error: Explore '" + explore_name + "' not found in model '" + model_name + "'" )
-            else:
-                print("Error: " + str(e))
-            return
+            # if r.status_code == 404:
+            #     print("Error: Explore '" + explore_name + "' not found in model '" + model_name + "'" )
+            # else:
+            #     print("Error: " + str(e))
+            return []
         self.logger.info('Request Complete: %s', r.status_code)
-        return r.json()
+        return [r.json()]
 
 
 # GET /projects

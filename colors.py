@@ -15,11 +15,11 @@ class Colors:
     def format(self, string, type, style='color'):
         formatted_string = ''
         if style == 'color':
-            if type == 'success':
+            if type in ('success', 'pass'):
                 formatted_string += self.OKGREEN + string + self.ENDC
             elif type == 'warning':
                 formatted_string += self.WARNING + string + self.ENDC
-            elif type == 'error':
+            elif type in ('error', 'fail'):
                 formatted_string += self.FAIL + string + self.ENDC
         elif style == 'text':
             if type == 'success':
