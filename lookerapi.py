@@ -14,7 +14,6 @@ class LookerApi(object):
     def __init__(self, id, secret, host, port, access_token):
         logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
         self.logger = logging.getLogger(__name__)
-        self.logger.propagate = 0
         self.id = id
         self.secret = secret
         self.host = host
@@ -67,17 +66,11 @@ class LookerApi(object):
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            self.logger.warning('Request Complete: %s', r.status_code)
+            self.logger.error('Request Complete: %s', r.status_code)
             print("Error: " + str(e))
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()
-
-        if r.status_code == requests.codes.ok:
-            self.logger.info('Request Complete: %s', r.status_code)
-            return r.json()
-        else:
-            self.logger.warning('Request Complete: %s', r.status_code)
 
 # GET /lookml_models/{{NAME}}
     def get_model(self, model_name=None, fields={}):
@@ -88,14 +81,8 @@ class LookerApi(object):
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            self.logger.warning('Request Complete: %s', r.status_code)
-            if r.status_code == 404:
-                self.logger.error('Error: Model %s not found', model_name)
-                #print("Error: Model '" + model_name + "' not found")
-            else:
-                self.logger.error(e)
-                #print("Error: " + str(e))
-            return []
+            self.logger.error('Request Complete: %s', r.status_code)
+            raise(e)
         self.logger.info('Request Complete: %s', r.status_code)
         return [r.json()]
 
@@ -106,15 +93,10 @@ class LookerApi(object):
         params = fields
         self.logger.info('Request to %s => GET /api/3.0/lookml_models/%s/explores/%s, %s', self.host, model_name, explore_name, params)
         r = self.session.get(url, params=params, timeout=60)
-
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            self.logger.warning('Request Complete: %s', r.status_code)
-            # if r.status_code == 404:
-            #     print("Error: Explore '" + explore_name + "' not found in model '" + model_name + "'" )
-            # else:
-            #     print("Error: " + str(e))
+            self.logger.error('Request Complete: %s', r.status_code)
             return []
         self.logger.info('Request Complete: %s', r.status_code)
         return [r.json()]
@@ -144,11 +126,11 @@ class LookerApi(object):
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
-            return
+            self.logger.error('Request Complete: %s', r.status_code)
+            raise e
+            #raise Exception('Project not found: %s', project_id)
         self.logger.info('Request Complete: %s', r.status_code)
-        return r.json()
+        return [r.json()]
 
 # GET /projects/{project_id}/files
     def get_project_files(self, project=None, fields={}):
@@ -160,7 +142,7 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
+            print('Project not found: %s', project)
             return
         self.logger.info('Request Complete: %s', r.status_code)
         return r.json()

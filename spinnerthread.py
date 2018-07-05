@@ -1,7 +1,7 @@
 import threading
 import sys
 import time
-import os
+from contextlib import ContextDecorator
 
 
 class SpinnerThread(threading.Thread):
@@ -22,3 +22,12 @@ class SpinnerThread(threading.Thread):
                 sys.stdout.flush()
                 time.sleep(0.1)
                 sys.stdout.write('\b')
+
+
+class Spinner(object):
+    def __enter__(self):
+        self.spinner = SpinnerThread()
+        self.spinner.start()
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.spinner.stop()
