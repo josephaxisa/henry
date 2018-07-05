@@ -80,9 +80,10 @@ class MetadataFetcher(object):
             x[r['query.model']] = r['history.query_run_count']
         return(x)
 
-    # errors have to be handled more upstream if explore does not exist due to
-    # bug #32748
-    def get_explores(self, model=None, explore=None, scoped_names=0, verbose=0):
+    # errors have to be handled more downstream if explore does not exist due
+    # to bug #32748
+    def get_explores(self, model=None, explore=None, scoped_names=0,
+                     verbose=0):
         explores = []
         if explore is not None:
             e = self.looker.get_explore(model_name=model, explore_name=explore)
@@ -100,15 +101,7 @@ class MetadataFetcher(object):
         return explores
 
     def get_explore_fields(self, explore=None, scoped_names=0):
-        # fields = []
-        # explore_list = self.get_explores(model=model, explore=explore, verbose=1)
-        #
-        # if explore is not None:
-        #     # filter list based on explore names supplied
-        #     explore_list = list(filter(lambda x: x['name'] == explore,
-        #                                explore_list))
         fields = []
-
         for dimension in explore['fields']['dimensions']:
             if dimension['hidden'] is not True:
                 fields.append((explore['model_name']+'.'
@@ -124,20 +117,28 @@ class MetadataFetcher(object):
                 fields.append((explore['model_name']+'.'
                               + explore['name']+'.')*scoped_names
                               + fltr['name'])
-        # fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+dimension['name'] for dimension in explore['fields']['dimensions'] if dimension['hidden'] is not True])
-        # fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+measure['name'] for measure in explore['fields']['measures'] if measure['hidden'] is not True])
-        # fields.extend([(explore['model_name']+'.'+explore['name']+'.')*scoped_names+fltr['name'] for fltr in explore['fields']['filters'] if fltr['hidden'] is not True])
-
         return list(set(fields))
+
+    def get_unused_explores(self, model=None, timeframe=90, min_queries=0):
+        used_explores = self.get_used_explores(model=model,
+                                               timeframe=timeframe,
+                                               min_queries=min_queries)
+        used_explores = used_explores.keys()
+        all_explores = self.get_explores(model=model)
+        all_explores = [i[1] for i in all_explores]
+        unused_explores = list(set(all_explores) - set(used_explores))
+
+        return unused_explores
 
     # function that runs i__looker query and returns fully scoped fields used
     # remember explore names are not unique, filter on model as well
     # query.explore is the actual explore name
     # query.model is the model
-    # query.fields are is view.field (view is the view name used in the explore)
+    # query.fields are is view.field (view is view name used in the explore)
     # to uniquely identify fields, explore.view.field should be used,
     # or even better, model.explore.view.field
-    def get_used_explore_fields(self, model=None, explore=None, timeframe=90, min_queries=0):
+    def get_used_explore_fields(self, model=None, explore=None, timeframe=90,
+                                min_queries=0):
             m = model.replace('_', '^_') + ',' if model is not None else ''
             m += "-i^_^_looker"
             e = ','.join(explore).replace('_', '^_')
@@ -146,9 +147,11 @@ class MetadataFetcher(object):
             body = {
                     "model": "i__looker",
                     "view": "history",
-                    "fields": ["query.model", "query.view", "query.formatted_fields",
+                    "fields": ["query.model", "query.view",
+                               "query.formatted_fields",
                                "query.formatted_filters", "query.sorts",
-                               "query.formatted_pivots", "history.query_run_count"],
+                               "query.formatted_pivots",
+                               "history.query_run_count"],
                     "filters": {"history.created_date": timeframe,
                                 "query.model": m,
                                 "query.view": e,
@@ -164,17 +167,22 @@ class MetadataFetcher(object):
                 explore = row['query.view']
                 model = row['query.model']
                 run_count = row['history.query_run_count']
-                fields.extend(re.findall(r'(\w+\.\w+)', str(row['query.formatted_fields'])))
-                fields.extend(re.findall(r'(\w+\.\w+)', str(row['query.formatted_filters'])))
-                fields.extend(re.findall(r'(\w+\.\w+)', str(row['query.formatted_pivots'])))
-                fields.extend(re.findall(r'(\w+\.\w+)', str(row['query.sorts'])))
-                formatted_fields.extend([model+'.'+explore+'.'+field+'.'+str(run_count) for field in fields])
+                fields.extend(re.findall(r'(\w+\.\w+)',
+                                         str(row['query.formatted_fields'])))
+                fields.extend(re.findall(r'(\w+\.\w+)',
+                                         str(row['query.formatted_filters'])))
+                fields.extend(re.findall(r'(\w+\.\w+)',
+                                         str(row['query.formatted_pivots'])))
+                fields.extend(re.findall(r'(\w+\.\w+)',
+                                         str(row['query.sorts'])))
+                formatted_fields.extend([model+'.'+explore+'.'+field+'.'
+                                         + str(run_count) for field in fields])
 
             field_name = []
             field_use_count = []
             for row in formatted_fields:
                 field = '.'.join(row.split('.')[:-1])  # remove the count
-                field_name.append(field)  # fields are model.explore.view scoped
+                field_name.append(field)  # model.explore.view scoped
                 count = int(row.split('.')[-1])
                 field_use_count.append({
                     'field_name': field,
@@ -188,7 +196,8 @@ class MetadataFetcher(object):
 
             return dict(c)
 
-    def get_used_explores(self, model=None, timeframe=90, min_queries=0, explore=None):
+    def get_used_explores(self, model=None, explore=None,
+                          timeframe=90, min_queries=0):
         timeframe = str(timeframe) + ' days'
         min_queries = '>=' + str(min_queries)
         m = model.replace('_', '^_') + ',' if model is not None else ''

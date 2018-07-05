@@ -75,15 +75,15 @@ class Analyze(MetadataFetcher):
             view_count = metadata.count('view')
             git_tests = self.mf.test_git_connection(self, project=p['name'])
             if p['pr_mode'] in ('recommended', 'required'):
-                pr_mode = colors.format(p['pr_mode'], 'color', 'pass')
+                pr_mode = colors.format(p['pr_mode'], 'pass', 'color')
             else:
-                pr_mode = colors.format(p['pr_mode'], 'color', 'fail')
+                pr_mode = colors.format(p['pr_mode'], 'fail', 'color')
             if p['validation_required']:
                 validation_mode = colors.format(p['validation_required'],
-                                                'color', 'pass')
+                                                'pass', 'color')
             else:
                 validation_mode = colors.format(p['validation_required'],
-                                                'color', 'fail')
+                                                'fail', 'color')
             info.append({
                     'project': p['name'],
                     'model_count': model_count,
@@ -158,13 +158,12 @@ class Analyze(MetadataFetcher):
                 if e['description'] is not None:
                     has_description = 'Yes'
                 else:
-                    has_description = color.format('No', 'color', 'fail')
+                    has_description = colors.format('No', 'fail', 'color')
 
                 if query_count.get(e['name']):
                     query_count = query_count[e['name']]
                 else:
                     query_count = 0
-
                 info.append({
                         'model': e['model_name'],
                         'explore': e['name'],
@@ -173,12 +172,12 @@ class Analyze(MetadataFetcher):
                         'field_count': field_count,
                         'unused_fields': len(unused_fields),
                         'Hidden': e['hidden'],
-                        'Has Description': has_description
+                        'Has Description': has_description,
                         'query_count': query_count
                         })
 
         if not info:
-            raise Exception('No explores found')
+            raise Exception('No matching explores found')
         valid_values = list(info[0].keys())
         info = formatter.sort(info, valid_values, sortkey)
         info = formatter.limit(info, limit=limit)

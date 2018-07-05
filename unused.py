@@ -11,7 +11,7 @@ import os
 import errno
 import sys
 from operator import itemgetter
-from spinnerthread import Spinner
+from spinner import Spinner
 import threading
 import queue
 from tabulate import tabulate
@@ -21,6 +21,7 @@ from tqdm import tqdm
 from tqdm import trange
 import logging.config
 from analyze import Analyze
+from vacuum import Vacuum
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 # host name in config.yml
@@ -151,10 +152,15 @@ def main():
     vacuum_views = vacuum_subparsers.add_parser('views')
 
     vacuum_models.set_defaults(which='models')
-    vacuum_models.add_argument('-m', '--model',
-                               type=str,
-                               default=None,  # when -p is not called
-                               help='Filter on model')
+    vm_group = vacuum_models.add_mutually_exclusive_group()
+    vm_group.add_argument('-p', '--project',
+                          type=str,
+                          default=None,  # when -p is not called
+                          help='Filter on Project')
+    vm_group.add_argument('-m', '--model',
+                          type=str,
+                          default=None,  # when -p is not called
+                          help='Filter on model')
 
     vacuum_models.add_argument('--timeframe',
                                type=int,
@@ -231,6 +237,7 @@ def main():
     # authenticate
     looker = authenticate(**auth_args)
     analyze = Analyze(looker)
+    vacuum = Vacuum(looker)
     #info = analyze.analyze_projects(project=args['project'], sortkey=args['sortkey'], limit=args['limit'])
     #info = analyze.analyze_models()
     #print(tabulate(info))
@@ -712,74 +719,74 @@ def get_field_usage(looker, timeframe=90, model=None, project=None):
 #
 
 # get list of models and consider any explores below the specified threshold as unused
-def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
-
-    if model is None:
-        model = get_models(looker)
-    #     explores = get_explores(looker, model=model, verbose=1)
-    # else:
-    used_models = get_used_models(looker, timeframe)
-    info = []
-    for m in model:
-        explores = [e['name'] for e in get_explores(looker, model=[m], verbose=1)]
-        unused_explores = get_unused_explores(looker, model=m, timeframe=timeframe, min_queries=min_queries)
-        query_run_count = used_models[m] if m in used_models.keys() else 0
-        unused_explores = ('\n').join(unused_explores)
-        info.append({
-                'model': m,
-                'unused_explores': unused_explores if len(unused_explores)>0 else 'None',
-                'model_query_run_count': query_run_count})
-
-    return info
-
+# def vacuum_models(looker, model=None, timeframe=90, min_queries=0):
+#
+#     if model is None:
+#         model = get_models(looker)
+#     #     explores = get_explores(looker, model=model, verbose=1)
+#     # else:
+#     used_models = get_used_models(looker, timeframe)
+#     info = []
+#     for m in model:
+#         explores = [e['name'] for e in get_explores(looker, model=[m], verbose=1)]
+#         unused_explores = get_unused_explores(looker, model=m, timeframe=timeframe, min_queries=min_queries)
+#         query_run_count = used_models[m] if m in used_models.keys() else 0
+#         unused_explores = ('\n').join(unused_explores)
+#         info.append({
+#                 'model': m,
+#                 'unused_explores': unused_explores if len(unused_explores)>0 else 'None',
+#                 'model_query_run_count': query_run_count})
+#
+#     return info
+#
 
 # returns explores, their unused joins as well as unused fields. Fields are
 # considered unused if they are below the min_queries threshold
 # similary, joins are considered unused if they all their feilds are below
 # the thresold
-def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=0):
-    explores = get_explores(looker, model=model, explore=explore, verbose=1)
-    info = []
-    for e in explores:
-        # get field usage from i__looker using all the views inside explore, returns fields in the form of model.explore.view.field
-        _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
-        used_fields = list(_used_fields.keys())
-        # get fields in the field picker in the form of model.explore.view.field
-        exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
-        _unused_fields = set(exposed_fields) - set(used_fields)
-
-        # remove scoping
-        all_joins = set(e['scopes'])
-        all_joins.remove(e['name'])
-        used_joins = set([i.split('.')[2] for i in used_fields])
-
-        _unused_joins = list(all_joins - used_joins)
-        unused_joins = ('\n').join(_unused_joins) if len(_unused_joins) > 0 else "N/A"
-
-        # only keep fields that belong to used joins (unused joins fields
-        # don't matter) if there's at least one used join (including the base
-        # view). else don't match anything
-        temp = list(used_joins)
-        temp.append(e['name'])
-        pattern = ('|').join(temp) if len(used_joins) > 0 else 'ALL'
-        unused_fields = []
-        if pattern != 'ALL':
-            for field in _unused_fields:
-                f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
-                if f is not None:
-                    unused_fields.append(f.group(0))
-            unused_fields = sorted(unused_fields)
-            unused_fields = ('\n').join(unused_fields)
-        else:
-            unused_fields = colors.FAIL+pattern+colors.ENDC
-        info.append({
-                'model': e['model_name'],
-                'explore': e['name'],
-                'unused_joins': unused_joins,
-                'unused_fields': unused_fields
-                })
-
-    return info
+# def vacuum_explores(looker, model=None, explore=None, timeframe=90, min_queries=0):
+#     explores = get_explores(looker, model=model, explore=explore, verbose=1)
+#     info = []
+#     for e in explores:
+#         # get field usage from i__looker using all the views inside explore, returns fields in the form of model.explore.view.field
+#         _used_fields = get_used_explore_fields(looker, model=e['model_name'], explore=e['scopes'], timeframe=timeframe, min_queries=min_queries)
+#         used_fields = list(_used_fields.keys())
+#         # get fields in the field picker in the form of model.explore.view.field
+#         exposed_fields = get_explore_fields(looker, model=[e['model_name']], explore=e['name'], scoped_names=1)
+#         _unused_fields = set(exposed_fields) - set(used_fields)
+#
+#         # remove scoping
+#         all_joins = set(e['scopes'])
+#         all_joins.remove(e['name'])
+#         used_joins = set([i.split('.')[2] for i in used_fields])
+#
+#         _unused_joins = list(all_joins - used_joins)
+#         unused_joins = ('\n').join(_unused_joins) if len(_unused_joins) > 0 else "N/A"
+#
+#         # only keep fields that belong to used joins (unused joins fields
+#         # don't matter) if there's at least one used join (including the base
+#         # view). else don't match anything
+#         temp = list(used_joins)
+#         temp.append(e['name'])
+#         pattern = ('|').join(temp) if len(used_joins) > 0 else 'ALL'
+#         unused_fields = []
+#         if pattern != 'ALL':
+#             for field in _unused_fields:
+#                 f = re.match(r'^({0}).*'.format(pattern), '.'.join(field.split('.')[2:]))
+#                 if f is not None:
+#                     unused_fields.append(f.group(0))
+#             unused_fields = sorted(unused_fields)
+#             unused_fields = ('\n').join(unused_fields)
+#         else:
+#             unused_fields = colors.FAIL+pattern+colors.ENDC
+#         info.append({
+#                 'model': e['model_name'],
+#                 'explore': e['name'],
+#                 'unused_joins': unused_joins,
+#                 'unused_fields': unused_fields
+#                 })
+#
+#     return info
 
 
 # returns an instanstiated Looker object using the
@@ -948,17 +955,17 @@ def check_scheduled_plans(looker):
 #     return(x)
 
 
-def get_unused_explores(looker, model=None, timeframe=90, min_queries=0):
-    used_explores = get_used_explores(looker,
-                                      model=model,
-                                      timeframe=timeframe,
-                                      min_queries=min_queries)
-    used_explores = used_explores.keys()
-    model = [model] if model is not None else None
-    all_explores = get_explores(looker, model=model)
-    unused_explores = list(set(all_explores) - set(used_explores))
-
-    return unused_explores
+# def get_unused_explores(looker, model=None, timeframe=90, min_queries=0):
+#     used_explores = get_used_explores(looker,
+#                                       model=model,
+#                                       timeframe=timeframe,
+#                                       min_queries=min_queries)
+#     used_explores = used_explores.keys()
+#     model = [model] if model is not None else None
+#     all_explores = get_explores(looker, model=model)
+#     unused_explores = list(set(all_explores) - set(used_explores))
+#
+#     return unused_explores
 
 
 def check_integrations(looker):
