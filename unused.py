@@ -341,22 +341,22 @@ def pulse(looker):
     return
 
 
-def vacuum(looker, queue, **kwargs):
-    m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
-    format = 'plain' if kwargs['plain'] else 'psql'
-    headers = '' if kwargs['plain'] else 'keys'
-    if kwargs['which'] == 'models':
-        logger.info('Vacuuming Models')
-        logger.info('vacuum models params=%s', {k: kwargs[k] for k in {'model', 'timeframe', 'min_queries'}})
-        r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-    if kwargs['which'] == 'explores':
-        logger.info('Vacuuming Explores')
-        logger.info('vacuum explores params=%s', {k: kwargs[k] for k in {'model', 'explore', 'timeframe', 'min_queries'}})
-        r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
-    logger.info('Vacuum Complete')
-    result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
-    queue.put(result)
-    return
+# def vacuum(looker, queue, **kwargs):
+#     m = kwargs['model'].split(' ') if kwargs['model'] is not None else None
+#     format = 'plain' if kwargs['plain'] else 'psql'
+#     headers = '' if kwargs['plain'] else 'keys'
+#     if kwargs['which'] == 'models':
+#         logger.info('Vacuuming Models')
+#         logger.info('vacuum models params=%s', {k: kwargs[k] for k in {'model', 'timeframe', 'min_queries'}})
+#         r = vacuum_models(looker, model=m, min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
+#     if kwargs['which'] == 'explores':
+#         logger.info('Vacuuming Explores')
+#         logger.info('vacuum explores params=%s', {k: kwargs[k] for k in {'model', 'explore', 'timeframe', 'min_queries'}})
+#         r = vacuum_explores(looker, model=m, explore=kwargs['explore'], min_queries=kwargs['min_queries'], timeframe=kwargs['timeframe'])
+#     logger.info('Vacuum Complete')
+#     result = tabulate(r, headers=headers, tablefmt=format, numalign='center')
+#     queue.put(result)
+#     return
 
 
 # # function that returns list of model definitions (verbose=1) or model names
@@ -466,11 +466,11 @@ def tree(data, group_field):
 #     return list(set(fields))
 
 
-def get_views(looker, project=None, model=None, explore=None, scoped_names=0):
-    fields = get_explore_fields(looker, model=None,
-                                explore=None, scoped_names=0)
-    views = [field.split('.')[0] for field in fields]
-    return list(set(views))
+# def get_views(looker, project=None, model=None, explore=None, scoped_names=0):
+#     fields = get_explore_fields(looker, model=None,
+#                                 explore=None, scoped_names=0)
+#     views = [field.split('.')[0] for field in fields]
+#     return list(set(views))
 
 
 # def get_projects(looker, project=None, verbose=0):
@@ -515,27 +515,27 @@ def get_views(looker, project=None, model=None, explore=None, scoped_names=0):
 
 # def i__looker_query_body(model=None, timeframe):
 # returns list of view scoped fields used within a given timeframe
-def get_field_usage(looker, timeframe=90, model=None, project=None):
-    if model is None:
-        model = ','.join(get_models(looker)) # can return models that have had no queries run against them as well (since this is from an API end point)
-    else:
-        model = ','.join(model)
-
-    timeframe = str(timeframe) + ' days'
-    body = {
-            "model": "i__looker",
-            "view": "history",
-            "fields": ["query.model", "query.view", "query.formatted_fields",
-                       "query.formatted_filters", "query.sorts",
-                       "query.formatted_pivots", "history.query_run_count"],
-            "filters": {"history.created_date": timeframe,
-                        "query.model": model},
-            "limit": "50000"
-    }
-
-    response = looker.run_inline_query("json", body)
-
-    return {'response': response, 'model': model.split(',')}
+# def get_field_usage(looker, timeframe=90, model=None, project=None):
+#     if model is None:
+#         model = ','.join(get_models(looker)) # can return models that have had no queries run against them as well (since this is from an API end point)
+#     else:
+#         model = ','.join(model)
+#
+#     timeframe = str(timeframe) + ' days'
+#     body = {
+#             "model": "i__looker",
+#             "view": "history",
+#             "fields": ["query.model", "query.view", "query.formatted_fields",
+#                        "query.formatted_filters", "query.sorts",
+#                        "query.formatted_pivots", "history.query_run_count"],
+#             "filters": {"history.created_date": timeframe,
+#                         "query.model": model},
+#             "limit": "50000"
+#     }
+#
+#     response = looker.run_inline_query("json", body)
+#
+#     return {'response': response, 'model': model.split(',')}
 
 
 # def analyze_models(looker, project=None, model=None, verbose=0, sortkey=None, limit=None, timeframe=90, min_queries=0):

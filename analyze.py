@@ -10,10 +10,8 @@ colors = colors.Colors()
 class Analyze(MetadataFetcher):
     def __init__(self, looker):
         super().__init__(looker)
-        logging.config.fileConfig('logging.conf',
-                                  disable_existing_loggers=False)
-        self.logger = logging.getLogger(__name__)
         self.mf = MetadataFetcher
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def analyze(self, **kwargs):
         format = 'plain' if kwargs['plain'] else 'psql'
@@ -177,6 +175,7 @@ class Analyze(MetadataFetcher):
                         })
 
         if not info:
+            self.logger.error('No matching explores found')
             raise Exception('No matching explores found')
         valid_values = list(info[0].keys())
         info = formatter.sort(info, valid_values, sortkey)

@@ -10,7 +10,6 @@ class Vacuum(MetadataFetcher):
                                   disable_existing_loggers=False)
         self.logger = logging.getLogger(__name__)
         self.mf = MetadataFetcher
-        self.logger.info('test')
 
     def vacuum(self, **kwargs):
         p = kwargs['project'] if 'project' in kwargs.keys() else None
@@ -75,7 +74,8 @@ class Vacuum(MetadataFetcher):
                                         verbose=1)
         info = []
         for e in explores:
-            # get field usage from i__looker using all the views inside explore, returns fields in the form of model.explore.view.field
+            # get field usage from i__looker using all the views inside explore
+            # returns fields in the form of model.explore.view.field
             _used_fields = self.mf.get_used_explore_fields(self,
                                                            e['model_name'],
                                                            e['scopes'],
@@ -97,8 +97,8 @@ class Vacuum(MetadataFetcher):
             unused_joins = ('\n').join(_unused_joins) or 'N/A'
 
             # only keep fields that belong to used joins (unused joins fields
-            # don't matter) if there's at least one used join (including the base
-            # view). else don't match anything
+            # don't matter) if there's at least one used join (including the
+            # base view). else don't match anything
             temp = list(used_joins)
             temp.append(e['name'])
             pattern = ('|').join(temp) or 'ALL'
@@ -120,5 +120,6 @@ class Vacuum(MetadataFetcher):
                     'unused_fields': unused_fields
                     })
         if not info:
+            self.logger.error('No matching explores found')
             raise Exception('No matching explores found')
         return info
