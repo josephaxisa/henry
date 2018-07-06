@@ -1,27 +1,26 @@
 import colors
 import formatter
 import logging
-from metadata_fetcher import MetadataFetcher
+from fetcher import Fetcher as fetcher
 from tabulate import tabulate
 import json
 colors = colors.Colors()
 
 
-class Analyze(MetadataFetcher):
+class Analyze(fetcher):
     def __init__(self, looker):
         super().__init__(looker)
-        self.mf = MetadataFetcher
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.analyze_logger = logging.getLogger(__name__.lower())
 
     def analyze(self, **kwargs):
         format = 'plain' if kwargs['plain'] else 'psql'
         headers = '' if kwargs['plain'] else 'keys'
         p = kwargs['project'] if 'project' in kwargs.keys() else None
         m = kwargs['model'] if 'model' in kwargs.keys() else None
-        self.logger.info('Analyzing %s', kwargs['which'].capitalize())
+        self.analyze_logger.info('Analyzing %s', kwargs['which'].capitalize())
         if kwargs['which'] == 'projects':
             params = {k: kwargs[k] for k in {'project', 'sortkey', 'limit'}}
-            self.logger.info('analyze projects params=%s', params)
+            self.analyze_logger.info('analyze projects params=%s', params)
             result = self._analyze_projects(project=p,
                                             sortkey=kwargs['sortkey'],
                                             limit=kwargs['limit'])
@@ -32,7 +31,7 @@ class Analyze(MetadataFetcher):
                                              'min_queries',
                                              'sortkey',
                                              'limit'}}
-            self.logger.info('analyze models params=%s', params)
+            self.analyze_logger.info('analyze models params=%s', params)
             result = self._analyze_models(project=p,
                                           model=m,
                                           sortkey=kwargs['sortkey'],
@@ -46,14 +45,14 @@ class Analyze(MetadataFetcher):
                                              'min_queries',
                                              'sortkey',
                                              'limit'}}
-            self.logger.info('analyze explores params=%s', )
+            self.analyze_logger.info('analyze explores params=%s', )
             result = self._analyze_explores(model=m,
                                             explore=kwargs['explore'],
                                             sortkey=kwargs['sortkey'],
                                             limit=kwargs['limit'],
                                             timeframe=kwargs['timeframe'],
                                             min_queries=kwargs['min_queries'])
-        self.logger.info('Analyze Complete')
+        self.analyze_logger.info('Analyze Complete')
 
         result = tabulate(result, headers=headers,
                           tablefmt=format, numalign='center')
@@ -61,7 +60,7 @@ class Analyze(MetadataFetcher):
         return result
 
     def _analyze_projects(self, project=None, sortkey=None, limit=None):
-        projects = self.mf.get_project_files(self, project=project)
+        projects = fetcher.get_project_files(self, project=project)
         info = []
         for p in projects:
             metadata = list(map(lambda x:
@@ -71,7 +70,7 @@ class Analyze(MetadataFetcher):
 
             model_count = metadata.count('model')
             view_count = metadata.count('view')
-            git_tests = self.mf.test_git_connection(self, project=p['name'])
+            git_tests = fetcher.test_git_connection(self, p['name'])
             if p['pr_mode'] in ('recommended', 'required'):
                 pr_mode = colors.format(p['pr_mode'], 'pass', 'color')
             else:
@@ -100,9 +99,9 @@ class Analyze(MetadataFetcher):
     def _analyze_models(self, project=None, model=None,
                         sortkey=None, limit=None,
                         timeframe=90, min_queries=0):
-        models = self.mf.get_models(self, project=project,
+        models = fetcher.get_models(self, project=project,
                                     model=model, verbose=1)
-        used_models = self.mf.get_used_models(self, timeframe, min_queries)
+        used_models = fetcher.get_used_models(self, timeframe, min_queries)
         info = []
         for m in models:
             explore_count = len(m['explores'])
@@ -125,7 +124,7 @@ class Analyze(MetadataFetcher):
     def _analyze_explores(self, model=None, explore=None,
                           sortkey=None, limit=None,
                           min_queries=0, timeframe=90):
-        explores = self.mf.get_explores(self, model=model,
+        explores = fetcher.get_explores(self, model=model,
                                         explore=explore, verbose=1)
         explores_usage = {}
         info = []
@@ -134,17 +133,18 @@ class Analyze(MetadataFetcher):
             if e is None:
                 pass
             else:
-                _used_fields = self.mf.get_used_explore_fields(self,
+                _used_fields = fetcher.get_used_explore_fields(self,
                                                                e['model_name'],
                                                                e['scopes'],
                                                                timeframe,
                                                                min_queries)
                 used_fields = list(_used_fields.keys())
-                exposed_fields = self.mf.get_explore_fields(self, explore=e,
+                exposed_fields = fetcher.get_explore_fields(self,
+                                                            explore=e,
                                                             scoped_names=1)
                 unused_fields = set(exposed_fields) - set(used_fields)
                 field_count = len(exposed_fields)
-                query_count = self.mf.get_used_explores(self,
+                query_count = fetcher.get_used_explores(self,
                                                         model=e['model_name'],
                                                         explore=e['name'])         #, timeframe=timeframe, min_queries=min_queries)
 
@@ -175,7 +175,7 @@ class Analyze(MetadataFetcher):
                         })
 
         if not info:
-            self.logger.error('No matching explores found')
+            fetcher.error('No matching explores found')
             raise Exception('No matching explores found')
         valid_values = list(info[0].keys())
         info = formatter.sort(info, valid_values, sortkey)
