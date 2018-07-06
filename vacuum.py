@@ -1,15 +1,13 @@
 import logging
-from metadata_fetcher import MetadataFetcher
+from fetcher import Fetcher as fetcher
 import re
 from tabulate import tabulate
 
-class Vacuum(MetadataFetcher):
+
+class Vacuum(fetcher):
     def __init__(self, looker):
         super().__init__(looker)
-        logging.config.fileConfig('logging.conf',
-                                  disable_existing_loggers=False)
-        self.logger = logging.getLogger(__name__)
-        self.mf = MetadataFetcher
+        self.vacuum_logger = logging.getLogger(__name__.lower())
 
     def vacuum(self, **kwargs):
         p = kwargs['project'] if 'project' in kwargs.keys() else None
@@ -17,28 +15,28 @@ class Vacuum(MetadataFetcher):
         format = 'plain' if kwargs['plain'] else 'psql'
         headers = '' if kwargs['plain'] else 'keys'
         if kwargs['which'] == 'models':
-            self.logger.info('Vacuuming Models')
+            self.vacuum_logger.info('Vacuuming Models')
             params = {k: kwargs[k] for k in {'project',
                                              'model',
                                              'timeframe',
                                              'min_queries'}}
-            self.logger.info('vacuum models params=%s', params)
+            self.vacuum_logger.info('vacuum models params=%s', params)
             result = self._vacuum_models(project=p,
                                          model=m,
                                          min_queries=kwargs['min_queries'],
                                          timeframe=kwargs['timeframe'])
         if kwargs['which'] == 'explores':
-            self.logger.info('Vacuuming Explores')
+            self.vacuum_logger.info('Vacuuming Explores')
             params = {k: kwargs[k] for k in {'model',
                                              'explore',
                                              'timeframe',
                                              'min_queries'}}
-            self.logger.info('vacuum explores params=%s', params),
+            self.vacuum_logger.info('vacuum explores params=%s', params),
             result = self._vacuum_explores(model=m,
                                            explore=kwargs['explore'],
                                            min_queries=kwargs['min_queries'],
                                            timeframe=kwargs['timeframe'])
-        self.logger.info('Vacuum Complete')
+        self.vacuum_logger.info('Vacuum Complete')
         result = tabulate(result, headers=headers,
                           tablefmt=format, numalign='center')
         return result
@@ -46,15 +44,15 @@ class Vacuum(MetadataFetcher):
     def _vacuum_models(self, project=None, model=None, timeframe=90,
                        min_queries=0):
         if model is None:
-            model = self.mf.get_models(self, project=project)
+            model = fetcher.get_models(self, project=project)
         else:
             model = model.split()
-        used_models = self.mf.get_used_models(self, timeframe)
+        used_models = fetcher.get_used_models(self, timeframe)
         info = []
         for m in model:
-            explores = [e['name'] for e in self.mf.get_explores(self, model=m,
+            explores = [e['name'] for e in fetcher.get_explores(self, model=m,
                                                                 verbose=1)]
-            unused_explores = self.mf.get_unused_explores(self, m,
+            unused_explores = fetcher.get_unused_explores(self, m,
                                                           timeframe,
                                                           min_queries)
             query_run_count = used_models[m] if m in used_models.keys() else 0
@@ -68,7 +66,7 @@ class Vacuum(MetadataFetcher):
 
     def _vacuum_explores(self, model=None, explore=None, timeframe=90,
                          min_queries=0):
-        explores = self.mf.get_explores(self,
+        explores = fetcher.get_explores(self,
                                         model=model,
                                         explore=explore,
                                         verbose=1)
@@ -76,14 +74,14 @@ class Vacuum(MetadataFetcher):
         for e in explores:
             # get field usage from i__looker using all the views inside explore
             # returns fields in the form of model.explore.view.field
-            _used_fields = self.mf.get_used_explore_fields(self,
+            _used_fields = fetcher.get_used_explore_fields(self,
                                                            e['model_name'],
                                                            e['scopes'],
                                                            timeframe,
                                                            min_queries)
             used_fields = list(_used_fields.keys())
             # get field picker fields in the form of model.explore.view.field
-            exposed_fields = self.mf.get_explore_fields(self,
+            exposed_fields = fetcher.get_explore_fields(self,
                                                         explore=e,
                                                         scoped_names=1)
             _unused_fields = set(exposed_fields) - set(used_fields)
@@ -120,6 +118,6 @@ class Vacuum(MetadataFetcher):
                     'unused_fields': unused_fields
                     })
         if not info:
-            self.logger.error('No matching explores found')
+            self.vacuum_logger.error('No matching explores found')
             raise Exception('No matching explores found')
         return info
