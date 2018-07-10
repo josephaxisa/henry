@@ -245,14 +245,16 @@ class Fetcher(object):
         # enter dev mode
         self.looker.update_session(mode='dev')
         # obtain tests available
-        tests = [test['id'] for test in self.looker.git_connection_tests(project_id=project)]
+        tests = []
+        for test in self.looker.git_connection_tests(project_id=project):
+            tests.append(test['id'])
         verbose_result = []
         fail_flag = 0
         for idx, test in enumerate(tests):
             s = '({}/{}) {}'.format(idx+1, len(tests), test)
-            r = self.looker.run_git_connection_test(project_id=project, test_id=test)
+            r = self.looker.run_git_connection_test(project_id=project,
+                                                    test_id=test)
             verbose_result.append(colors.format(s, r['status']))
-            #colors.OKGREEN + s + colors.ENDC + '\n' if r['status']=='pass' else colors.FAIL + s + colors.ENDC + '\n'
             if r['status'] != 'pass':
                 fail_flag = 1
         verbose_result = ('\n').join(verbose_result)

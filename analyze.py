@@ -146,7 +146,7 @@ class Analyze(fetcher):
                 field_count = len(exposed_fields)
                 query_count = fetcher.get_used_explores(self,
                                                         model=e['model_name'],
-                                                        explore=e['name'])         #, timeframe=timeframe, min_queries=min_queries)
+                                                        explore=e['name'])
 
                 all_joins = set(e['scopes'])
                 all_joins.remove(e['name'])

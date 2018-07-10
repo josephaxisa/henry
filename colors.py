@@ -1,7 +1,7 @@
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
+    GREEN = '\033[92m'
     WARNING = '\033[93m'
     LOOKER = '\033[35m'
     FAIL = '\033[91m'
@@ -16,7 +16,7 @@ class Colors:
         formatted_string = ''
         if style == 'color':
             if type in ('success', 'pass'):
-                formatted_string += self.OKGREEN + string + self.ENDC
+                formatted_string += self.GREEN + string + self.ENDC
             elif type == 'warning':
                 formatted_string += self.WARNING + string + self.ENDC
             elif type in ('error', 'fail'):
