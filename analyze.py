@@ -1,6 +1,6 @@
-import formatter
 import logging
 from fetcher import Fetcher as fetcher
+import styler
 from tabulate import tabulate
 import json
 
@@ -70,31 +70,33 @@ class Analyze(fetcher):
             view_count = metadata.count('view')
             git_tests = fetcher.test_git_connection(self, p['name'])
             if p['pr_mode'] in ('recommended', 'required'):
-                pr_mode = formatter.color.format(p['pr_mode'], 'pass', 'color')
+                pr_mode = styler.color.format(p['pr_mode'], 'pass', 'color')
             else:
-                pr_mode = formatter.color.format(p['pr_mode'], 'fail', 'color')
+                pr_mode = styler.color.format(p['pr_mode'], 'fail', 'color')
             if p['validation_required']:
-                validation_mode = formatter.color.format(
-                                                p['validation_required'],
-                                                'pass',
-                                                'color')
+                validation_mode = styler.color.format(
+                    p['validation_required'],
+                    'pass',
+                    'color'
+                )
             else:
-                validation_mode = formatter.color.format(
-                                                p['validation_required'],
-                                                'fail',
-                                                'color')
+                validation_mode = styler.color.format(
+                    p['validation_required'],
+                    'fail',
+                    'color'
+                )
             info.append({
-                    'project': p['name'],
-                    'model_count': model_count,
-                    'view_count': view_count,
-                    'Git Connection': git_tests,
-                    'Pull Requests': pr_mode,
-                    'Validation Required': validation_mode
+                'project': p['name'],
+                'model_count': model_count,
+                'view_count': view_count,
+                'Git Connection': git_tests,
+                'Pull Requests': pr_mode,
+                'Validation Required': validation_mode
             })
 
         valid_values = list(info[0].keys())
-        info = formatter.sort(info, valid_values, sortkey)
-        info = formatter.limit(info, limit=limit)
+        info = styler.sort(info, valid_values, sortkey)
+        info = styler.limit(info, limit=limit)
 
         return info
 
@@ -113,14 +115,14 @@ class Analyze(fetcher):
                 query_run_count = 0
 
             info.append({
-                    'project': m['project_name'],
-                    'model': m['name'],
-                    'explore_count': explore_count,
-                    'query_run_count': query_run_count
+                'project': m['project_name'],
+                'model': m['name'],
+                'explore_count': explore_count,
+                'query_run_count': query_run_count
             })
         valid_values = list(info[0].keys())
-        info = formatter.sort(info, valid_values, sortkey)
-        info = formatter.limit(info, limit=limit)
+        info = styler.sort(info, valid_values, sortkey)
+        info = styler.limit(info, limit=limit)
         return info
 
     def _analyze_explores(self, model=None, explore=None,
@@ -158,30 +160,30 @@ class Analyze(fetcher):
                 if e['description'] is not None:
                     has_description = 'Yes'
                 else:
-                    has_description = formatter.color.format('No',
-                                                             'fail',
-                                                             'color')
+                    has_description = styler.color.format('No',
+                                                          'fail',
+                                                          'color')
 
                 if query_count.get(e['name']):
                     query_count = query_count[e['name']]
                 else:
                     query_count = 0
                 info.append({
-                        'model': e['model_name'],
-                        'explore': e['name'],
-                        'join_count': len(all_joins),
-                        'unused_joins': unused_joins,
-                        'field_count': field_count,
-                        'unused_fields': len(unused_fields),
-                        'Hidden': e['hidden'],
-                        'Has Description': has_description,
-                        'query_count': query_count
-                        })
+                    'model': e['model_name'],
+                    'explore': e['name'],
+                    'join_count': len(all_joins),
+                    'unused_joins': unused_joins,
+                    'field_count': field_count,
+                    'unused_fields': len(unused_fields),
+                    'Hidden': e['hidden'],
+                    'Has Description': has_description,
+                    'query_count': query_count
+                })
 
         if not info:
             fetcher.error('No matching explores found')
             raise Exception('No matching explores found')
         valid_values = list(info[0].keys())
-        info = formatter.sort(info, valid_values, sortkey)
-        info = formatter.limit(info, limit=limit)
+        info = styler.sort(info, valid_values, sortkey)
+        info = styler.limit(info, limit=limit)
         return info

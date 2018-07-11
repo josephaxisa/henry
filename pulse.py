@@ -1,12 +1,11 @@
-import formatter
 import logging
+import re
+import requests
 from spinner import Spinner
-import logging
+import styler
 from tqdm import tqdm
 from tabulate import tabulate
 from tqdm import trange
-import re
-import requests
 
 
 class Pulse(object):
@@ -18,9 +17,9 @@ class Pulse(object):
         self.pulse_logger = logging.getLogger(__name__)
         self.bar = '%s%s{postfix[0][value]}%s {desc}: ' \
                    '{percentage:3.0f}%% |{bar}|[{elapsed}<' \
-                   '{remaining}]' % (formatter.color.BOLD,
-                                     formatter.color.GREEN,
-                                     formatter.color.ENDC)
+                   '{remaining}]' % (styler.color.BOLD,
+                                     styler.color.GREEN,
+                                     styler.color.ENDC)
         self.postfix_default = [dict(value="RUNNING")]
 
     def run_all(self):
@@ -99,7 +98,7 @@ class Pulse(object):
                 status = ('\n').join(formatted_results)
                 result.append({'name': c,
                                'status': status})
-                if idx == len(connections)-1:
+                if idx == len(connections) - 1:
                     t.postfix[0]['value'] = 'DONE'
                 t.update()
 
@@ -137,28 +136,28 @@ class Pulse(object):
     # get number of queries run, killed, completed, errored, queued
     def get_query_type_count(self):
         body = {
-                "model": "i__looker",
-                "view": "history",
-                "fields": [
-                    "history.query_run_count",
-                    "history.status",
-                    "history.created_date"
-                    ],
-                "pivots": [
-                    "history.status"
-                    ],
-                "filters": {
-                    "history.created_date": "30 days",
-                    "history.status": "-NULL",
-                    "history.result_source": "query",
-                    "query.model": "-i^_^_looker"
-                },
-                "sorts": [
-                    "history.created_date desc",
-                    "history.result_source"
-                    ],
-                "limit": "50000"
-                }
+            "model": "i__looker",
+            "view": "history",
+            "fields": [
+                "history.query_run_count",
+                "history.status",
+                "history.created_date"
+            ],
+            "pivots": [
+                "history.status"
+            ],
+            "filters": {
+                "history.created_date": "30 days",
+                "history.status": "-NULL",
+                "history.result_source": "query",
+                "query.model": "-i^_^_looker"
+            },
+            "sorts": [
+                "history.created_date desc",
+                "history.result_source"
+            ],
+            "limit": "50000"
+        }
 
         r = self.looker.run_inline_query(result_format="json", body=body,
                                          fields={"cache": "false"})
@@ -197,7 +196,7 @@ class Pulse(object):
                 q_i = q_i if q_i is not None else 0
                 queued += q_i
 
-        response = {'total': completed+errored+killed,
+        response = {'total': completed + errored + killed,
                     'completed': completed,
                     'errored': errored,
                     'killed': killed,
@@ -212,21 +211,21 @@ class Pulse(object):
             raise ValueError("Invalid query status, must be in %r"
                              % valid_statuses)
         body = {
-                "model": "i__looker",
-                "view": "history",
-                "fields": [
-                    "history.min_runtime",
-                    "history.max_runtime",
-                    "history.average_runtime",
-                    "history.total_runtime"
-                    ],
-                "filters": {
-                    "history.created_date": "30 days",
-                    "history.status": status,
-                    "query.model": "-i^_^_looker"
-                },
-                "limit": "50000"
-                }
+            "model": "i__looker",
+            "view": "history",
+            "fields": [
+                "history.min_runtime",
+                "history.max_runtime",
+                "history.average_runtime",
+                "history.total_runtime"
+            ],
+            "filters": {
+                "history.created_date": "30 days",
+                "history.status": status,
+                "query.model": "-i^_^_looker"
+            },
+            "limit": "50000"
+        }
 
         r = self.looker.run_inline_query(result_format="json", body=body,
                                          fields={"cache": "false"})[0]
@@ -246,17 +245,17 @@ class Pulse(object):
 
     def check_scheduled_plans(self):
         body = {
-                "model": "i__looker",
-                "view": "scheduled_plan",
-                "fields": ["scheduled_job.status", "scheduled_job.count"],
-                "pivots": ["scheduled_job.status"],
-                "filters": {
-                            "scheduled_plan.run_once": "no",
-                            "scheduled_job.status": "-NULL",
-                            "scheduled_job.created_date": "30 days"
-                           },
-                "limit": "50000"
-                }
+            "model": "i__looker",
+            "view": "scheduled_plan",
+            "fields": ["scheduled_job.status", "scheduled_job.count"],
+            "pivots": ["scheduled_job.status"],
+            "filters": {
+                    "scheduled_plan.run_once": "no",
+                    "scheduled_job.status": "-NULL",
+                    "scheduled_job.created_date": "30 days"
+            },
+            "limit": "50000"
+        }
 
         r = self.looker.run_inline_query("json", body)
         result = []
@@ -264,7 +263,7 @@ class Pulse(object):
             r = r[0]['scheduled_job.count']['scheduled_job.status']
             failed = r['failure'] or 0
             succeeded = r['success'] or 0
-            result.append({'total': failed+succeeded,
+            result.append({'total': failed + succeeded,
                            'failure': failed,
                            'success': succeeded})
             return result

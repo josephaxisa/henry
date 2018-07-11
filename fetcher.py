@@ -1,4 +1,4 @@
-import formatter
+import styler
 from collections import Counter
 import logging
 import re
@@ -23,11 +23,11 @@ class Fetcher(object):
             project_files = self.looker.get_project_files(project=p['id'])
 
             project_data.append({
-                    'name': p['id'],
-                    'pr_mode': p['pull_request_mode'],
-                    'validation_required': p['validation_required'],
-                    'git_remote_url': p['git_remote_url'],
-                    'files': project_files
+                'name': p['id'],
+                'pr_mode': p['pull_request_mode'],
+                'validation_required': p['validation_required'],
+                'git_remote_url': p['git_remote_url'],
+                'files': project_files
             })
         self.fetch_logger.info('Fetching Complete')
         return project_data
@@ -47,7 +47,7 @@ class Fetcher(object):
             r = self.looker.get_models()
             models = list(filter(lambda x: x['project_name'] == project, r))
             if not models:
-                self.fetch_logger.info('Project not found')
+                self.fetch_logger.error('Project not found')
                 raise Exception('Project not found')
         elif project is not None and model is not None:
             # if both project and model paramaters are specified
@@ -61,7 +61,7 @@ class Fetcher(object):
 
         models = list(filter(lambda x: x['has_content'] is True, models))
         if verbose == 0:
-            models = [(m['project_name']+".")*scoped_names+m['name']
+            models = [(m['project_name'] + ".") * scoped_names + m['name']
                       for m in models]
         self.fetch_logger.info('Fetch Complete')
         return models
@@ -72,15 +72,15 @@ class Fetcher(object):
         timeframe = str(timeframe) + ' days'
         min_queries = '>=' + str(min_queries)
         body = {
-                "model": "i__looker",
-                "view": "history",
-                "fields": ["query.model", "history.query_run_count"],
-                "filters": {"history.created_date": timeframe,
-                            "query.model": "-i^_^_looker",
-                            "history.query_run_count": min_queries
-                            },
-                "limit": "50000"
-                }
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.model", "history.query_run_count"],
+            "filters": {"history.created_date": timeframe,
+                        "query.model": "-i^_^_looker",
+                        "history.query_run_count": min_queries
+                        },
+            "limit": "50000"
+        }
 
         response = self.looker.run_inline_query("json", body)
 
@@ -120,7 +120,7 @@ class Fetcher(object):
         for dimension in explore['fields']['dimensions']:
             if dimension['hidden'] is not True:
                 fields.append((explore['model_name']+'.'
-                              + explore['name']+'.')*scoped_names
+                              + explore['name'] + '.')*scoped_names
                               + dimension['name'])
         for measure in explore['fields']['measures']:
             if measure['hidden'] is not True:
@@ -163,18 +163,18 @@ class Fetcher(object):
         min_queries = '>=' + str(min_queries)
         timeframe = str(timeframe) + ' days'
         body = {
-                "model": "i__looker",
-                "view": "history",
-                "fields": ["query.model", "query.view",
-                           "query.formatted_fields",
-                           "query.formatted_filters", "query.sorts",
-                           "query.formatted_pivots",
-                           "history.query_run_count"],
-                "filters": {"history.created_date": timeframe,
-                            "query.model": m,
-                            "query.view": e,
-                            "history.query_run_count": min_queries},
-                "limit": "50000"
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.model", "query.view",
+                       "query.formatted_fields",
+                       "query.formatted_filters", "query.sorts",
+                       "query.formatted_pivots",
+                       "history.query_run_count"],
+            "filters": {"history.created_date": timeframe,
+                        "query.model": m,
+                        "query.view": e,
+                        "history.query_run_count": min_queries},
+            "limit": "50000"
         }
         # returns only fields used from a given explore
         response = self.looker.run_inline_query("json", body)
@@ -193,8 +193,9 @@ class Fetcher(object):
                                      str(row['query.formatted_pivots'])))
             fields.extend(re.findall(r'(\w+\.\w+)',
                                      str(row['query.sorts'])))
-            formatted_fields.extend([model+'.'+explore+'.'+field+'.'
-                                     + str(run_count) for field in fields])
+            for field in fields:
+                s = model + '.' + explore + '.' + field + '.' + str(run_count)
+                formatted_fields.extend([s])
 
         field_name = []
         field_use_count = []
@@ -221,16 +222,16 @@ class Fetcher(object):
         min_queries = '>=' + str(min_queries)
         m = model.replace('_', '^_') + ',' if model is not None else ''
         body = {
-                "model": "i__looker",
-                "view": "history",
-                "fields": ["query.view", "history.query_run_count"],
-                "filters": {"history.created_date": timeframe,
-                            "query.model": m,
-                            "history.query_run_count": min_queries,
-                            "query.view": explore
-                            },
-                "limit": "50000"
-                }
+            "model": "i__looker",
+            "view": "history",
+            "fields": ["query.view", "history.query_run_count"],
+            "filters": {"history.created_date": timeframe,
+                        "query.model": m,
+                        "history.query_run_count": min_queries,
+                        "query.view": explore
+                        },
+            "limit": "50000"
+        }
 
         response = self.looker.run_inline_query("json", body)
 
@@ -250,10 +251,10 @@ class Fetcher(object):
         verbose_result = []
         fail_flag = 0
         for idx, test in enumerate(tests):
-            s = '({}/{}) {}'.format(idx+1, len(tests), test)
+            s = '({}/{}) {}'.format(idx + 1, len(tests), test)
             r = self.looker.run_git_connection_test(project_id=project,
                                                     test_id=test)
-            verbose_result.append(formatter.color(s, r['status']))
+            verbose_result.append(styler.color(s, r['status']))
             if r['status'] != 'pass':
                 fail_flag = 1
         verbose_result = ('\n').join(verbose_result)

@@ -1,7 +1,7 @@
 import logging
+import styler
 from fetcher import Fetcher as fetcher
 import re
-from tabulate import tabulate
 
 
 class Vacuum(fetcher):
@@ -37,8 +37,8 @@ class Vacuum(fetcher):
                                            min_queries=kwargs['min_queries'],
                                            timeframe=kwargs['timeframe'])
         self.vacuum_logger.info('Vacuum Complete')
-        result = tabulate(result, headers=headers,
-                          tablefmt=format, numalign='center')
+        result = styler.tabulate(result, headers=headers,
+                                 tablefmt=format, numalign='center')
         return result
 
     def _vacuum_models(self, project=None, model=None, timeframe=90,
@@ -58,9 +58,9 @@ class Vacuum(fetcher):
             query_run_count = used_models[m] if m in used_models.keys() else 0
             unused_explores = ('\n').join(unused_explores)
             info.append({
-                    'model': m,
-                    'unused_explores': unused_explores or 'None',
-                    'model_query_run_count': query_run_count})
+                        'model': m,
+                        'unused_explores': unused_explores or 'None',
+                        'model_query_run_count': query_run_count})
 
         return info
 
@@ -110,15 +110,15 @@ class Vacuum(fetcher):
                 unused_fields = sorted(unused_fields)
                 unused_fields = ('\n').join(unused_fields)
             else:
-                unused_fields = formatter.color.format(pattern,
-                                                       'fail',
-                                                       'color')
+                unused_fields = styler.color.format(pattern,
+                                                    'fail',
+                                                    'color')
             info.append({
-                    'model': e['model_name'],
-                    'explore': e['name'],
-                    'unused_joins': unused_joins,
-                    'unused_fields': unused_fields
-                    })
+                        'model': e['model_name'],
+                        'explore': e['name'],
+                        'unused_joins': unused_joins,
+                        'unused_fields': unused_fields
+                        })
         if not info:
             self.vacuum_logger.error('No matching explores found')
             raise Exception('No matching explores found')

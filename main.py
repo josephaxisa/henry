@@ -245,15 +245,14 @@ def main():
                 else:
                     vacuum = Vacuum(looker)
                     result = vacuum.vacuum(**args)
+        # silence outout if --silence flag is used
+        if not args['quiet']:
+            print(result)
     elif args['command'] == 'pulse':
                 pulse = Pulse(looker)
                 result = pulse.run_all()
     else:
         print('No command passed')
-
-    # silence outout if --silence flag is used
-    if not args['quiet']:
-        print(result)
 
     # save to file if --output flag is used
     if args['output']:
@@ -282,6 +281,7 @@ def main():
                 logger.info('Results succesfully saved.')
             except Exception as e:
                 logger.error(e)
+                raise(e)
 
 
 # returns an instanstiated Looker object using the
