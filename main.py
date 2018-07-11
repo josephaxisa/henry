@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import yaml
+import formatter
 from lookerapi import LookerApi
 from itertools import groupby
 import argparse
@@ -10,7 +11,6 @@ from operator import itemgetter
 from spinner import Spinner
 import threading
 from tabulate import tabulate
-import colors
 import logging.config
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 from analyze import Analyze
@@ -21,19 +21,22 @@ from pulse import Pulse
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 host = 'mylooker'
 timeframe = '90 days'
-colors = colors.Colors()
 logger = logging.getLogger(__name__)
-#sys.tracebacklimit = -1 # enable only on shipped release
+# sys.tracebacklimit = -1 # enable only on shipped release
+
 
 def main():
     with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
 
-    parser = argparse.ArgumentParser(description=descStr,
-                                     formatter_class=argparse.RawTextHelpFormatter,
-                                     prog='henry',
-                                     usage="""henry command subcommand [subcommand options] [global options]""",
-                                     add_help=False)
+    parser = argparse.ArgumentParser(
+        description=descStr,
+        formatter_class=argparse.RawTextHelpFormatter,
+        prog='henry',
+        usage='henry command subcommand '
+              '[subcommand options] [global '
+              'options]',
+        add_help=False)
 
     subparsers = parser.add_subparsers(dest='command',
                                        help=argparse.SUPPRESS)
@@ -43,7 +46,8 @@ def main():
 
     health_subparser = subparsers.add_parser('pulse', help='pulse help')
 
-    ls_parser = subparsers.add_parser('analyze', help='analyze help', usage='henry analyze')
+    ls_parser = subparsers.add_parser('analyze', help='analyze help',
+                                      usage='henry analyze')
     ls_parser.set_defaults(which=None)
     ls_subparsers = ls_parser.add_subparsers()
     projects_sc = ls_subparsers.add_parser('projects')
@@ -129,7 +133,8 @@ def main():
                              help='Limit results. No limit by default')
 
     # VACUUM Subcommand
-    vacuum_parser = subparsers.add_parser('vacuum', help='vacuum help', usage='henry vacuum')
+    vacuum_parser = subparsers.add_parser('vacuum', help='vacuum help',
+                                          usage='henry vacuum')
     vacuum_parser.set_defaults(which=None)
     vacuum_subparsers = vacuum_parser.add_subparsers()
     vacuum_models = vacuum_subparsers.add_parser('models')
@@ -150,12 +155,15 @@ def main():
     vacuum_models.add_argument('--timeframe',
                                type=int,
                                default=90,  # when -p is not called
-                               help='Usage period to examine (in the range of 0-90 days). Default: 90 days.')
+                               help='Usage period to examine (in the range of '
+                                    '0-90 days). Default: 90 days.')
 
     vacuum_models.add_argument('--min_queries',
                                type=int,
                                default=0,  # when -p is not called
-                               help='Vacuum threshold. Explores with less queries in the given usage period will be vacuumed. Default: 0 queries.')
+                               help='Vacuum threshold. Explores with less '
+                                    'queries in the given usage period will '
+                                    'be vacuumed. Default: 0 queries.')
 
     vacuum_explores.set_defaults(which='explores')
     vacuum_explores.add_argument('-m', '--model',
@@ -179,29 +187,30 @@ def main():
                                  default=0,  # when -p is not called
                                  help='Query threshold')
 
-    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models, vacuum_explores, health_subparser]:
+    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models,
+                      vacuum_explores, health_subparser]:
         subparser.add_argument('--output',
                                type=str,
                                default=None,
-                               help='Path and/or name of file where to save output.')
+                               help='Path to file for saving the output.')
         subparser.add_argument('-q', '--quiet',
                                action='store_true',
                                help='Silence output')
         subparser.add_argument_group("Authentication")
         subparser.add_argument('--host', type=str, default=host,
-                               required='--client_id' in sys.argv
-                                        or '--client_secret' in sys.argv
-                                        or '--store' in sys.argv,
+                               required=any(k in sys.argv for k in
+                                            ['--client_id', '--cliet_secret',
+                                             '--store']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--port', type=int, default=19999,
                                help=argparse.SUPPRESS)
         subparser.add_argument('--client_id', type=str,
-                               required='--client_secret' in sys.argv
-                                        or '--store' in sys.argv,
+                               required=any(k in sys.argv for k in
+                                            ['--client_secret', '--store']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--client_secret', type=str,
-                               required='--client_id' in sys.argv
-                                        or '--store' in sys.argv,
+                               required=any(k in sys.argv for k in
+                                            ['--client_id', '--store']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--persist', action='store_true',
                                help=argparse.SUPPRESS)
@@ -212,18 +221,20 @@ def main():
         subparser.add_argument('--plain',
                                default=None,
                                action='store_true',
-                               help='Show results in a table format without the gridlines')
+                               help='Show results in a table format without'
+                                    'the gridlines')
 
     args = vars(parser.parse_args())  # Namespace object
     logger.info('Parsing args, %s', args)
-    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist', 'store', 'path')
+    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist',
+                   'store', 'path')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
     looker = authenticate(**auth_args)
 
     # map subcommand to function
-    if args['command']  in ('analyze', 'vacuum'):
+    if args['command'] in ('analyze', 'vacuum'):
         if args['which'] is None:
             parser.error("No command")
         else:
@@ -248,15 +259,19 @@ def main():
     if args['output']:
         logger.info('Saving results to file: %s', args['output'])
         if os.path.isdir(args['output']):
-            error = IsADirectoryError(errno.EISDIR, os.strerror(errno.EISDIR), args['output'])
+            error = IsADirectoryError(errno.EISDIR,
+                                      os.strerror(errno.EISDIR),
+                                      args['output'])
             logger.error(error)
             raise error
-        elif not (args['output'].endswith('.csv') or args['output'].endswith('.txt')):
+        elif not args['output'].endswith(('.csv', '.txt')):
             error = ValueError('Output file must be CSV or TXT')
             logger.exception(error)
             raise error
         elif os.path.isfile(args['output']):
-            error = FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), args['output'])
+            error = FileExistsError(errno.EEXIST,
+                                    os.strerror(errno.EEXIST),
+                                    args['output'])
             logger.error(error)
             raise error
         else:
@@ -269,33 +284,11 @@ def main():
                 logger.error(e)
 
 
-# takes in a list of dictionaries. Dictionary keys
-# MUST be in ('project', 'model', 'explore' and their *_ equivalent )
-def tree(data, group_field):
-    output = ""
-    if group_field == 'project':
-        output += 'Projects:\n'
-        for i in data:
-            output += ('    ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_project'] + '\n')
-    elif group_field == 'model':
-        for key, group in groupby(data, key=lambda data: data['project']):
-            output += str(key) + ':\n' # project
-            for i in group:
-                output += ('   ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_model'] + '\n')
-    elif group_field == 'explore':
-        for key, group in groupby(data, itemgetter('project', 'model')):
-            output += str(key[0]) + ':\n'  # project
-            output += ('    ' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + key[1] + '\n')  # model
-            for i in group:
-                output += ('\t' + u'\u251C' + u'\u2500' + u'\u2500' + ' ' + i['_explore'] + '\n')
-    return output
-
-
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
 def authenticate(**kwargs):
     logger.info('Authenticating into Looker API')
-    filepath = kwargs['path']+'config.yml'
+    filepath = kwargs['path'] + 'config.yml'
     cleanpath = os.path.abspath(filepath)
     if kwargs['client_id'] and kwargs['client_secret']:
         # if client_id and client_secret are passed, then use them
@@ -329,7 +322,10 @@ def authenticate(**kwargs):
             print('ERROR: %s not found' % error)
             sys.exit(1)
 
-    logger.info('auth params=%s', {'host': host, 'port' : kwargs['port'], 'client_id' : client_id, 'client_secret' : "[FILTERED]"})
+    logger.info('auth params=%s', {'host': host,
+                                   'port': kwargs['port'],
+                                   'client_id': client_id,
+                                   'client_secret': "[FILTERED]"})
     looker = LookerApi(host=host,
                        port=kwargs['port'],
                        id=client_id,
@@ -337,7 +333,7 @@ def authenticate(**kwargs):
                        access_token=token)
     logger.info('Authentication Successful')
 
-    # update config file with latest access token if user wants to persist session
+    # save auth token if user wants to persist session
     if kwargs['store']:
         logger.info('Saving credentials to file: %s', cleanpath)
         with open(cleanpath, 'r') as f:
@@ -353,10 +349,13 @@ def authenticate(**kwargs):
         os.chmod(cleanpath, 0o600)
 
     if kwargs['persist']:
-        logger.info('Persisting API session. Saving auth token under %s in %s', host, cleanpath)
+        logger.info('Persisting API session. Saving auth token under %s in %s',
+                    host,
+                    cleanpath)
         with open(cleanpath, 'r+') as f:
             params = yaml.safe_load(f)
-            params['hosts'][kwargs['host']]['access_token'] = looker.get_access_token()
+            access_token = looker.get_access_token()
+            params['hosts'][kwargs['host']]['access_token'] = access_token
 
         with open(cleanpath, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
@@ -364,6 +363,7 @@ def authenticate(**kwargs):
         os.chmod(cleanpath, 0o600)
 
     return looker
+
 
 if __name__ == "__main__":
     main()

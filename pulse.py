@@ -1,8 +1,8 @@
+import formatter
 import logging
 from spinner import Spinner
 import logging
 from tqdm import tqdm
-from colors import Colors as colors
 from tabulate import tabulate
 from tqdm import trange
 import re
@@ -18,7 +18,9 @@ class Pulse(object):
         self.pulse_logger = logging.getLogger(__name__)
         self.bar = '%s%s{postfix[0][value]}%s {desc}: ' \
                    '{percentage:3.0f}%% |{bar}|[{elapsed}<' \
-                   '{remaining}]' % (colors.BOLD, colors.GREEN, colors.ENDC)
+                   '{remaining}]' % (formatter.color.BOLD,
+                                     formatter.color.GREEN,
+                                     formatter.color.ENDC)
         self.postfix_default = [dict(value="RUNNING")]
 
     def run_all(self):
@@ -285,7 +287,7 @@ class Pulse(object):
         _result = []
         for r in response:
             if r['enabled'] is True:
-                _result.append({'Legacy Features' : r['name']})
+                _result.append({'Legacy Features': r['name']})
 
         if _result:
             result = tabulate(_result, headers="keys", tablefmt='psql')

@@ -110,7 +110,9 @@ class Vacuum(fetcher):
                 unused_fields = sorted(unused_fields)
                 unused_fields = ('\n').join(unused_fields)
             else:
-                unused_fields = colors.FAIL+pattern+colors.ENDC
+                unused_fields = formatter.color.format(pattern,
+                                                       'fail',
+                                                       'color')
             info.append({
                     'model': e['model_name'],
                     'explore': e['name'],

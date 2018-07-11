@@ -1,10 +1,8 @@
-import colors
 import formatter
 import logging
 from fetcher import Fetcher as fetcher
 from tabulate import tabulate
 import json
-colors = colors.Colors()
 
 
 class Analyze(fetcher):
@@ -72,15 +70,19 @@ class Analyze(fetcher):
             view_count = metadata.count('view')
             git_tests = fetcher.test_git_connection(self, p['name'])
             if p['pr_mode'] in ('recommended', 'required'):
-                pr_mode = colors.format(p['pr_mode'], 'pass', 'color')
+                pr_mode = formatter.color.format(p['pr_mode'], 'pass', 'color')
             else:
-                pr_mode = colors.format(p['pr_mode'], 'fail', 'color')
+                pr_mode = formatter.color.format(p['pr_mode'], 'fail', 'color')
             if p['validation_required']:
-                validation_mode = colors.format(p['validation_required'],
-                                                'pass', 'color')
+                validation_mode = formatter.color.format(
+                                                p['validation_required'],
+                                                'pass',
+                                                'color')
             else:
-                validation_mode = colors.format(p['validation_required'],
-                                                'fail', 'color')
+                validation_mode = formatter.color.format(
+                                                p['validation_required'],
+                                                'fail',
+                                                'color')
             info.append({
                     'project': p['name'],
                     'model_count': model_count,
@@ -156,7 +158,9 @@ class Analyze(fetcher):
                 if e['description'] is not None:
                     has_description = 'Yes'
                 else:
-                    has_description = colors.format('No', 'fail', 'color')
+                    has_description = formatter.color.format('No',
+                                                             'fail',
+                                                             'color')
 
                 if query_count.get(e['name']):
                     query_count = query_count[e['name']]

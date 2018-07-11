@@ -1,8 +1,7 @@
-import colors
+import formatter
 from collections import Counter
 import logging
 import re
-colors = colors.Colors()
 
 
 class Fetcher(object):
@@ -53,7 +52,7 @@ class Fetcher(object):
         elif project is not None and model is not None:
             # if both project and model paramaters are specified
             self.fetch_logger.info('Warning: Project parameter ignored. \
-                             Model names are unique across projects.')
+                                   Model names are unique across projects.')
             models = [self.looker.get_model(model)]
         else:
             # if project parameter wasn't passed but model was.
@@ -254,7 +253,7 @@ class Fetcher(object):
             s = '({}/{}) {}'.format(idx+1, len(tests), test)
             r = self.looker.run_git_connection_test(project_id=project,
                                                     test_id=test)
-            verbose_result.append(colors.format(s, r['status']))
+            verbose_result.append(formatter.color(s, r['status']))
             if r['status'] != 'pass':
                 fail_flag = 1
         verbose_result = ('\n').join(verbose_result)
