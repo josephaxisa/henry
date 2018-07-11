@@ -50,15 +50,13 @@ class LookerApi(object):
             self.access_token = access_token
         else:
             self.api_logger.warning('Request Complete: %s', r.status_code)
-            sys.exit(1)
+
         return
 
 # GET /user - meant for use by the class itself
     def __get_me(self):
         url = 'https://{}:{}/api/3.0/user'.format(self.host, self.port)
-
         r = self.session.get(url)
-
         return r.status_code
 
 # GET /lookml_models/
@@ -75,8 +73,7 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.api_logger.error('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
-            return
+            raise(e)
         self.api_logger.info('Request Complete: %s', r.status_code)
         return r.json()
 
@@ -133,8 +130,7 @@ class LookerApi(object):
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
             self.api_logger.warning('Request Complete: %s', r.status_code)
-            print("Error: " + str(e))
-            return
+            raise(e)
         self.api_logger.info('Request Complete: %s', r.status_code)
         return r.json()
 
