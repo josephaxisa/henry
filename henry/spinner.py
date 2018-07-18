@@ -1,7 +1,6 @@
 import threading
 import sys
 import time
-from contextlib import ContextDecorator
 
 
 class SpinnerThread(threading.Thread):

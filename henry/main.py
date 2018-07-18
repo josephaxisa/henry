@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 import yaml
 import formatter
-from lookerapi import LookerApi
+from .lookerapi import LookerApi
 from itertools import groupby
 import argparse
 import os
 import errno
 import sys
 from operator import itemgetter
-from spinner import Spinner
+from .spinner import Spinner
 import threading
 from tabulate import tabulate
 import logging.config
-logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-from analyze import Analyze
-from vacuum import Vacuum
-from pulse import Pulse
+logging.config.fileConfig('henry/logging.conf', disable_existing_loggers=False)
+from .analyze import Analyze
+from .vacuum import Vacuum
+from .pulse import Pulse
 
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 host = 'mylooker'
 timeframe = '90 days'
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('main')
 # sys.tracebacklimit = -1 # enable only on shipped release
 
 
 def main():
-    with open('help.rtf', 'r', encoding='unicode_escape') as myfile:
+    with open('henry/help.rtf', 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
 
     parser = argparse.ArgumentParser(

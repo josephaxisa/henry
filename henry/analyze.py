@@ -1,6 +1,6 @@
 import logging
-from fetcher import Fetcher as fetcher
-import styler
+from .fetcher import Fetcher as fetcher
+from . import styler
 from tabulate import tabulate
 import json
 
@@ -8,7 +8,7 @@ import json
 class Analyze(fetcher):
     def __init__(self, looker):
         super().__init__(looker)
-        self.analyze_logger = logging.getLogger(__name__.lower())
+        self.analyze_logger = logging.getLogger('analyze')
 
     def analyze(self, **kwargs):
         format = 'plain' if kwargs['plain'] else 'psql'

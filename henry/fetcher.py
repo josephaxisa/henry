@@ -1,15 +1,13 @@
-import styler
+from . import styler
 from collections import Counter
 import logging
 import re
-from color import color
 
 
 class Fetcher(object):
     def __init__(self, looker):
         self.looker = looker
         self.fetch_logger = logging.getLogger('fetcher')
-        self.color = color()
 
     def get_project_files(self, project=None):
         self.fetch_logger.info('Fetching projects, %s', locals())

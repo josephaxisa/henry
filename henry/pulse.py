@@ -1,12 +1,10 @@
 import logging
 import re
 import requests
-from spinner import Spinner
-import styler
 from tqdm import tqdm
 from tabulate import tabulate
 from tqdm import trange
-from color import color
+from .color import color
 
 
 class Pulse(object):
@@ -15,7 +13,7 @@ class Pulse(object):
 
     def __init__(self, looker):
         self.looker = looker
-        self.pulse_logger = logging.getLogger(__name__)
+        self.pulse_logger = logging.getLogger('pulse')
         self.bar = '%s%s{postfix[0][value]}%s {desc}: ' \
                    '{percentage:3.0f}%% |{bar}|[{elapsed}<' \
                    '{remaining}]' % (color.BOLD,

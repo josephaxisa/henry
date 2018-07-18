@@ -13,7 +13,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 class LookerApi(object):
     def __init__(self, id, secret, host, port, access_token):
-        self.api_logger = logging.getLogger(__name__)
+        self.api_logger = logging.getLogger('lookerapi')
         self.id = id
         self.secret = secret
         self.host = host

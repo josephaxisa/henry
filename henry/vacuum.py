@@ -1,13 +1,13 @@
 import logging
-import styler
-from fetcher import Fetcher as fetcher
+from . import styler
+from .fetcher import Fetcher as fetcher
 import re
 
 
 class Vacuum(fetcher):
     def __init__(self, looker):
         super().__init__(looker)
-        self.vacuum_logger = logging.getLogger(__name__.lower())
+        self.vacuum_logger = logging.getLogger('vacuum')
 
     def vacuum(self, **kwargs):
         p = kwargs['project'] if 'project' in kwargs.keys() else None
