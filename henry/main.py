@@ -77,15 +77,15 @@ def main():
 
     models_group.add_argument('-p', '--project',
                               type=str,
-                              default=None,  # when -p is not called
+                              default=None,
                               help='Filter on project')
     models_group.add_argument('-model', '--model',
                               type=str,
-                              default=None,  # when -p is not called
+                              default=None,
                               help='Filter on model')
     models_sc.add_argument('--timeframe',
                            type=int,
-                           default=90,  # when -p is not called
+                           default=90,
                            help='Timeframe (between 0 and 90)')
     models_sc.add_argument('--order_by',
                            nargs=2,
@@ -102,7 +102,7 @@ def main():
     explores_sc.set_defaults(which='explores')
     explores_sc.add_argument('-model', '--model',
                              type=str,
-                             default=None,  # when -p is not called
+                             default=None,
                              required=('--explore') in sys.argv,
                              help='Filter on model')
     explores_sc.add_argument('-e', '--explore',
@@ -110,11 +110,11 @@ def main():
                              help='Filter on model')
     explores_sc.add_argument('--timeframe',
                              type=int,
-                             default=90,  # when -p is not called
+                             default=90,
                              help='Timeframe (between 0 and 90)')
     explores_sc.add_argument('--min_queries',
                              type=int,
-                             default=0,  # when -p is not called
+                             default=0,
                              help='Query threshold')
     explores_sc.add_argument('--order_by',
                              nargs=2,
@@ -138,22 +138,22 @@ def main():
     vm_group = vacuum_models.add_mutually_exclusive_group()
     vm_group.add_argument('-p', '--project',
                           type=str,
-                          default=None,  # when -p is not called
+                          default=None,
                           help='Filter on Project')
     vm_group.add_argument('-m', '--model',
                           type=str,
-                          default=None,  # when -p is not called
+                          default=None,
                           help='Filter on model')
 
     vacuum_models.add_argument('--timeframe',
                                type=int,
-                               default=90,  # when -p is not called
+                               default=90,
                                help='Usage period to examine (in the range of '
                                     '0-90 days). Default: 90 days.')
 
     vacuum_models.add_argument('--min_queries',
                                type=int,
-                               default=0,  # when -p is not called
+                               default=0,
                                help='Vacuum threshold. Explores with less '
                                     'queries in the given usage period will '
                                     'be vacuumed. Default: 0 queries.')
@@ -161,23 +161,23 @@ def main():
     vacuum_explores.set_defaults(which='explores')
     vacuum_explores.add_argument('-m', '--model',
                                  type=str,
-                                 default=None,  # when -p is not called
+                                 default=None,
                                  required=('--explore') in sys.argv,
                                  help='Filter on model')
 
     vacuum_explores.add_argument('-e', '--explore',
                                  type=str,
-                                 default=None,  # when -p is not called
+                                 default=None,
                                  help='Filter on explore')
 
     vacuum_explores.add_argument('--timeframe',
                                  type=int,
-                                 default=90,  # when -p is not called
+                                 default=90,
                                  help='Timeframe (between 0 and 90)')
 
     vacuum_explores.add_argument('--min_queries',
                                  type=int,
-                                 default=0,  # when -p is not called
+                                 default=0,
                                  help='Query threshold')
 
     for subparser in [projects_sc, models_sc, explores_sc, vacuum_models,
@@ -217,7 +217,7 @@ def main():
                                help='Show results in a table format without '
                                     'the gridlines')
 
-    args = vars(parser.parse_args())  # Namespace object
+    args = vars(parser.parse_args())
     logger.info('Parsing args, %s', args)
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist',
                    'store', 'path')
@@ -284,14 +284,12 @@ def authenticate(**kwargs):
     filepath = kwargs['path'] + 'config.yml'
     cleanpath = os.path.abspath(filepath)
     if kwargs['client_id'] and kwargs['client_secret']:
-        # if client_id and client_secret are passed, then use them
         logger.info('Fetching auth params passed in CLI')
         host = kwargs['host']
         client_id = kwargs['client_id']
         client_secret = kwargs['client_secret']
         token = None
     else:
-        # otherwise, find credentials in config file
         logger.info('Opening config file from %s', cleanpath)
         try:
             f = open(cleanpath, 'r')
@@ -326,7 +324,6 @@ def authenticate(**kwargs):
                        access_token=token)
     logger.info('Authentication Successful')
 
-    # save auth token if user wants to persist session
     if kwargs['store']:
         logger.info('Saving credentials to file: %s', cleanpath)
         with open(cleanpath, 'r') as f:
