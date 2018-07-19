@@ -14,7 +14,7 @@ URL = "https://github.com/llooker/lookml_field_usage"
 EMAIL = 'jax@looker.com'
 AUTHOR = 'Joseph Axisa'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.0.1'
+VERSION = '0.0.12'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -91,13 +91,14 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=('tests',)),
+    packages=find_packages(exclude=('*.conf','*.rtf',)), #['henry']
+    data_files=['logging.conf', 'help.rtf'],
     entry_points={
-        'console_scripts': ['henry=henry.main:main'],
+        'console_scripts': ['henry=henry.__main__:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
-    include_package_data=True,
+    exclude_package_data=True,
     license='MIT',
     classifiers=[
         'License :: OSI Approved :: MIT License',

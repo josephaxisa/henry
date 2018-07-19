@@ -6,7 +6,7 @@ and Dashboards via a simple command line tool.
 ## Status and Support
 
 Henry is **NOT** supported or warranted by Looker in any way. Please do not contact Looker support
-for issues with Gazer. Issues can be logged via https://github.com/josephaxisa/henry/issues
+for issues with Henry. Issues can be logged via https://github.com/josephaxisa/henry/issues
 
 ## Setting up Henry
 
@@ -194,7 +194,7 @@ The `vacuum explores` command exposes joins and exposes fields that have not are
 ```
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
 
-## Development
+## Development -- change this
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
@@ -202,7 +202,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/deangelo-llooker/gzr. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/josephaxisa/henry/issues. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## Code of Conduct
 

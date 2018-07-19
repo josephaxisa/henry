@@ -12,7 +12,12 @@ from .spinner import Spinner
 import threading
 from tabulate import tabulate
 import logging.config
-logging.config.fileConfig('henry/logging.conf', disable_existing_loggers=False)
+import henry
+LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), 'logging.conf')
+LOGGING_LOG_PATH = os.path.join(os.path.dirname(henry.__file__), 'henry.log')
+logging.config.fileConfig(LOGGING_CONFIG_PATH,
+                          defaults={'logfilename': LOGGING_LOG_PATH},
+                          disable_existing_loggers=False)
 from .analyze import Analyze
 from .vacuum import Vacuum
 from .pulse import Pulse
@@ -26,7 +31,8 @@ logger = logging.getLogger('main')
 
 
 def main():
-    with open('henry/help.rtf', 'r', encoding='unicode_escape') as myfile:
+    HELP_PATH = os.path.join(os.path.dirname(henry.__file__), 'help.rtf')
+    with open(HELP_PATH, 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
 
     parser = argparse.ArgumentParser(
