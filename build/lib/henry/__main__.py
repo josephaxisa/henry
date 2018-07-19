@@ -14,7 +14,7 @@ from tabulate import tabulate
 import logging.config
 import henry
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), 'logging.conf')
-LOGGING_LOG_PATH = os.path.join(os.path.dirname(henry.__file__), 'henry.log')
+LOGGING_LOG_PATH = os.path.join(os.path.dirname(henry.__file__), 'log/henry.log')
 logging.config.fileConfig(LOGGING_CONFIG_PATH,
                           defaults={'logfilename': LOGGING_LOG_PATH},
                           disable_existing_loggers=False)
@@ -27,6 +27,7 @@ from .pulse import Pulse
 host = 'mylooker'
 timeframe = '90 days'
 logger = logging.getLogger('main')
+logger.info('the path is: %s', LOGGING_LOG_PATH)
 # sys.tracebacklimit = -1 # enable only on shipped release
 
 

@@ -91,14 +91,14 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=('*.conf','*.rtf',)), #['henry']
-    data_files=['logging.conf', 'help.rtf'],
+    packages=['henry', 'henry/commands', 'henry/modules'],
+    data_files=[('henry/.support_files/', ['henry/.support_files/logging.conf']), ('henry/.support_files/', ['henry/.support_files/help.rtf'])],
     entry_points={
-        'console_scripts': ['henry=henry.__main__:main'],
+        'console_scripts': ['henry=henry.cli:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
-    exclude_package_data=True,
+    include_package_data=True,
     license='MIT',
     classifiers=[
         'License :: OSI Approved :: MIT License',

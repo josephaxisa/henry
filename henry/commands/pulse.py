@@ -4,7 +4,7 @@ import requests
 from tqdm import tqdm
 from tabulate import tabulate
 from tqdm import trange
-from .color import color
+from henry.modules.color import color
 
 
 class Pulse(object):

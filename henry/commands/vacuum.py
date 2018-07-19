@@ -1,6 +1,6 @@
 import logging
-from . import styler
-from .fetcher import Fetcher as fetcher
+from henry.modules import styler
+from henry.modules.fetcher import Fetcher as fetcher
 import re
 
 
