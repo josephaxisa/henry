@@ -66,7 +66,7 @@ class Pulse(object):
         t = trange(1, desc='(5/5) Version', bar_format=self.bar,
                    postfix=self.postfix_default, ncols=100)
         for i in t:
-            result, status = self.check_version()
+            result = self.check_version()
             t.postfix[0]["value"] = "DONE"
             t.update()
         print(result, end='\n\n')
@@ -99,7 +99,7 @@ class Pulse(object):
                 formatted_results = list(set(formatted_results))
                 status = ('\n').join(formatted_results)
                 result.append({'name': c,
-                               'status': 'OK' if fail_flag==0 else status})
+                               'status': 'OK' if fail_flag == 0 else status})
                 if idx == len(connections) - 1:
                     t.postfix[0]['value'] = 'DONE'
                 t.update()
@@ -304,6 +304,9 @@ class Pulse(object):
         _lv = _lv['looker_release_version']
         latest_version = re.findall(r'(\d.\d+)', _lv)[0]
         if version == latest_version:
-            return version, "up-to-date"
+            result = '{} ({})'.format(version, 'up-to-date')
         else:
-            return version, "outdated"
+            result = '{} ({} {})'.format(version,
+                                         'outdated, latest version is',
+                                         latest_version)
+        return result
