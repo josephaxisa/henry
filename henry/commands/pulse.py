@@ -26,7 +26,7 @@ class Pulse(object):
         self.pulse_logger.info('Checking instance pulse')
         self.pulse_logger.info('Checking Connections')
         result = self.check_connections()
-        print(result, end='\n')
+        print(result, end='\n\n')
         self.pulse_logger.info('Complete: Checking Connections')
 
         self.pulse_logger.info('Analyzing Query Stats')
@@ -51,11 +51,10 @@ class Pulse(object):
                                       tablefmt='psql', numalign='center')
                 t.postfix[0]["value"] = 'DONE'
                 t.update()
-        print(result)
+        print(result, end='\n\n')
         if fail_flag == 1:
             print('Navigate to /admin/scheduled_jobs on your instance for '
-                  'more details')
-        print('\n')
+                  'more details', end='\n\n')
         self.pulse_logger.info('Complete: Analyzing Scheduled Plans')
 
         # check enabled legacy features
@@ -139,8 +138,9 @@ class Pulse(object):
                                        query_runtime_stats['max'])
 
         if slow_queries:
-            r3 = 'Queries that took more than 5x the average query runtime' \
-                 ': {}'.format(slow_queries)
+            r3 = 'Query IDs for queries that took more than 5x the average ' \
+                 'query runtime : {}'.format(slow_queries)
+            r3 = fill(r3, width=80)
         else:
             r3 = 'No abnormally slow queries found'
         return r1, r2, r3
