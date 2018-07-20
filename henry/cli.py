@@ -37,6 +37,7 @@ logger = logging.getLogger('main')
 
 
 def main():
+    logger.info('Starting henry')
     HELP_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/help.rtf')
     with open(HELP_PATH, 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
@@ -231,6 +232,10 @@ def main():
 
     args = vars(parser.parse_args())
     logger.info('Parsing args, %s', args)
+    if not args['command']:
+        print('usage:', parser.usage)
+        print('\nNo command specified. Try `henry --help` for help.')
+        sys.exit(1)
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist',
                    'store', 'path')
     auth_args = {k: args[k] for k in auth_params}
