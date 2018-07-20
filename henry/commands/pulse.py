@@ -1,6 +1,7 @@
 import logging
 import re
 import requests
+from textwrap import fill
 from tqdm import tqdm
 from tabulate import tabulate
 from tqdm import trange
@@ -101,10 +102,11 @@ class Pulse(object):
                 fail_flag = 0
                 for i in results:
                     if i['status'] == 'error':
-                        formatted_results.append(i['message'])
+                        formatted_results.append('-- ' + fill(i['message'],
+                                                              width=100))
                         fail_flag = 1
                 formatted_results = list(set(formatted_results))
-                status = ('\n').join(formatted_results)
+                status = '\n'.join(formatted_results)
                 result.append({'Connection': c,
                                'Status': 'OK' if fail_flag == 0 else status})
                 if idx == len(connections) - 1:
