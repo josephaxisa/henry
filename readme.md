@@ -7,31 +7,32 @@
 Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. The results are meant to help developers cleanup models from unused explores and explores from unused joins and fields
 
 ## Table of Contents
-- [Installation](#Where to get it)
+- [Status and Support](#status_and_support)
+- [Installation](#where_to_get_it)
 - [Usage](#usage)
-  - [Storing Credentials](#Storing Credentials)
-  - [Global Options](#Global Options that apply to many commands)
-    - [Suppressing Formatted Output](#Suppressing Formatted Output)
-    - [CSV Output](#CSV Output)
-  - [The Pulse Command](#Pulse Information)
-  - [The Analyze Command](#Analyze Information)
-    - [Analyzing Projects](#analyze projects)
-    - [Analyzing Models](#analyze models)
-    - [Analyzing Explores](#analyze explores)
-  - [The Vacuum Command](#Vacuum Information)
-    - [Vacuuming Models](#vacuum models)
-    - [Vacuuming Explores](#vacuum explores)
-- [Dependencies](#Dependencies)
-- [Development](#Development)
-- [Contributing](#Contributing)
-- [Code of Conduct](#Code of Conduct)
-- [Copyright](#Copyright)
+  - [Storing Credentials](#storing_credentials)
+  - [Global Options](#global_options)
+    - [Suppressing Formatted Output](#supressed_output)
+    - [CSV Output](#csv_output)
+  - [The Pulse Command](#pulse_nformation)
+  - [The Analyze Command](#analyze_information)
+    - [Analyzing Projects](#analyze_projects)
+    - [Analyzing Models](#analyze_models)
+    - [Analyzing Explores](#analyze_explores)
+  - [The Vacuum Command](#vacuum_information)
+    - [Vacuuming Models](#vacuum_models)
+    - [Vacuuming Explores](#vacuum_explores)
+- [Dependencies](#dependencies)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Code of Conduct](#code_of_conduct)
+- [Copyright](#copyright)
 
-## Status and Support
+## Status and Support <a name="status_and_support"></a>
 Henry is **NOT** supported or warranted by Looker in any way. Please do not contact Looker support
 for issues with Henry. Issues can be logged via https://github.com/josephaxisa/henry/issues
 
-## Where to get it
+## Where to get it <a name="where_to_get_it"></a>
 The source code is currently hosted on GitHub at https://github.com/josephaxisa/henry/henry. The latest released version can be found on [PyPI](https://pypi.org/project/henry/) and can be installed using:
 
     $ pip install henry
@@ -44,7 +45,7 @@ In order to display usage information, use:
     $ henry --help
 
 
-### Storing Credentials
+### Storing Credentials <a name="storing_credentials"></a>
 Store login information by creating the file `config.yml` in the home directory of your script with the api3 credentials
 
 ```
@@ -58,15 +59,15 @@ hosts:
 
 Make sure that the `config.yml` file has restricted permissions by running `chmod 600 config.yml`. The tool will also ensure that this is the case every time it writes to the file.
 
-### Global Options that apply to many commands
-#### Suppressing Formatted Output
+### Global Options that apply to many commands <a name="global_options"></a>
+#### Suppressing Formatted Output  <a name="suppressed_output"></a>
 Many commands provide tabular output. For tables the option `--plain` will suppress the table headers and format lines, making it easier to use tools like grep, awk, etc. to retrieve values from the output of these commands.
 
-#### CSV Output
+#### CSV Output <a name="csv_output"></a>
 Many commands provide tabular output. For tables the option `--csv` will output tabular data in
 csv format. When combined with `--plain` the header will also be suppressed.
 
-### Pulse Information
+### Pulse Information <a name="pulse_information"></a>
 The command `henry pulse` runs a number of tests that help determine the overall instance health. A healthy Looker instance should pass all the tests. Below is a list of tests currently implemented.
 
 #### Connection Checks
@@ -100,10 +101,10 @@ Outputs a list of legacy features that are still in use if any. These are featur
 Checks if the latest Looker version is being used. Looker supports only up to 3 releases back.
 
 
-### Analyze Information
+### Analyze Information <a name="analyze_output"></a>
 The `analyze` command is meant to help identify models and explores that have become bloated and use `vacuum` on them in order to trim them.
 
-### analyze projects
+### analyze projects <a name="analyze_projects"></a>
 The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
 ```
 +-----------+---------------+--------------+-----------------------------+-----------------+-----------------------+
@@ -120,7 +121,7 @@ The `analyze projects` command scans projects for their content as well as check
 +-----------+---------------+--------------+-----------------------------+-----------------+-----------------------+
 ```
 
-### analyze models
+### analyze models <a name="analyze_models"></a>
 Shows the number of explores in each model as well as the number of queries against that model.
 ```
 +-----------+----------------+-----------------+-------------------+
@@ -135,7 +136,7 @@ Shows the number of explores in each model as well as the number of queries agai
 +-----------+----------------+-----------------+-------------------+
 ```
 
-### analyze explores
+### analyze explores <a name="analyze_explores"></a>
 Shows explores and their usage. If the `--min_queries` argument is passed, joins and fields that have been used less than the threshold specified will be considered as unused.
 ```
 +----------------+-----------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
@@ -152,10 +153,10 @@ Shows explores and their usage. If the `--min_queries` argument is passed, joins
 +----------------+-----------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
 ```
 
-### Vacuum Information
+### Vacuum Information <a name="vacuum_information"></a>
 The `vacuum` command outputs a list of unused content based on predefined criteria that a developer can then use to cleanup models and explores.
 
-### vacuum models
+### vacuum models <a name="vacuum_models"></a>
 The `vacuum models` command exposes models and the number of queries against them over a predefined period of time. Explores that are listed here have not had the minimum number of queries against them in the timeframe specified. As a result it is safe to hide them and later delete them.
 ```
 +----------------+----------------------+-------------------------+
@@ -173,7 +174,7 @@ The `vacuum models` command exposes models and the number of queries against the
 +----------------+----------------------+-------------------------+
 ```
 
-### vacuum explores
+### vacuum explores <a name="vacuum_explores"></a>
 The `vacuum explores` command exposes joins and exposes fields that have not are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
 ```
 +-----------+----------------------+----------------------+------------------------------------------------+
@@ -211,13 +212,13 @@ The `vacuum explores` command exposes joins and exposes fields that have not are
 ```
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
 
-## Dependencies
+## Dependencies <a name="dependencies"></a>
 - [PyYAML](https://pyyaml.org/): 3.12 or higher
 - [requests](http://docs.python-requests.org/en/master/): 2.18.4 or higher
 - [tabulate](https://bitbucket.org/astanin/python-tabulate): 0.8.2 or higher
 - [tqdm](https://tqdm.github.io/): 4.23.4 or higher
 
-## Development
+## Development <a name="development"></a>
 
 To install henry in development mode need clone the repo and install the dependencies above.
 
@@ -229,14 +230,14 @@ Alternatively, you can use `pip` if you want all the dependencies pulled in auto
 
     $ pip install -e .
 
-## Contributing
+## Contributing <a name="contributing></a>
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/josephaxisa/henry/issues. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
-## Code of Conduct
+## Code of Conduct <a name="code_of_conduct"></a>
 
 Everyone interacting in the Henry project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/looker/content_util/blob/master/CODE_OF_CONDUCT.md).
 
-## Copyright
+## Copyright <a name="copyright""></a>
 
 Copyright (c) 2018 Joseph Axisa for Looker Data Sciences. See [MIT License](LICENSE.txt) for further details.
