@@ -27,7 +27,7 @@ def authenticate(**kwargs):
             f.close()
         except FileNotFoundError as error:
             auth_logger.exception(error, exc_info=False)
-            print('ERROR: Specified file was not found')
+            print('ERROR: %s not found' % filepath)
             sys.exit(1)
 
         try:
