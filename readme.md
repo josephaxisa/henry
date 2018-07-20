@@ -13,7 +13,7 @@ Henry is a tool with a command line interface (CLI) that helps determine model b
   - [Storing Credentials](#storing_credentials)
   - [Global Options](#global_options)
     - [Suppressing Formatted Output](#supressed_output)
-    - [CSV Output](#csv_output)
+    - [Output to File](#output_to_file)
   - [The Pulse Command](#pulse_cmd)
   - [The Analyze Command](#analyze_cmd)
     - [Analyzing Projects](#analyze_projects)
@@ -69,10 +69,13 @@ Make sure that the `config.yml` file has restricted permissions by running `chmo
 #### Suppressing Formatted Output
 Many commands provide tabular output. For tables the option `--plain` will suppress the table headers and format lines, making it easier to use tools like grep, awk, etc. to retrieve values from the output of these commands.
 
-<a name="csv_output"></a>
-#### CSV Output
-Many commands provide tabular output. For tables the option `--csv` will output tabular data in
-csv format. When combined with `--plain` the header will also be suppressed.
+<a name="output_to_file"></a>
+#### Output to File
+Using the `--output` option allows you to specify a path and a file to save the results to. When combined with `--plain` the header and format lines will be suppressed. Example usage:
+
+    $ henry vacuum models --plain --output=unused_explores.txt
+
+saves the results to *unused_explores.txt* in the current working directory.
 
 <a name="pulse_cmd"></a>
 ### Pulse Command
