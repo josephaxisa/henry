@@ -14,7 +14,13 @@ from .modules.auth import authenticate
 import logging.config
 import henry
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/logging.conf')
-LOGGING_LOG_PATH = os.path.join(os.path.dirname(henry.__file__), 'henry.log')
+LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry')
+if not os.path.exists(LOGGING_LOG_PATH):
+    os.mkdir(LOGGING_LOG_PATH)
+elif os.path.exists(LOGGING_LOG_PATH) and not os.path.isdir(LOGGING_LOG_PATH):
+    print('Cannot create log directory in %s' % LOGGING_LOG_PATH)
+    sys.exit(1)
+LOGGING_LOG_PATH = os.path.join(LOGGING_LOG_PATH, 'henry.log')
 logging.config.fileConfig(LOGGING_CONFIG_PATH,
                           defaults={'logfilename': LOGGING_LOG_PATH},
                           disable_existing_loggers=False)
@@ -27,7 +33,6 @@ from .commands.pulse import Pulse
 host = 'mylooker'
 timeframe = '90 days'
 logger = logging.getLogger('main')
-logger.info('the path is: %s', LOGGING_LOG_PATH)
 # sys.tracebacklimit = -1 # enable only on shipped release
 
 

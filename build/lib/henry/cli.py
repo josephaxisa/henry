@@ -1,38 +1,43 @@
 #!/usr/bin/env python3
 import yaml
-import formatter
-from .lookerapi import LookerApi
+from .modules.lookerapi import LookerApi
 from itertools import groupby
 import argparse
 import os
 import errno
 import sys
 from operator import itemgetter
-from .spinner import Spinner
+from .modules.spinner import Spinner
 import threading
 from tabulate import tabulate
+from .modules.auth import authenticate
 import logging.config
 import henry
-LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), 'logging.conf')
-LOGGING_LOG_PATH = os.path.join(os.path.dirname(henry.__file__), 'log/henry.log')
+LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/logging.conf')
+LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry')
+if not os.path.exists(LOGGING_LOG_PATH):
+    os.mkdir(LOGGING_LOG_PATH)
+elif os.path.exists(LOGGING_LOG_PATH) and not os.path.isdir(LOGGING_LOG_PATH):
+    print('Cannot create log directory in %s' % LOGGING_LOG_PATH)
+    sys.exit(1)
+LOGGING_LOG_PATH = os.path.join(LOGGING_LOG_PATH, 'henry.log')
 logging.config.fileConfig(LOGGING_CONFIG_PATH,
                           defaults={'logfilename': LOGGING_LOG_PATH},
                           disable_existing_loggers=False)
-from .analyze import Analyze
-from .vacuum import Vacuum
-from .pulse import Pulse
+from .commands.analyze import Analyze
+from .commands.vacuum import Vacuum
+from .commands.pulse import Pulse
 
 
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 host = 'mylooker'
 timeframe = '90 days'
 logger = logging.getLogger('main')
-logger.info('the path is: %s', LOGGING_LOG_PATH)
 # sys.tracebacklimit = -1 # enable only on shipped release
 
 
 def main():
-    HELP_PATH = os.path.join(os.path.dirname(henry.__file__), 'help.rtf')
+    HELP_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/help.rtf')
     with open(HELP_PATH, 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
 
@@ -282,85 +287,6 @@ def main():
             except Exception as e:
                 logger.error(e)
                 raise(e)
-
-
-# returns an instanstiated Looker object using the
-# credentials supplied by the auth argument group
-def authenticate(**kwargs):
-    logger.info('Authenticating into Looker API')
-    filepath = kwargs['path'] + 'config.yml'
-    cleanpath = os.path.abspath(filepath)
-    if kwargs['client_id'] and kwargs['client_secret']:
-        logger.info('Fetching auth params passed in CLI')
-        host = kwargs['host']
-        client_id = kwargs['client_id']
-        client_secret = kwargs['client_secret']
-        token = None
-    else:
-        logger.info('Opening config file from %s', cleanpath)
-        try:
-            f = open(cleanpath, 'r')
-            params = yaml.load(f)
-            f.close()
-        except FileNotFoundError as error:
-            logger.exception(error, exc_info=False)
-            print('ERROR: Specified file was not found')
-            sys.exit(1)
-
-        try:
-            logger.info('Fetching auth credentials from file, %s', cleanpath)
-            host = params['hosts'][kwargs['host']]['host']
-            client_secret = params['hosts'][kwargs['host']]['secret']
-            client_id = params['hosts'][kwargs['host']]['id']
-            #  last auth token. Works if --persist was previously used,
-            # otherwise it fails)
-            token = params['hosts'][kwargs['host']]['access_token']
-        except KeyError as error:
-            logger.error('Auth Error: %s not found' % error, exc_info=False)
-            print('ERROR: %s not found' % error)
-            sys.exit(1)
-
-    logger.info('auth params=%s', {'host': host,
-                                   'port': kwargs['port'],
-                                   'client_id': client_id,
-                                   'client_secret': "[FILTERED]"})
-    looker = LookerApi(host=host,
-                       port=kwargs['port'],
-                       id=client_id,
-                       secret=client_secret,
-                       access_token=token)
-    logger.info('Authentication Successful')
-
-    if kwargs['store']:
-        logger.info('Saving credentials to file: %s', cleanpath)
-        with open(cleanpath, 'r') as f:
-            params['hosts'][kwargs['host']] = {}
-            params['hosts'][kwargs['host']]['host'] = host
-            params['hosts'][kwargs['host']]['id'] = client_id
-            params['hosts'][kwargs['host']]['secret'] = client_secret
-            params['hosts'][kwargs['host']]['access_token'] = ''
-
-        with open(cleanpath, 'w') as f:
-            yaml.safe_dump(params, f, default_flow_style=False)
-
-        os.chmod(cleanpath, 0o600)
-
-    if kwargs['persist']:
-        logger.info('Persisting API session. Saving auth token under %s in %s',
-                    host,
-                    cleanpath)
-        with open(cleanpath, 'r+') as f:
-            params = yaml.safe_load(f)
-            access_token = looker.get_access_token()
-            params['hosts'][kwargs['host']]['access_token'] = access_token
-
-        with open(cleanpath, 'w') as f:
-            yaml.safe_dump(params, f, default_flow_style=False)
-
-        os.chmod(cleanpath, 0o600)
-
-    return looker
-
 
 if __name__ == "__main__":
     main()
