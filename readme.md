@@ -1,27 +1,28 @@
-# Henry - A Looker Cleanup Tool
+<div align="center">
+  <img src="https://github.com/llooker/lookml_field_usage/blob/master/doc/logo/logo.png"><br>
+</div>
 
+-----------------
+# Henry - A Looker Cleanup Tool
 Henry can be used to navigate and manages Spaces, Looks,
 and Dashboards via a simple command line tool.
 
 ## Status and Support
-
 Henry is **NOT** supported or warranted by Looker in any way. Please do not contact Looker support
 for issues with Henry. Issues can be logged via https://github.com/josephaxisa/henry/issues
 
-## Setting up Henry
-
-You can install this gem by simply typing:
+## Where to get it
+The source code is currently hosted on GitHub at https://github.com/josephaxisa/henry/henry. The latest released version can be found on [PyPI](https://pypi.org/project/henry/) and can be installed using:
 
     $ pip install henry
 
-Alternately you can follow the Development setup below, typing `bundle exec rake install` to install it
-locally
+For development setup, follow the Development setup below.
 
 ## Usage
-
-Display help information...
+In order to display usage information, use:
 
     $ henry --help
+
 
 ### Storing Credentials
 Store login information by creating the file `config.yml` in the home directory of your script with the api3 credentials
@@ -38,18 +39,14 @@ hosts:
 Make sure that the `config.yml` file has restricted permissions by running `chmod 600 config.yml`. The tool will also ensure that this is the case every time it writes to the file.
 
 ### Global Options that apply to many commands
-
 #### Suppressing Formatted Output
-
 Many commands provide tabular output. For tables the option `--plain` will suppress the table headers and format lines, making it easier to use tools like grep, awk, etc. to retrieve values from the output of these commands.
 
 #### CSV Output
-
 Many commands provide tabular output. For tables the option `--csv` will output tabular data in
 csv format. When combined with `--plain` the header will also be suppressed.
 
 ### Pulse Information
-
 The command `henry pulse` runs a number of tests that help determine the overall instance health. A healthy Looker instance should pass all the tests. Below is a list of tests currently implemented.
 
 #### Connection Checks
@@ -194,11 +191,23 @@ The `vacuum explores` command exposes joins and exposes fields that have not are
 ```
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
 
-## Development -- change this
+## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+To install henry in development mode need clone the repo and install the dependencies:
+```
+requests
+tqdm
+pyyaml
+tabulate
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+You can then install using:
+
+    $ python setup.py develop
+
+Alternatively, you can use `pip` if you want all the dependencies pulled in automatically (the -e option is for installig it in [development mode](https://pip.pypa.io/en/latest/reference/pip_install/#editable-installs)).
+
+    $ pip install -e .
 
 ## Contributing
 
