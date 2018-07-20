@@ -22,11 +22,11 @@ class Pulse(object):
         self.postfix_default = [dict(value="RUNNING")]
 
     def run_all(self):
-        # self.pulse_logger.info('Checking instance pulse')
-        # self.pulse_logger.info('Checking Connections')
-        # result = self.check_connections()
-        # print(result, end='\n')
-        # self.pulse_logger.info('Complete: Checking Connections')
+        self.pulse_logger.info('Checking instance pulse')
+        self.pulse_logger.info('Checking Connections')
+        result = self.check_connections()
+        print(result, end='\n')
+        self.pulse_logger.info('Complete: Checking Connections')
 
         self.pulse_logger.info('Analyzing Query Stats')
         r1, r2, r3 = self.check_query_stats()
@@ -168,7 +168,6 @@ class Pulse(object):
         r = self.looker.run_inline_query(result_format="json", body=body,
                                          fields={"cache": "false"})
 
-        print(r)
         if r:
             ids = (', ').join([str(query['query.id']) for query in r])
         else:
