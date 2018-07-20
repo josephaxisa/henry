@@ -103,17 +103,17 @@ The `analyze` command is meant to help identify models and explores that have be
 The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
 ```
 +-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------+
-| project           |  model_count  |  view_count  | git_connection_status  		     | pull_request_mode   | validation_required   |
+| project           |  model_count  |  view_count  | git_connection_status  		 | pull_request_mode   | validation_required   |
 |-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------|
-| marketing         |       1       |      13      | OK                     		     | links               | True                  |
-| admin             |       2       |      74      | verify_remote (PASS)   		     | off                 | True                  |
-|                   |               |              | git_hostname_resolves (PASS)    |					           |	  			          	 |
-|                   |               |              | can_reach (FAIL) 			         |  				           |					             |
-|                   |               |              | read_access (FAIL) 			       |		  		  	       |					             |
-|                   |               |              | write_access (FAIL)			       |		  		           |				          	   |
-| powered_by_looker |       1       |      14      | OK                   		       | links               | True                  |
-| salesforce        |       1       |      36      | OK                     		     | required            | False                 |
-| thelook_event     |       1       |      17      | OK                    		       | required            | True                  |
+| marketing         |       1       |      13      | OK                     		 | links               | True                  |
+| admin             |       2       |      74      | verify_remote (PASS)   		 | off                 | True                  |
+|                   |               |              | git_hostname_resolves (PASS)    |					 |	  				 |
+|                   |               |              | can_reach (FAIL) 			   |  				   |					   |
+|                   |               |              | read_access (FAIL) 			 |		  		   |					   |
+|                   |               |              | write_access (FAIL)			 |		  		   |					   |
+| powered_by_looker |       1       |      14      | OK                   		   | links               | True                  |
+| salesforce        |       1       |      36      | OK                     		 | required            | False                 |
+| thelook_event     |       1       |      17      | OK                    		  | required            | True                  |
 +-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------+
 ```
 ### analyze models <a name="analyze_models"></a>
@@ -178,8 +178,7 @@ The `vacuum models` command exposes models and the number of queries against the
 ### vacuum explores <a name="vacuum_explores"></a>
 The `vacuum explores` command exposes joins and exposes fields that have not are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
 
-Example: from the analyze function run [above](#analyze_explores'), we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
-
+Example: from the analyze function run [above](#analyze_explores), we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
     $ henry vacuum explores --model thelook --explore cohorts
 
  provides the name of the unused fields:
