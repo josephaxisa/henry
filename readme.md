@@ -22,6 +22,7 @@ Henry is a tool with a command line interface (CLI) that helps determine model b
   - [The Vacuum Command](#vacuum_information)
     - [Vacuuming Models](#vacuum_models)
     - [Vacuuming Explores](#vacuum_explores)
+- [Logging](#logging)
 - [Dependencies](#dependencies)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -71,21 +72,16 @@ csv format. When combined with `--plain` the header will also be suppressed.
 The command `henry pulse` runs a number of tests that help determine the overall instance health. A healthy Looker instance should pass all the tests. Below is a list of tests currently implemented.
 
 #### Connection Checks
-Runs specific tests for each connection to make sure the connection is in working order. If any tests fail, the output will show which tests passed or failed for that particular connection.
+Runs specific tests for each connection to make sure the connection is in working order. If any tests fail, the output will show which tests passed or failed for that particular connection. Example:
 ```
-+------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| thelook          | Can connect                                                                                                                                                                                  |
-|                  | Can cancel queries                                                                                                                                                                           |
-|                  | Can find temp schema "tmp"                                                                                                                                                                   |
-|                  | Can create temporary tables                                                                                                                                                                  |
-|                  | Can run simple select query                                                                                                                                                                  |
-|                  | Compatible mysql version (5.7.21-log)                                                                                                                                                        |
-|                  | Failed to create or write to pdt connection registration table tmp.connection_reg_r3 : Connection registration error for thelook: max registrations reached for connection thelook           |
-| thelook_redshift | OK                                 																													                                      |
-| bq_publicdata    | Driver cannot be initialized: Connection "bq_publicdata" with no cert on disk or in db!                                                                                                      |
-| looker_bq        | OK                                                                                                                                                                    					   |
-| rds_postgres     | OK                                                                                                                                                                                           |
-+------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| demonew_events_ecommerce           | OK																																							   |
+| assets_analytics                   | OK																																							   |
+| snowflake-demo                     | Cannot use persistent derived tables in "LOOKER_SCRATCH"[create cached table] Java::NetSnowflakeClientJdbc::SnowflakeSQLException: SQL compilation error:        |
+|                                    | Schema 'TPCH.LOOKER_SCRATCH' does not exist.                                                                                                                     |
+|                                    | Cannot find temp schema "LOOKER_SCRATCH", "information_schema" failed (SELECT schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE schema_name = 'LOOKER_SCRATCH') |
+| snowlooker                         | OK    																																						   |
++------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ```
 
 #### Query Stats
@@ -100,57 +96,57 @@ Outputs a list of legacy features that are still in use if any. These are featur
 #### Version
 Checks if the latest Looker version is being used. Looker supports only up to 3 releases back.
 
-
 ### Analyze Information <a name="analyze_output"></a>
 The `analyze` command is meant to help identify models and explores that have become bloated and use `vacuum` on them in order to trim them.
 
 ### analyze projects <a name="analyze_projects"></a>
 The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
 ```
-+-----------+---------------+--------------+-----------------------------+-----------------+-----------------------+
-| project   |  model_count  |  view_count  | Git Connection              | Pull Requests   | Validation Required   |
-|-----------+---------------+--------------+-----------------------------+-----------------+-----------------------|
-| MySQL     |       1       |      13      | OK                          | off             | True                  |
-| BigQuery  |       1       |      1       | OK                          | off             | True                  |
-| redshift  |       2       |      8       | verify_remote  (PASS)       | links           | True                  |
-|           |               |              | git_hostname_resolves (PASS)|                 |                       |
-|           |               |              | can_reach (FAIL)            |                 |                       |
-|           |               |              | read_access (FAIL)          |                 |                       |
-|           |               |              | write_access (FAIL)         |                 |                       |
-| postgres  |       2       |      5       | OK                          | required        | False                 |
-+-----------+---------------+--------------+-----------------------------+-----------------+-----------------------+
++-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------+
+| project           |  model_count  |  view_count  | git_connection_status  		 | pull_request_mode   | validation_required   |
+|-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------|
+| marketing         |       1       |      13      | OK                     		 | links               | True                  |
+| admin             |       2       |      74      | verify_remote (PASS)   		 | off                 | True                  |
+|                   |               |              | git_hostname_resolves (PASS)	|					 |	  				 |
+|                   |               |              | can_reach (FAIL) 			   |  				   |					   |
+|                   |               |              | read_access (FAIL) 			 |		  		   |					   |
+|                   |               |              | write_access (FAIL)			 |		  		   |					   |
+| powered_by_looker |       1       |      14      | OK                   		   | links               | True                  |
+| salesforce        |       1       |      36      | OK                     		 | required            | False                 |
+| thelook_event     |       1       |      17      | OK                    		  | required            | True                  |
++-------------------+---------------+--------------+---------------------------------+---------------------+-----------------------+
 ```
-
 ### analyze models <a name="analyze_models"></a>
 Shows the number of explores in each model as well as the number of queries against that model.
 ```
-+-----------+----------------+-----------------+-------------------+
-| project   | model          |  explore_count  |  query_run_count  |
-|-----------+----------------+-----------------+-------------------|
-| MySQL     | thelook        |        0        |         0         |
-| BigQuery  | sports_tracker |        1        |         4         |
-| redshift  | ecommerce      |        6        |         3         |
-| postgres  | postgres       |        2        |        23         |
-| postgres  | ML             |        3        |        40         |
-| redshift  | empty_model    |        0        |         0         |
-+-----------+----------------+-----------------+-------------------+
++-------------------+------------------+-----------------+-------------------+
+| project           | model            |  explore_count  |  query_run_count  |
+|-------------------+------------------+-----------------+-------------------|
+| salesforce        | salesforce       |        8        |       39424       |
+| thelook_event     | thelook          |       10        |      164858       |
+| powered_by_looker | powered_by       |        5        |       49402       |
+| marketing         | thelook_adwords  |        3        |       38108       |
+| admin             | looker_base      |        0        |         0         |
+| admin             | looker_on_looker |       10        |        27         |
++-------------------+------------------+-----------------+-------------------+
 ```
-
 ### analyze explores <a name="analyze_explores"></a>
 Shows explores and their usage. If the `--min_queries` argument is passed, joins and fields that have been used less than the threshold specified will be considered as unused.
 ```
-+----------------+-----------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
-| model          | explore               | is_hidden   | has_description   |  join_count  |  unused_joins  |  field_count  |  unused_fields  |  query_count  |
-|----------------+-----------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------|
-| ecommerce      | distribution_centers  | False       | No                |      0       |       0        |       5       |        5        |       0       |
-| ecommerce      | events                | False       | No                |      1       |       0        |      44       |       43        |       1       |
-| ecommerce      | inventory_items       | False       | Yes               |      2       |       2        |      39       |       39        |       0       |
-| ecommerce      | order_items           | False       | No                |      4       |       4        |      103      |       100       |       2       |
-| ecommerce      | products              | False       | No                |      1       |       1        |      16       |       16        |       0       |
-| ecommerce      | users                 | False       | No                |      0       |       0        |      21       |       21        |       0       |
-| ML             | prediction            | False       | No                |      0       |       0        |      110      |       103       |      38       |
-| ML             | historical_analysis   | False       | No                |      0       |       0        |      110      |       110       |       1       |
-+----------------+-----------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
++---------+-----------------------------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
+| model   | explore                                 | is_hidden   | has_description   |  join_count  |  unused_joins  |  field_count  |  unused_fields  |  query_count  |
+|---------+-----------------------------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------|
+| thelook | cohorts                                 | True        | No                |      3       |       0        |      19       |        4        |      333      |
+| thelook | data_tool                               | True        | No                |      3       |       0        |      111      |       90        |      736      |
+| thelook | order_items                             | False       | No                |      7       |       0        |      153      |       16        |    126898     |
+| thelook | events                                  | False       | No                |      6       |       0        |      167      |       68        |     19372     |
+| thelook | sessions                                | False       | No                |      6       |       0        |      167      |       83        |     12205     |
+| thelook | affinity                                | False       | No                |      2       |       0        |      34       |       13        |     3179      |
+| thelook | orders_with_share_of_wallet_application | False       | No                |      9       |       0        |      161      |       140       |     1586      |
+| thelook | journey_mapping                         | False       | No                |      11      |       2        |      238      |       228       |      14       |
+| thelook | inventory_snapshot                      | False       | No                |      3       |       0        |      25       |       15        |      33       |
+| thelook | kitten_order_items                      | True        | No                |      8       |       0        |      154      |       138       |      39       |
++---------+-----------------------------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
 ```
 
 ### Vacuum Information <a name="vacuum_information"></a>
@@ -159,58 +155,50 @@ The `vacuum` command outputs a list of unused content based on predefined criter
 ### vacuum models <a name="vacuum_models"></a>
 The `vacuum models` command exposes models and the number of queries against them over a predefined period of time. Explores that are listed here have not had the minimum number of queries against them in the timeframe specified. As a result it is safe to hide them and later delete them.
 ```
-+----------------+----------------------+-------------------------+
-| model          | unused_explores      |  model_query_run_count  |
-|----------------+----------------------+-------------------------|
-| thelook        | None                 |            0            |
-| sports_tracker | None                 |            4            |
-| ecommerce      | products             |            3            |
-|                | distribution_centers |                         |
-|                | users                |                         |
-|                | inventory_items      |                         |
-| postgres       | None                 |           23            |
-| ML             | None                 |           40            |
-| empty_model    | None                 |            0            |
-+----------------+----------------------+-------------------------+
++------------------+---------------------------------------------+-------------------------+
+| model            | unused_explores                             |  model_query_run_count  |
+|------------------+---------------------------------------------+-------------------------|
+| salesforce       | None                                        |          39450          |
+| thelook          | None                                        |         164930          |
+| powered_by       | None                                        |          49453          |
+| thelook_adwords  | None                                        |          38108          |
+| looker_base      | None                                        |            0            |
+| looker_on_looker | user_full                                   |           27            |
+|                  | history_full                                |                         |
+|                  | content_view                                |                         |
+|                  | project_status                              |                         |
+|                  | field_usage_full                            |                         |
+|                  | dashboard_performance_full                  |                         |
+|                  | user_weekly_app_activity_period_over_period |                         |
+|                  | pdt_state                                   |                         |
+|                  | user_daily_query_activity                   |                         |
++------------------+---------------------------------------------+-------------------------+
 ```
 
 ### vacuum explores <a name="vacuum_explores"></a>
 The `vacuum explores` command exposes joins and exposes fields that have not are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
+
+Example: from the analyze function run above, we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
+
+    $ henry vacuum explores --model thelook --explore cohorts
+
+ provides the name of the unused fields:
 ```
-+-----------+----------------------+----------------------+------------------------------------------------+
-| model     | explore              | unused_joins         | unused_fields                                  |
-|-----------+----------------------+----------------------+------------------------------------------------|
-| ecommerce | distribution_centers | N/A                  | distribution_centers.count                     |
-|           |                      |                      | distribution_centers.id                        |
-|           |                      |                      | distribution_centers.latitude                  |
-|           |                      |                      | distribution_centers.longitude                 |
-|           |                      |                      | distribution_centers.name                      |
-| ecommerce | inventory_items      | distribution_centers | inventory_items.cost                           |
-|           |                      | products             | inventory_items.count                          |
-|           |                      |                      | inventory_items.created_date                   |
-|           |                      |                      | inventory_items.created_month                  |
-|           |                      |                      | inventory_items.created_quarter                |
-|           |                      |                      | inventory_items.created_time                   |
-|           |                      |                      | inventory_items.created_week                   |
-|           |                      |                      | inventory_items.created_year                   |
-|           |                      |                      | inventory_items.id                             |
-|           |                      |                      | inventory_items.product_brand                  |
-|           |                      |                      | inventory_items.product_category               |
-|           |                      |                      | inventory_items.product_department             |
-|           |                      |                      | inventory_items.product_distribution_center_id |
-|           |                      |                      | inventory_items.product_id                     |
-|           |                      |                      | inventory_items.product_name                   |
-|           |                      |                      | inventory_items.product_retail_price           |
-|           |                      |                      | inventory_items.product_sku                    |
-|           |                      |                      | inventory_items.sold_date                      |
-|           |                      |                      | inventory_items.sold_month                     |
-|           |                      |                      | inventory_items.sold_quarter                   |
-|           |                      |                      | inventory_items.sold_time                      |
-|           |                      |                      | inventory_items.sold_week                      |
-|           |                      |                      | inventory_items.sold_year                      |
-+-----------+----------------------+----------------------+------------------------------------------------+
++---------+-----------+----------------+------------------------------+
+| model   | explore   | unused_joins   | unused_fields                |
+|---------+-----------+----------------+------------------------------|
+| thelook | cohorts   | N/A            | order_items.created_date     |
+|         |           |                | order_items.id               |
+|         |           |                | order_items.total_sale_price |
+|         |           |                | users.gender                 |
++---------+-----------+----------------+------------------------------+
 ```
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
+
+## Logging <a name="logging"></a>
+The tool logs activity as it's being used. Log files are stored in ~/.henry/ in your home directory. Sensitive information such as your client secret is filtered out for security reasons.
+
+The logging module utilises a rotating file handler which is currently set to rollover when the current log file reaches 1 MB in size. The system saves old log files by adding the suffix '.1', '.2' etc., to the filename. The file being written to is always named `henry.log`. No more than 10 log files are kept at any point in time, capping the log directory to 10 MB max.
 
 ## Dependencies <a name="dependencies"></a>
 - [PyYAML](https://pyyaml.org/): 3.12 or higher
@@ -238,6 +226,6 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/joseph
 
 Everyone interacting in the Henry project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/looker/content_util/blob/master/CODE_OF_CONDUCT.md).
 
-## Copyright <a name="copyright""></a>
+## Copyright <a name="copyright"></a>
 
 Copyright (c) 2018 Joseph Axisa for Looker Data Sciences. See [MIT License](LICENSE.txt) for further details.
