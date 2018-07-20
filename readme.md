@@ -102,19 +102,15 @@ The `analyze` command is meant to help identify models and explores that have be
 ### analyze projects <a name="analyze_projects"></a>
 The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
 ```
-+-------------------+---------------+--------------+--------------------------------+---------------------+-----------------------+
-| project           |  model_count  |  view_count  | git_connection_status  	      | pull_request_mode   | validation_required   |
-|-------------------+---------------+--------------+--------------------------------+---------------------+-----------------------|
-| marketing         |       1       |      13      | OK                       	    | links               | True                  |
-| admin             |       2       |      74      | verify_remote (PASS)			      | off				          | True				          |
-|				           	|			         	|			         | git_hostname_resolves (PASS)   |					            |						            |
-|				           	|			         	|			         | can_reach (FAIL) 			      	|					            |						            |
-|				           	|			         	|			         | read_access (FAIL)			      	|					            |						            |
-|			            	|			         	|			         | write_access (FAIL)		      	|					            |						            |
-| powered_by_looker |       1       |      14      | OK                     	      | links               | True                  |
-| salesforce        |       1       |      36      | OK                     	      | required            | False                 |
-| thelook_event     |       1       |      17      | OK                     	      | required            | True                  |
-+-------------------+---------------+--------------+--------------------------------+---------------------+-----------------------+
++-------------------+---------------+--------------+-------------------------+---------------------+-----------------------+
+| project           |  model_count  |  view_count  | git_connection_status   | pull_request_mode   | validation_required   |
+|-------------------+---------------+--------------+-------------------------+---------------------+-----------------------|
+| marketing         |       1       |      13      | OK                      | links               | True                  |
+| admin             |       2       |      74      | OK                      | off                 | True                  |
+| powered_by_looker |       1       |      14      | OK                      | links               | True                  |
+| salesforce        |       1       |      36      | OK                      | required            | False                 |
+| thelook_event     |       1       |      17      | OK                      | required            | True                  |
++-------------------+---------------+--------------+-------------------------+---------------------+-----------------------+
 ```
 ### analyze models <a name="analyze_models"></a>
 Shows the number of explores in each model as well as the number of queries against that model.
