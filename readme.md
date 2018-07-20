@@ -40,7 +40,7 @@ The source code is currently hosted on GitHub at https://github.com/josephaxisa/
 
     $ pip install henry
 
-For development setup, follow the Development setup below.
+For development setup, follow the Development setup [below](#development).
 
 <a name="usage"></a>
 ## Usage
