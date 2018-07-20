@@ -41,12 +41,19 @@ class Pulse(object):
                     ncols=100, miniters=0) as t:
             for i in t:
                 result = self.check_scheduled_plans()
+                fail_flag = 0
                 if type(result) == list and len(result) > 0:
+                    if result[0]['failure'] > 0:
+                        fail_flag = 1
                     result = tabulate(result, headers="keys",
                                       tablefmt='psql', numalign='center')
                 t.postfix[0]["value"] = 'DONE'
                 t.update()
-        print(result, end='\n\n')
+        print(result)
+        if fail_flag == 1:
+            print('Navigate to /admin/scheduled_jobs on your instance for '
+                  'more details')
+        print('\n')
         self.pulse_logger.info('Complete: Analyzing Scheduled Plans')
 
         # check enabled legacy features
@@ -97,8 +104,8 @@ class Pulse(object):
                         fail_flag = 1
                 formatted_results = list(set(formatted_results))
                 status = ('\n').join(formatted_results)
-                result.append({'name': c,
-                               'status': 'OK' if fail_flag == 0 else status})
+                result.append({'Connection': c,
+                               'Status': 'OK' if fail_flag == 0 else status})
                 if idx == len(connections) - 1:
                     t.postfix[0]['value'] = 'DONE'
                 t.update()
