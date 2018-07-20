@@ -4,7 +4,7 @@
 
 -----------------
 # Henry: A Looker Cleanup Tool
-Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. The results are meant to help developers cleanup models from unused explores and explores from unused joins and fields
+Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. The results are meant to help developers cleanup models from unused explores and explores from unused joins and fields.
 
 ## Table of Contents
 - [Status and Support](#status_and_support)
@@ -158,7 +158,6 @@ The `vacuum models` command exposes models and the number of queries against the
 | thelook          | None                                        |         164930          |
 | powered_by       | None                                        |          49453          |
 | thelook_adwords  | None                                        |          38108          |
-| looker_base      | None                                        |            0            |
 | looker_on_looker | user_full                                   |           27            |
 |                  | history_full                                |                         |
 |                  | content_view                                |                         |
@@ -192,9 +191,9 @@ Example: from the analyze function run [above](#analyze_explores), we know that 
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
 
 ## Logging <a name="logging"></a>
-The tool logs activity as it's being used. Log files are stored in ~/.henry/ in your home directory. Sensitive information such as your client secret is filtered out for security reasons.
+The tool logs activity as it's being used. Log files are stored in `~/.henry/` in your home directory. Sensitive information such as your client secret is filtered out for security reasons. Moreover, log files have restricted permissions which allow only the owner to read and write.
 
-The logging module utilises a rotating file handler which is currently set to rollover when the current log file reaches 1 MB in size. The system saves old log files by adding the suffix '.1', '.2' etc., to the filename. The file being written to is always named `henry.log`. No more than 10 log files are kept at any point in time, capping the log directory to 10 MB max.
+The logging module utilises a rotating file handler which is currently set to rollover when the current log file reaches 500 KB in size. The system saves old log files by adding the suffix '.1', '.2' etc., to the filename. The file being written to is always named `henry.log`. No more than 10 log files are kept at any point in time, ensuring logs do not consume more than 5 MB max.
 
 ## Dependencies <a name="dependencies"></a>
 - [PyYAML](https://pyyaml.org/): 3.12 or higher
@@ -204,7 +203,9 @@ The logging module utilises a rotating file handler which is currently set to ro
 
 ## Development <a name="development"></a>
 
-To install henry in development mode need clone the repo and install the dependencies above.
+To install henry in development mode you need to install the dependencies above and clone the project's repo with:
+
+    $ git clone git@github.com:josephaxisa/henry.git
 
 You can then install using:
 
