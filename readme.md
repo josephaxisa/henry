@@ -172,7 +172,7 @@ The `vacuum models` command exposes models and the number of queries against the
 ```
 
 ### vacuum explores <a name="vacuum_explores"></a>
-The `vacuum explores` command exposes joins and exposes fields that have not are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
+The `vacuum explores` command exposes joins and exposes fields that are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
 
 Example: from the analyze function run [above](#analyze_explores), we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
 
@@ -210,7 +210,7 @@ You can then install using:
 
     $ python setup.py develop
 
-Alternatively, you can use `pip` if you want all the dependencies pulled in automatically (the -e option is for installig it in [development mode](https://pip.pypa.io/en/latest/reference/pip_install/#editable-installs)).
+Alternatively, you can use `pip` if you want all the dependencies pulled in automatically (the -e option is for installing it in [development mode](https://pip.pypa.io/en/latest/reference/pip_install/#editable-installs)).
 
     $ pip install -e .
 
