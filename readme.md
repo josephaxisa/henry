@@ -3,9 +3,29 @@
 </div>
 
 -----------------
-# Henry - A Looker Cleanup Tool
-Henry can be used to navigate and manages Spaces, Looks,
-and Dashboards via a simple command line tool.
+# Henry: A Looker Cleanup Tool
+Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. The results are meant to help developers cleanup models from unused explores and explores from unused joins and fields
+
+## Table of Contents
+- [Installation](#Where to get it)
+- [Usage](#usage)
+  - [Storing Credentials](#Storing Credentials)
+  - [Global Options](#Global Options that apply to many commands)
+    - [Suppressing Formatted Output](#Suppressing Formatted Output)
+    - [CSV Output](#CSV Output)
+  - [The Pulse Command](#Pulse Information)
+  - [The Analyze Command](#Analyze Information)
+    - [Analyzing Projects](#analyze projects)
+    - [Analyzing Models](#analyze models)
+    - [Analyzing Explores](#analyze explores)
+  - [The Vacuum Command](#Vacuum Information)
+    - [Vacuuming Models](#vacuum models)
+    - [Vacuuming Explores](#vacuum explores)
+- [Dependencies](#Dependencies)
+- [Development](#Development)
+- [Contributing](#Contributing)
+- [Code of Conduct](#Code of Conduct)
+- [Copyright](#Copyright)
 
 ## Status and Support
 Henry is **NOT** supported or warranted by Looker in any way. Please do not contact Looker support
@@ -18,7 +38,7 @@ The source code is currently hosted on GitHub at https://github.com/josephaxisa/
 
 For development setup, follow the Development setup below.
 
-## Usage
+## Usage <a name="usage"></a>
 In order to display usage information, use:
 
     $ henry --help
@@ -191,15 +211,15 @@ The `vacuum explores` command exposes joins and exposes fields that have not are
 ```
 It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
 
+## Dependencies
+- [PyYAML](https://pyyaml.org/): 3.12 or higher
+- [requests](http://docs.python-requests.org/en/master/): 2.18.4 or higher
+- [tabulate](https://bitbucket.org/astanin/python-tabulate): 0.8.2 or higher
+- [tqdm](https://tqdm.github.io/): 4.23.4 or higher
+
 ## Development
 
-To install henry in development mode need clone the repo and install the dependencies:
-```
-requests
-tqdm
-pyyaml
-tabulate
-```
+To install henry in development mode need clone the repo and install the dependencies above.
 
 You can then install using:
 
