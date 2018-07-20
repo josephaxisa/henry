@@ -22,16 +22,17 @@ class Pulse(object):
         self.postfix_default = [dict(value="RUNNING")]
 
     def run_all(self):
-        self.pulse_logger.info('Checking instance pulse')
-        self.pulse_logger.info('Checking Connections')
-        result = self.check_connections()
-        print(result, end='\n')
-        self.pulse_logger.info('Complete: Checking Connections')
+        # self.pulse_logger.info('Checking instance pulse')
+        # self.pulse_logger.info('Checking Connections')
+        # result = self.check_connections()
+        # print(result, end='\n')
+        # self.pulse_logger.info('Complete: Checking Connections')
 
         self.pulse_logger.info('Analyzing Query Stats')
-        r1, r2 = self.check_query_stats()
+        r1, r2, r3 = self.check_query_stats()
         print(r1)
-        print(r2, end='\n\n')
+        print(r2)
+        print(r3, end='\n\n')
         self.pulse_logger.info('Complete: Analyzing Query Stats')
 
         # check scheduled plans
@@ -121,6 +122,9 @@ class Pulse(object):
                     query_count = self.get_query_type_count()
                 if i == 1:
                     query_runtime_stats = self.get_query_stats('complete')
+                if i == 2:
+                    slow_queries = self.get_slow_queries(
+                                                 query_runtime_stats['avg']*5)
                     t.postfix[0]['value'] = 'DONE'
 
         r1 = '{} queries run, ' \
@@ -131,7 +135,45 @@ class Pulse(object):
              '{}/{}/{} seconds'.format(query_runtime_stats['min'],
                                        query_runtime_stats['avg'],
                                        query_runtime_stats['max'])
-        return r1, r2
+
+        if slow_queries:
+            r3 = 'Queries that took more than 5x the average query runtime' \
+                 ': {}'.format(slow_queries)
+        else:
+            r3 = 'No abnormally slow queries found'
+        return r1, r2, r3
+
+    # get number of queries run, killed, completed, errored, queued
+    def get_slow_queries(self, avg_runtime):
+        body = {
+            "model": "i__looker",
+            "view": "history",
+            "fields": [
+                "query.id",
+            ],
+            "filters": {
+                "query.id": "NOT NULL",
+                "history.created_date": "30 days",
+                "history.status": "-NULL",
+                "history.result_source": "query",
+                "query.model": "-i^_^_looker",
+                "history.total_runtime": ">=" + str(avg_runtime)
+            },
+            "sorts": [
+                "query.id asc"
+            ],
+            "limit": "50000"
+        }
+
+        r = self.looker.run_inline_query(result_format="json", body=body,
+                                         fields={"cache": "false"})
+
+        print(r)
+        if r:
+            ids = (', ').join([str(query['query.id']) for query in r])
+        else:
+            ids = None
+        return ids
 
     # get number of queries run, killed, completed, errored, queued
     def get_query_type_count(self):
