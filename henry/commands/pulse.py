@@ -91,17 +91,20 @@ class Pulse(object):
                 tests = {'tests': tests}
                 results = self.looker.test_connection(c, tests)
                 formatted_results = []
+                fail_flag = 0
                 for i in results:
-                    formatted_results.append(i['message'])
+                    if i['status'] == 'error':
+                        formatted_results.append(i['message'])
+                        fail_flag = 1
                 formatted_results = list(set(formatted_results))
                 status = ('\n').join(formatted_results)
                 result.append({'name': c,
-                               'status': status})
+                               'status': 'OK' if fail_flag==0 else status})
                 if idx == len(connections) - 1:
                     t.postfix[0]['value'] = 'DONE'
                 t.update()
 
-        return tabulate(result, tablefmt='psql')
+        return tabulate(result, headers="keys", tablefmt='psql')
 
     def check_query_stats(self):
         # check query stats
