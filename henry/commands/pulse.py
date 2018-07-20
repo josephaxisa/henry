@@ -29,10 +29,9 @@ class Pulse(object):
         self.pulse_logger.info('Complete: Checking Connections')
 
         self.pulse_logger.info('Analyzing Query Stats')
-        r1, r2, r3 = self.check_query_stats()
+        r1, r2 = self.check_query_stats()
         print(r1)
-        print(r2)
-        print(r3, end='\n\n')
+        print(r2, end='\n\n')
         self.pulse_logger.info('Complete: Analyzing Query Stats')
 
         # check scheduled plans
@@ -115,25 +114,17 @@ class Pulse(object):
                     query_count = self.get_query_type_count()
                 if i == 1:
                     query_runtime_stats = self.get_query_stats('complete')
-                if i == 2:
-                    query_queue_stats = self.get_query_stats('pending')
                     t.postfix[0]['value'] = 'DONE'
 
         r1 = '{} queries run, ' \
-             '{} queued, ' \
              '{} errored, ' \
-             '{} killed'.format(query_count['total'], query_count['queued'],
-                                query_count['errored'], query_count['killed'])
+             '{} killed'.format(query_count['total'], query_count['errored'],
+                                query_count['killed'])
         r2 = 'Query Runtime min/avg/max: ' \
              '{}/{}/{} seconds'.format(query_runtime_stats['min'],
                                        query_runtime_stats['avg'],
                                        query_runtime_stats['max'])
-        r3 = 'Queuing time min/avg/max: ' \
-             '{}/{}/{}'.format(query_queue_stats['min'],
-                               query_queue_stats['avg'],
-                               query_queue_stats['max'])
-
-        return r1, r2, r3
+        return r1, r2
 
     # get number of queries run, killed, completed, errored, queued
     def get_query_type_count(self):
@@ -208,7 +199,7 @@ class Pulse(object):
 
     # get number of queries run, killed, completed, errored, queued
     def get_query_stats(self, status):
-        valid_statuses = ['error', 'complete', 'pending', 'running']
+        valid_statuses = ['error', 'complete', 'running']
         if status not in valid_statuses:
             raise ValueError("Invalid query status, must be in %r"
                              % valid_statuses)
