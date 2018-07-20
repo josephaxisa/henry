@@ -268,8 +268,8 @@ def main():
                                       args['output'])
             logger.error(error)
             raise error
-        elif not args['output'].endswith(('.csv', '.txt')):
-            error = ValueError('Output file must be CSV or TXT')
+        elif not args['output'].endswith('.txt'):
+            error = ValueError('Output file must be a .txt file')
             logger.exception(error)
             raise error
         elif os.path.isfile(args['output']):
