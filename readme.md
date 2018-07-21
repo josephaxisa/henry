@@ -95,7 +95,7 @@ Runs specific tests for each connection to make sure the connection is in workin
 ```
 
 #### Query Stats
-Checks how many queries were run over the past 30 days and how many of them had to queue, errored or got killed as well as some statistics around runtimes and queuing times.
+Checks how many queries were run over the past 30 days and how many of them errored or got killed as well as some statistics around runtimes times. The IDs of queries that took more than 5 times the average query runtime are also outputted.
 
 #### Scheduled Plans
 Determines the number of scheduled jobs that ran in the past 30 days, how many were successful, how many ran but did not deliver or failed to run altogether.
@@ -111,7 +111,7 @@ Checks if the latest Looker version is being used. Looker supports only up to 3 
 The `analyze` command is meant to help identify models and explores that have become bloated and use `vacuum` on them in order to trim them.
 
 <a name="analyze_projects"></a>
-### analyze projects
+#### analyze projects
 The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
 ```
 +-------------------+---------------+--------------+-------------------------+---------------------+-----------------------+
@@ -126,7 +126,7 @@ The `analyze projects` command scans projects for their content as well as check
 ```
 
 <a name="analyze_models"></a>
-### analyze models
+#### analyze models
 Shows the number of explores in each model as well as the number of queries against that model.
 ```
 +-------------------+------------------+-----------------+-------------------+
@@ -142,7 +142,7 @@ Shows the number of explores in each model as well as the number of queries agai
 ```
 
 <a name="analyze_explores"></a>
-### analyze explores
+#### analyze explores
 Shows explores and their usage. If the `--min_queries` argument is passed, joins and fields that have been used less than the threshold specified will be considered as unused.
 ```
 +---------+-----------------------------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
@@ -166,7 +166,7 @@ Shows explores and their usage. If the `--min_queries` argument is passed, joins
 The `vacuum` command outputs a list of unused content based on predefined criteria that a developer can then use to cleanup models and explores.
 
 <a name="vacuum_models"></a>
-### vacuum models
+#### vacuum models
 The `vacuum models` command exposes models and the number of queries against them over a predefined period of time. Explores that are listed here have not had the minimum number of queries against them in the timeframe specified. As a result it is safe to hide them and later delete them.
 ```
 +------------------+---------------------------------------------+-------------------------+
@@ -189,7 +189,7 @@ The `vacuum models` command exposes models and the number of queries against the
 ```
 
 <a name="vacuum_explores"></a>
-### vacuum explores
+#### vacuum explores
 The `vacuum explores` command exposes joins and exposes fields that are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
 
 Example: from the analyze function run [above](#analyze_explores), we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
