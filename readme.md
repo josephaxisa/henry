@@ -84,14 +84,14 @@ The command `henry pulse` runs a number of tests that help determine the overall
 #### Connection Checks
 Runs specific tests for each connection to make sure the connection is in working order. If any tests fail, the output will show which tests passed or failed for that particular connection. Example:
 ```
-+------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| demonew_events_ecommerce           | OK																																							   |
-| assets_analytics                   | OK																																							   |
-| snowflake-demo                     | Cannot use persistent derived tables in "LOOKER_SCRATCH"[create cached table] Java::NetSnowflakeClientJdbc::SnowflakeSQLException: SQL compilation error:        |
-|                                    | Schema 'TPCH.LOOKER_SCRATCH' does not exist.                                                                                                                     |
-|                                    | Cannot find temp schema "LOOKER_SCRATCH", "information_schema" failed (SELECT schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE schema_name = 'LOOKER_SCRATCH') |
-| snowlooker                         | OK    																																						   |
-+------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++------------------+------------------------------------------------------------------------------------------------------+
+| Connection       | Status                                                                                               |
+|------------------+------------------------------------------------------------------------------------------------------|
+| thelook          | -- Failed to create or write to pdt connection registration table tmp.connection_reg_r3 : Connection |
+|                  | registration error for thelook: max registrations reached for connection thelook                     |
+| assets_analytics | OK                                                                                                   |
+| events_ecommerce | OK                                                                                                   |
++------------------+------------------------------------------------------------------------------------------------------+
 ```
 
 #### Query Stats
