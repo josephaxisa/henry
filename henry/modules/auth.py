@@ -20,7 +20,16 @@ def authenticate(**kwargs):
         client_secret = kwargs['client_secret']
         token = None
     else:
-        auth_logger.info('Opening config file from %s', cleanpath)
+        auth_logger.info('Checking permissions for %s', cleanpath)
+        st = os.stat(cleanpath)
+        ap = oct(st.st_mode)
+        if ap != '0o100600':
+            print('Config file permissions are set to %s and are not strict '
+                  'enough. Change to rw------- or 600 and try again.' % ap)
+            auth_logger.warning('Config file permissions are %s and not strict'
+                                ' enough.' % ap)
+            sys.exit(1)
+        auth_logger.info('Opening config file from %s' % cleanpath)
         try:
             f = open(cleanpath, 'r')
             params = yaml.load(f)
