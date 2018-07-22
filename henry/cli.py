@@ -29,10 +29,6 @@ from .commands.analyze import Analyze
 from .commands.vacuum import Vacuum
 from .commands.pulse import Pulse
 
-
-# ------- HERE ARE PARAMETERS TO CONFIGURE -------
-host = 'mylooker'
-timeframe = '90 days'
 logger = logging.getLogger('main')
 # sys.tracebacklimit = -1 # enable only on shipped release
 
