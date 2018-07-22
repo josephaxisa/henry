@@ -47,6 +47,7 @@ def main():
         usage='henry command subcommand '
               '[subcommand options] [global '
               'options]',
+        allow_abbrev=False,
         add_help=False)
 
     subparsers = parser.add_subparsers(dest='command',
