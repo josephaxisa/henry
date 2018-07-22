@@ -13,7 +13,8 @@ from tabulate import tabulate
 from .modules.auth import authenticate
 import logging.config
 import henry
-LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/logging.conf')
+LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__),
+                                   '.support_files/logging.conf')
 LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry')
 if not os.path.exists(LOGGING_LOG_PATH):
     os.mkdir(LOGGING_LOG_PATH)
@@ -28,7 +29,7 @@ from .commands.analyze import Analyze
 from .commands.vacuum import Vacuum
 from .commands.pulse import Pulse
 
-''
+
 # ------- HERE ARE PARAMETERS TO CONFIGURE -------
 host = 'mylooker'
 timeframe = '90 days'
@@ -38,7 +39,8 @@ logger = logging.getLogger('main')
 
 def main():
     logger.info('Starting henry')
-    HELP_PATH = os.path.join(os.path.dirname(henry.__file__), '.support_files/help.rtf')
+    HELP_PATH = os.path.join(os.path.dirname(henry.__file__),
+                             '.support_files/help.rtf')
     with open(HELP_PATH, 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
 
@@ -203,7 +205,7 @@ def main():
                                action='store_true',
                                help='Silence output')
         subparser.add_argument_group("Authentication")
-        subparser.add_argument('--host', type=str, default=host,
+        subparser.add_argument('--host', type=str, default='looker',
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--cliet_secret',
                                              '--store']),
@@ -292,6 +294,7 @@ def main():
             except Exception as e:
                 logger.error(e)
                 raise(e)
+
 
 if __name__ == "__main__":
     main()
