@@ -42,7 +42,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         description=descStr,
-        formatter_class=argparse.RawTextHelpFormatter,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         prog='henry',
         usage='henry command subcommand '
               '[subcommand options] [global '
@@ -202,7 +202,7 @@ def main():
                                action='store_true',
                                help='Silence output')
         subparser.add_argument_group("Authentication")
-        subparser.add_argument('--host', type=str, default='looker',
+        subparser.add_argument('--host', type=str, default='demo',
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--cliet_secret',
                                              '--store']),
@@ -285,7 +285,7 @@ def main():
         else:
             try:
                 f = open(args['output'], 'w+')
-                f.write(result)
+                f.write(result+'\n')
                 f.close()
                 logger.info('Results succesfully saved.')
             except Exception as e:
