@@ -65,14 +65,15 @@ def authenticate(**kwargs):
                        access_token=token)
     auth_logger.info('Authentication Successful')
 
-    if kwargs['store']:
+    if kwargs['alias']:
         auth_logger.info('Saving credentials to file: %s', cleanpath)
         with open(cleanpath, 'r') as f:
-            params['hosts'][kwargs['host']] = {}
-            params['hosts'][kwargs['host']]['host'] = host
-            params['hosts'][kwargs['host']]['id'] = client_id
-            params['hosts'][kwargs['host']]['secret'] = client_secret
-            params['hosts'][kwargs['host']]['access_token'] = ''
+            params = yaml.safe_load(f)
+            params['hosts'][kwargs['alias']] = {}
+            params['hosts'][kwargs['alias']]['host'] = host
+            params['hosts'][kwargs['alias']]['id'] = client_id
+            params['hosts'][kwargs['alias']]['secret'] = client_secret
+            params['hosts'][kwargs['alias']]['access_token'] = ''
 
         with open(cleanpath, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
