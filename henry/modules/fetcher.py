@@ -2,6 +2,7 @@ from . import styler
 from collections import Counter
 import logging
 import re
+from textwrap import fill
 
 
 class Fetcher(object):
@@ -251,11 +252,10 @@ class Fetcher(object):
         verbose_result = []
         fail_flag = 0
         for idx, test in enumerate(tests):
-            s = '({}/{}) {}'.format(idx + 1, len(tests), test)
             r = self.looker.run_git_connection_test(project_id=project,
                                                     test_id=test)
+            verbose_result.append(r['id'] + ' (' + r['status'] + ')')
             if r['status'] != 'pass':
-                verbose_result.append(r['message'])
                 fail_flag = 1
         verbose_result = ('\n').join(verbose_result)
         result = verbose_result if fail_flag == 1 else 'OK'
