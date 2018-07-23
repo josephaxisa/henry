@@ -205,21 +205,21 @@ def main():
         subparser.add_argument('--host', type=str, default='demo',
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--cliet_secret',
-                                             '--store']),
+                                             '--alias']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--port', type=int, default=19999,
                                help=argparse.SUPPRESS)
         subparser.add_argument('--client_id', type=str,
                                required=any(k in sys.argv for k in
-                                            ['--client_secret', '--store']),
+                                            ['--client_secret', '--alias']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--client_secret', type=str,
                                required=any(k in sys.argv for k in
-                                            ['--client_id', '--store']),
+                                            ['--client_id', '--alias']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--persist', action='store_true',
                                help=argparse.SUPPRESS)
-        subparser.add_argument('--store', action='store_true',
+        subparser.add_argument('--alias', type=str,
                                help=argparse.SUPPRESS)
         subparser.add_argument('--path', type=str, default='',
                                help=argparse.SUPPRESS)
@@ -236,7 +236,7 @@ def main():
         print('\nNo command specified. Try `henry --help` for help.')
         sys.exit(1)
     auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist',
-                   'store', 'path')
+                   'alias', 'path')
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
