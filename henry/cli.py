@@ -236,7 +236,7 @@ def main():
     args = vars(parser.parse_args())
     _args = {}
     for key, value in args.items():
-        if key == 'secret':
+        if key == 'client_secret':
             _args[key] = '[FILTERED]'
         else:
             _args[key] = value
