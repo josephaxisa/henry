@@ -3,6 +3,7 @@ import requests
 from pprint import pprint as pp
 import json
 import re
+import sys
 import datetime
 import logging
 import logging.config
@@ -28,12 +29,14 @@ class LookerApi(object):
 
         # if not valid anymore, authenticate again
         if self.__get_me() == 401:
+            self.api_logger.warning('Existing auth token has expired')
             self.auth()
 
     def get_access_token(self):
         return self.access_token
 
     def auth(self):
+        self.api_logger.info('Authenticating')
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'login')
         params = {'client_id': self.id,
                   'client_secret': self.secret
@@ -50,13 +53,23 @@ class LookerApi(object):
             self.access_token = access_token
         else:
             self.api_logger.warning('Request Complete: %s', r.status_code)
+            print('Authentication Error: Check supplied credentials.')
+            sys.exit(1)
 
         return
 
 # GET /user - meant for use by the class itself
     def __get_me(self):
+        self.api_logger.info('Trying to auth in using existing auth token')
         url = 'https://{}:{}/api/3.0/user'.format(self.host, self.port)
-        r = self.session.get(url)
+        self.api_logger.info('Request to %s => POST /api/3.0/user', self.host)
+        try:
+            r = self.session.get(url, timeout=1)
+        except Exception as e:
+            self.api_logger.error(e)
+            print('Connection timed out. Please confirm the hostname')
+            sys.exit(1)
+        self.api_logger.info('Request Complete: %s', r.status_code)
         return r.status_code
 
 # GET /lookml_models/
