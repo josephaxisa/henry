@@ -26,6 +26,7 @@ class Analyze(fetcher):
             params = {k: kwargs[k] for k in {'project',
                                              'model',
                                              'timeframe',
+                                             'min_queries',
                                              'sortkey',
                                              'limit'}}
             self.analyze_logger.info('analyze models params=%s', params)
@@ -33,7 +34,8 @@ class Analyze(fetcher):
                                           model=m,
                                           sortkey=kwargs['sortkey'],
                                           limit=kwargs['limit'],
-                                          timeframe=kwargs['timeframe'])
+                                          timeframe=kwargs['timeframe'],
+                                          min_queries=kwargs['min_queries'])
         elif kwargs['which'] == 'explores':
             params = {k: kwargs[k] for k in {'model',
                                              'explore',
@@ -95,11 +97,14 @@ class Analyze(fetcher):
                 query_run_count = used_models[m['name']]
             else:
                 query_run_count = 0
-
+            unused_explores = fetcher.get_unused_explores(self, m['name'],
+                                                          timeframe,
+                                                          min_queries)
             info.append({
                 'project': m['project_name'],
                 'model': m['name'],
                 'explore_count': explore_count,
+                'unused_explores': len(unused_explores),
                 'query_run_count': query_run_count
             })
         valid_values = list(info[0].keys())

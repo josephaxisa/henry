@@ -99,6 +99,10 @@ def main():
                            type=int,
                            default=90,
                            help='Timeframe (between 0 and 90)')
+    models_sc.add_argument('--min_queries',
+                           type=int,
+                           default=0,
+                           help='Query threshold')
     models_sc.add_argument('--order_by',
                            nargs=2,
                            metavar=('ORDER_FIELD', 'ASC/DESC'),
@@ -237,6 +241,7 @@ def main():
         else:
             _args[key] = value
     logger.info('Parsing args, %s', _args)
+
     if not args['command']:
         print('usage:', parser.usage)
         print('\nNo command specified. Try `henry --help` for help.')
