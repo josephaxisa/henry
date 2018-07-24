@@ -197,7 +197,7 @@ def main():
         subparser.add_argument('--output',
                                type=str,
                                default=None,
-                               help='Path to file for saving the output.')
+                               help='Path to file for saving the output')
         subparser.add_argument('-q', '--quiet',
                                action='store_true',
                                help='Silence output')
@@ -230,7 +230,13 @@ def main():
                                     'the gridlines')
 
     args = vars(parser.parse_args())
-    logger.info('Parsing args, %s', args)
+    _args = {}
+    for key, value in args.items():
+        if key == 'secret':
+            _args[key] = '[FILTERED]'
+        else:
+            _args[key] = value
+    logger.info('Parsing args, %s', _args)
     if not args['command']:
         print('usage:', parser.usage)
         print('\nNo command specified. Try `henry --help` for help.')
