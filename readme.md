@@ -129,16 +129,16 @@ The `analyze projects` command scans projects for their content as well as check
 #### analyze models
 Shows the number of explores in each model as well as the number of queries against that model.
 ```
-+-------------------+------------------+-----------------+-------------------+
-| project           | model            |  explore_count  |  query_run_count  |
-|-------------------+------------------+-----------------+-------------------|
-| salesforce        | salesforce       |        8        |       39424       |
-| thelook_event     | thelook          |       10        |      164858       |
-| powered_by_looker | powered_by       |        5        |       49402       |
-| marketing         | thelook_adwords  |        3        |       38108       |
-| admin             | looker_base      |        0        |         0         |
-| admin             | looker_on_looker |       10        |        27         |
-+-------------------+------------------+-----------------+-------------------+
++-------------------+------------------+-----------------+-------------------+-------------------+
+| project           | model            |  explore_count  |  unused_explores  |  query_run_count  |
+|-------------------+------------------+-----------------+-------------------+-------------------|
+| salesforce        | salesforce       |        8        |         0         |       39923       |
+| thelook_event     | thelook          |       10        |         0         |      166307       |
+| powered_by_looker | powered_by       |        5        |         0         |       49122       |
+| marketing         | thelook_adwords  |        3        |         0         |       40869       |
+| admin             | looker_base      |        0        |         0         |         0         |
+| admin             | looker_on_looker |       10        |         9         |        28         |
++-------------------+------------------+-----------------+-------------------+-------------------+
 ```
 
 <a name="analyze_explores"></a>
