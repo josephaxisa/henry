@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: henry
-Version: 0.0.12
+Version: 0.0.1b1
 Summary: A Looker Cleanup Tool
 Home-page: https://github.com/llooker/lookml_field_usage
 Author: Joseph Axisa
@@ -13,7 +13,7 @@ Description:
         
         -----------------
         # Henry: A Looker Cleanup Tool
-        Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. The results are meant to help developers cleanup models from unused explores and explores from unused joins and fields.
+        Henry is a tool with a command line interface (CLI) that helps determine model bloat in your Looker instance and identify unused content in models and explores. It is meant to help developers cleanup models from unused explores and explores from unused joins and fields, as well as maintain a healthy and user-friendly instance.
         
         ## Table of Contents
         - [Status and Support](#status_and_support)
@@ -22,7 +22,7 @@ Description:
           - [Storing Credentials](#storing_credentials)
           - [Global Options](#global_options)
             - [Suppressing Formatted Output](#supressed_output)
-            - [CSV Output](#csv_output)
+            - [Output to File](#output_to_file)
           - [The Pulse Command](#pulse_cmd)
           - [The Analyze Command](#analyze_cmd)
             - [Analyzing Projects](#analyze_projects)
@@ -49,7 +49,7 @@ Description:
         
             $ pip install henry
         
-        For development setup, follow the Development setup below.
+        For development setup, follow the Development setup [below](#development).
         
         <a name="usage"></a>
         ## Usage
@@ -78,10 +78,13 @@ Description:
         #### Suppressing Formatted Output
         Many commands provide tabular output. For tables the option `--plain` will suppress the table headers and format lines, making it easier to use tools like grep, awk, etc. to retrieve values from the output of these commands.
         
-        <a name="csv_output"></a>
-        #### CSV Output
-        Many commands provide tabular output. For tables the option `--csv` will output tabular data in
-        csv format. When combined with `--plain` the header will also be suppressed.
+        <a name="output_to_file"></a>
+        #### Output to File
+        Using the `--output` option allows you to specify a path and a file to save the results to. When combined with `--plain` the header and format lines will be suppressed. Example usage:
+        
+            $ henry vacuum models --plain --output=unused_explores.txt
+        
+        saves the results to *unused_explores.txt* in the current working directory.
         
         <a name="pulse_cmd"></a>
         ### Pulse Command
@@ -90,18 +93,18 @@ Description:
         #### Connection Checks
         Runs specific tests for each connection to make sure the connection is in working order. If any tests fail, the output will show which tests passed or failed for that particular connection. Example:
         ```
-        +------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        | demonew_events_ecommerce           | OK																																							   |
-        | assets_analytics                   | OK																																							   |
-        | snowflake-demo                     | Cannot use persistent derived tables in "LOOKER_SCRATCH"[create cached table] Java::NetSnowflakeClientJdbc::SnowflakeSQLException: SQL compilation error:        |
-        |                                    | Schema 'TPCH.LOOKER_SCRATCH' does not exist.                                                                                                                     |
-        |                                    | Cannot find temp schema "LOOKER_SCRATCH", "information_schema" failed (SELECT schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE schema_name = 'LOOKER_SCRATCH') |
-        | snowlooker                         | OK    																																						   |
-        +------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+        +------------------+------------------------------------------------------------------------------------------------------+
+        | Connection       | Status                                                                                               |
+        |------------------+------------------------------------------------------------------------------------------------------|
+        | thelook          | -- Failed to create or write to pdt connection registration table tmp.connection_reg_r3 : Connection |
+        |                  | registration error for thelook: max registrations reached for connection thelook                     |
+        | assets_analytics | OK                                                                                                   |
+        | events_ecommerce | OK                                                                                                   |
+        +------------------+------------------------------------------------------------------------------------------------------+
         ```
         
         #### Query Stats
-        Checks how many queries were run over the past 30 days and how many of them had to queue, errored or got killed as well as some statistics around runtimes and queuing times.
+        Checks how many queries were run over the past 30 days and how many of them errored or got killed as well as some statistics around runtimes times. The IDs of queries that took more than 5 times the average query runtime are also outputted.
         
         #### Scheduled Plans
         Determines the number of scheduled jobs that ran in the past 30 days, how many were successful, how many ran but did not deliver or failed to run altogether.
@@ -117,7 +120,7 @@ Description:
         The `analyze` command is meant to help identify models and explores that have become bloated and use `vacuum` on them in order to trim them.
         
         <a name="analyze_projects"></a>
-        ### analyze projects
+        #### analyze projects
         The `analyze projects` command scans projects for their content as well as checks for the status of quintessential features for success such as the git connection status and validation requirements.
         ```
         +-------------------+---------------+--------------+-------------------------+---------------------+-----------------------+
@@ -132,23 +135,23 @@ Description:
         ```
         
         <a name="analyze_models"></a>
-        ### analyze models
+        #### analyze models
         Shows the number of explores in each model as well as the number of queries against that model.
         ```
-        +-------------------+------------------+-----------------+-------------------+
-        | project           | model            |  explore_count  |  query_run_count  |
-        |-------------------+------------------+-----------------+-------------------|
-        | salesforce        | salesforce       |        8        |       39424       |
-        | thelook_event     | thelook          |       10        |      164858       |
-        | powered_by_looker | powered_by       |        5        |       49402       |
-        | marketing         | thelook_adwords  |        3        |       38108       |
-        | admin             | looker_base      |        0        |         0         |
-        | admin             | looker_on_looker |       10        |        27         |
-        +-------------------+------------------+-----------------+-------------------+
+        +-------------------+------------------+-----------------+-------------------+-------------------+
+        | project           | model            |  explore_count  |  unused_explores  |  query_run_count  |
+        |-------------------+------------------+-----------------+-------------------+-------------------|
+        | salesforce        | salesforce       |        8        |         0         |       39923       |
+        | thelook_event     | thelook          |       10        |         0         |      166307       |
+        | powered_by_looker | powered_by       |        5        |         0         |       49122       |
+        | marketing         | thelook_adwords  |        3        |         0         |       40869       |
+        | admin             | looker_base      |        0        |         0         |         0         |
+        | admin             | looker_on_looker |       10        |         9         |        28         |
+        +-------------------+------------------+-----------------+-------------------+-------------------+
         ```
         
         <a name="analyze_explores"></a>
-        ### analyze explores
+        #### analyze explores
         Shows explores and their usage. If the `--min_queries` argument is passed, joins and fields that have been used less than the threshold specified will be considered as unused.
         ```
         +---------+-----------------------------------------+-------------+-------------------+--------------+----------------+---------------+-----------------+---------------+
@@ -172,7 +175,7 @@ Description:
         The `vacuum` command outputs a list of unused content based on predefined criteria that a developer can then use to cleanup models and explores.
         
         <a name="vacuum_models"></a>
-        ### vacuum models
+        #### vacuum models
         The `vacuum models` command exposes models and the number of queries against them over a predefined period of time. Explores that are listed here have not had the minimum number of queries against them in the timeframe specified. As a result it is safe to hide them and later delete them.
         ```
         +------------------+---------------------------------------------+-------------------------+
@@ -195,7 +198,7 @@ Description:
         ```
         
         <a name="vacuum_explores"></a>
-        ### vacuum explores
+        #### vacuum explores
         The `vacuum explores` command exposes joins and exposes fields that are below the minimum number of queries threshold (default =0, can be changed using the `--min_queries` argument) over the specified timeframe (default: 90, can be changed using the `--timeframe` argument).
         
         Example: from the analyze function run [above](#analyze_explores), we know that the cohorts explore has 4 fields that haven't been queried once in the past 90 days. Running the following vacuum command:
@@ -213,7 +216,7 @@ Description:
         |         |           |                | users.gender                 |
         +---------+-----------+----------------+------------------------------+
         ```
-        It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
+        It is very important to note that fields vacuumed fields in one explore are not meant to be completely removed from view files altogether because they might be used in other explores or joins. Instead, one should either hide those fields (if they're not used anywhere else) or exclude them from the explore using the _fields_ LookML parameter.
         
         <a name="logging"></a>
         ## Logging
