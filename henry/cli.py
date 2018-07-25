@@ -197,7 +197,7 @@ def main():
                                  help='Query threshold')
 
     for subparser in [projects_sc, models_sc, explores_sc, vacuum_models,
-                      vacuum_explores, health_subparser]:
+                      vacuum_explores]:
         subparser.add_argument('--output',
                                type=str,
                                default=None,
