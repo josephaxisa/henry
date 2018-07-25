@@ -1,8 +1,5 @@
-config.yml
-config_file.yml
+*.yml
 *.txt
 *.pyc
 __pycache__
-test.py
-api_errors.txt
 *.log
