@@ -206,7 +206,7 @@ def main():
                                action='store_true',
                                help='Silence output')
         subparser.add_argument_group("Authentication")
-        subparser.add_argument('--host', type=str, default='demo',
+        subparser.add_argument('--host', type=str, default='looker',
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--cliet_secret',
                                              '--alias']),
