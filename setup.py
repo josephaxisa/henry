@@ -92,7 +92,9 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=['henry', 'henry/commands', 'henry/modules'],
-    data_files=[('henry/.support_files/', ['henry/.support_files/logging.conf']), ('henry/.support_files/', ['henry/.support_files/help.rtf'])],
+    data_files=[('henry/.support_files/',
+                ['henry/.support_files/logging.conf']),
+                ('henry/.support_files/', ['henry/.support_files/help.rtf'])],
     entry_points={
         'console_scripts': ['henry=henry.cli:main'],
     },
