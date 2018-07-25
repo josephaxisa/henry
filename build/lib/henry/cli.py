@@ -56,36 +56,36 @@ def main():
 
     # subparsers.required = True # works, but might do without for now.
 
-    health_subparser = subparsers.add_parser('pulse', help='pulse help')
+    pulse = subparsers.add_parser('pulse', help='pulse help')
 
-    ls_parser = subparsers.add_parser('analyze', help='analyze help',
-                                      usage='henry analyze')
-    ls_parser.set_defaults(which=None)
-    ls_subparsers = ls_parser.add_subparsers()
-    projects_sc = ls_subparsers.add_parser('projects')
-    models_sc = ls_subparsers.add_parser('models')
-    explores_sc = ls_subparsers.add_parser('explores')
+    analyze_parser = subparsers.add_parser('analyze', help='analyze help',
+                                           usage='henry analyze')
+    analyze_parser.set_defaults(which=None)
+    analyze_subparsers = analyze_parser.add_subparsers()
+    analyze_projects = analyze_subparsers.add_parser('projects')
+    analyze_models = analyze_subparsers.add_parser('models')
+    analyze_explores = analyze_subparsers.add_parser('explores')
 
     # project subcommand
-    projects_sc.set_defaults(which='projects')
-    projects_sc.add_argument('-p', '--project',
-                             type=str,
-                             default=None,
-                             help='Filter on a project')
-    projects_sc.add_argument('--order_by',
-                             nargs=2,
-                             metavar=('ORDER_FIELD', 'ASC/DESC'),
-                             dest='sortkey',
-                             help='Sort results by a field')
-    projects_sc.add_argument('--limit',
-                             type=int,
-                             default=None,
-                             nargs=1,
-                             help='Limit results. No limit by default')
+    analyze_projects.set_defaults(which='projects')
+    analyze_projects.add_argument('-p', '--project',
+                                  type=str,
+                                  default=None,
+                                  help='Filter on a project')
+    analyze_projects.add_argument('--order_by',
+                                  nargs=2,
+                                  metavar=('ORDER_FIELD', 'ASC/DESC'),
+                                  dest='sortkey',
+                                  help='Sort results by a field')
+    analyze_projects.add_argument('--limit',
+                                  type=int,
+                                  default=None,
+                                  nargs=1,
+                                  help='Limit results. No limit by default')
 
     # models subcommand
-    models_sc.set_defaults(which='models')
-    models_group = models_sc.add_mutually_exclusive_group()
+    analyze_models.set_defaults(which='models')
+    models_group = analyze_models.add_mutually_exclusive_group()
 
     models_group.add_argument('-p', '--project',
                               type=str,
@@ -95,53 +95,53 @@ def main():
                               type=str,
                               default=None,
                               help='Filter on model')
-    models_sc.add_argument('--timeframe',
-                           type=int,
-                           default=90,
-                           help='Timeframe (between 0 and 90)')
-    models_sc.add_argument('--min_queries',
-                           type=int,
-                           default=0,
-                           help='Query threshold')
-    models_sc.add_argument('--order_by',
-                           nargs=2,
-                           metavar=('ORDER_FIELD', 'ASC/DESC'),
-                           dest='sortkey',
-                           help='Sort results by a field')
-    models_sc.add_argument('--limit',
-                           type=int,
-                           default=None,
-                           nargs=1,
-                           help='Limit results. No limit by default')
+    analyze_models.add_argument('--timeframe',
+                                type=int,
+                                default=90,
+                                help='Timeframe (between 0 and 90)')
+    analyze_models.add_argument('--min_queries',
+                                type=int,
+                                default=0,
+                                help='Query threshold')
+    analyze_models.add_argument('--order_by',
+                                nargs=2,
+                                metavar=('ORDER_FIELD', 'ASC/DESC'),
+                                dest='sortkey',
+                                help='Sort results by a field')
+    analyze_models.add_argument('--limit',
+                                type=int,
+                                default=None,
+                                nargs=1,
+                                help='Limit results. No limit by default')
 
     # explores subcommand
-    explores_sc.set_defaults(which='explores')
-    explores_sc.add_argument('-model', '--model',
-                             type=str,
-                             default=None,
-                             required=('--explore') in sys.argv,
-                             help='Filter on model')
-    explores_sc.add_argument('-e', '--explore',
-                             default=None,
-                             help='Filter on model')
-    explores_sc.add_argument('--timeframe',
-                             type=int,
-                             default=90,
-                             help='Timeframe (between 0 and 90)')
-    explores_sc.add_argument('--min_queries',
-                             type=int,
-                             default=0,
-                             help='Query threshold')
-    explores_sc.add_argument('--order_by',
-                             nargs=2,
-                             metavar=('ORDER_FIELD', 'ASC/DESC'),
-                             dest='sortkey',
-                             help='Sort results by a field')
-    explores_sc.add_argument('--limit',
-                             type=int,
-                             default=None,
-                             nargs=1,
-                             help='Limit results. No limit by default')
+    analyze_explores.set_defaults(which='explores')
+    analyze_explores.add_argument('-model', '--model',
+                                  type=str,
+                                  default=None,
+                                  required=('--explore') in sys.argv,
+                                  help='Filter on model')
+    analyze_explores.add_argument('-e', '--explore',
+                                  default=None,
+                                  help='Filter on model')
+    analyze_explores.add_argument('--timeframe',
+                                  type=int,
+                                  default=90,
+                                  help='Timeframe (between 0 and 90)')
+    analyze_explores.add_argument('--min_queries',
+                                  type=int,
+                                  default=0,
+                                  help='Query threshold')
+    analyze_explores.add_argument('--order_by',
+                                  nargs=2,
+                                  metavar=('ORDER_FIELD', 'ASC/DESC'),
+                                  dest='sortkey',
+                                  help='Sort results by a field')
+    analyze_explores.add_argument('--limit',
+                                  type=int,
+                                  default=None,
+                                  nargs=1,
+                                  help='Limit results. No limit by default')
 
     # VACUUM Subcommand
     vacuum_parser = subparsers.add_parser('vacuum', help='vacuum help',
@@ -196,8 +196,8 @@ def main():
                                  default=0,
                                  help='Query threshold')
 
-    for subparser in [projects_sc, models_sc, explores_sc, vacuum_models,
-                      vacuum_explores]:
+    for subparser in [analyze_projects, analyze_models, analyze_explores,
+                      vacuum_models, vacuum_explores, pulse]:
         subparser.add_argument('--output',
                                type=str,
                                default=None,
@@ -205,8 +205,13 @@ def main():
         subparser.add_argument('-q', '--quiet',
                                action='store_true',
                                help='Silence output')
+        subparser.add_argument('--plain',
+                               default=None,
+                               action='store_true',
+                               help='Show results in a table format '
+                                    'without the gridlines')
         subparser.add_argument_group("Authentication")
-        subparser.add_argument('--host', type=str, default='demo',
+        subparser.add_argument('--host', type=str, default='looker',
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--cliet_secret',
                                              '--alias']),
@@ -227,11 +232,6 @@ def main():
                                help=argparse.SUPPRESS)
         subparser.add_argument('--path', type=str, default='',
                                help=argparse.SUPPRESS)
-        subparser.add_argument('--plain',
-                               default=None,
-                               action='store_true',
-                               help='Show results in a table format without '
-                                    'the gridlines')
 
     args = vars(parser.parse_args())
     _args = {}
