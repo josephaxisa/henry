@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/llooker/lookml_field_usage/blob/master/doc/logo/logo.png"><br>
+  <img src="https://github.com/josephaxisa/henry/blob/master/doc/logo/logo.png"><br>
 </div>
 
 -----------------
@@ -245,7 +245,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/joseph
 <a name="code_of_conduct"></a>
 ## Code of Conduct
 
-Everyone interacting in the Henry project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/llooker/lookml_field_usage/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Henry project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/josephaxisa/henry/blob/master/CODE_OF_CONDUCT.md).
 
 <a name="copyright"></a>
 ## Copyright
