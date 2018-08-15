@@ -304,8 +304,8 @@ class Pulse(object):
         result = []
         if r:
             r = r[0]['scheduled_job.count']['scheduled_job.status']
-            failed = r['failure'] or 0
-            succeeded = r['success'] or 0
+            failed = r['failure'] if 'failure' in r.keys() else 0
+            succeeded = r['success'] if 'success' in r.keys() else 0
             result.append({'total': failed + succeeded,
                            'failure': failed,
                            'success': succeeded})
