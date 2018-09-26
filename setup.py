@@ -4,7 +4,7 @@ import io
 import os
 import sys
 from shutil import rmtree
-
+from .henry import version as pkg
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
@@ -14,7 +14,7 @@ URL = "https://github.com/llooker/lookml_field_usage"
 EMAIL = 'jax@looker.com'
 AUTHOR = 'Joseph Axisa'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.0.1.b2'
+VERSION = pkg.__version__
 
 # What packages are required for this module to be executed?
 REQUIRED = [

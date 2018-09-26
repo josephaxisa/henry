@@ -10,7 +10,8 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class LookerApi(object):
-    def __init__(self, id, secret, host, port, access_token, timeout):
+    def __init__(self, id, secret, host, port, access_token, timeout,
+                 session_info):
         self.api_logger = logging.getLogger('lookerapi')
         self.id = id
         self.secret = secret
@@ -23,7 +24,8 @@ class LookerApi(object):
         self.session.verify = False
 
         self.session.headers.update({'Authorization': 'token %s' %
-                                    access_token, 'User-Agent': 'OSS/Henry'})
+                                    access_token, 'User-Agent': session_info})
+
         # if not valid anymore, authenticate again
         if self.__get_me() == 401:
             self.api_logger.warning('Existing auth token has expired')
@@ -43,8 +45,8 @@ class LookerApi(object):
                                          'client_secret': "[FILTERED]"})
         r = self.session.post(url, params=params, timeout=self.timeout)
         access_token = r.json().get('access_token')
-        self.session.headers.update({'Authorization': 'token %s' %
-                                    access_token, 'User-Agent': 'OSS/Henry'})
+        self.session.headers.update({'Authorization': 'token %s'
+                                     % access_token})
         if r.status_code == requests.codes.ok:
             self.api_logger.info('Request Complete: %s', r.status_code)
             self.access_token = access_token

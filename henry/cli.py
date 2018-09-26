@@ -15,6 +15,8 @@ import logging.config
 import henry
 from pathlib import PosixPath
 import json
+import uuid
+from . import version as pkg
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__),
                                    '.support_files/logging.conf')
 LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry/log')
@@ -265,7 +267,9 @@ def main():
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
-    looker = authenticate(timeout, **auth_args)
+    session_info = f'Henry v{pkg.__version__}: cmd={args["command"]}' \
+                   f', sid=#{uuid.uuid1()}'
+    looker = authenticate(timeout, session_info, **auth_args)
 
     # map subcommand to function
     if args['command'] in ('analyze', 'vacuum'):
