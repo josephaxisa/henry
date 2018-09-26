@@ -46,15 +46,18 @@ def main():
 
     # load custom config settings if defined in ~/.henry/henry.json
     settings_file = PosixPath('~/.henry/settings.json').expanduser()
+    timeout = 120
+    config_path = PosixPath.cwd().joinpath('config.yml')
     if settings_file.is_file():
         with open(settings_file, 'r') as f:
+            settings = json.load(f)
             logger.info('Loading config settings from ~/.henry/settings.json')
-            timeout = json.load(f).get('api_conn_timeout', 120)
+            timeout = settings.get('api_conn_timeout', timeout)
             if type(timeout) is list:
                 timeout = tuple(timeout)
+            config_path = settings.get('config_path', config_path)
     else:
-        logger.info('No custom config file found. Setting defaults.')
-        timeout = 120
+        logger.info('No custom config file found. Using defaults.')
 
     parser = argparse.ArgumentParser(
         description=descStr,
@@ -269,7 +272,7 @@ def main():
     # authenticate
     session_info = f'Henry v{pkg.__version__}: cmd={args["command"]}' \
                    f', sid=#{uuid.uuid1()}'
-    looker = authenticate(timeout, session_info, **auth_args)
+    looker = authenticate(timeout, session_info, config_path, **auth_args)
 
     # map subcommand to function
     if args['command'] in ('analyze', 'vacuum'):

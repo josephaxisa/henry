@@ -9,10 +9,10 @@ auth_logger = logging.getLogger('auth')
 
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
-def authenticate(timeout, session_info, **kwargs):
+def authenticate(timeout, session_info, config_path, **kwargs):
     auth_logger.info('Authenticating into Looker API')
-    filepath = kwargs['path'] + 'config.yml'
-    cleanpath = os.path.abspath(filepath)
+    # precedence: --path, global config, default
+    cleanpath = kwargs['path'] or config_path
     if kwargs['client_id'] and kwargs['client_secret']:
         auth_logger.info('Fetching auth params passed in CLI')
         host = kwargs['host']
