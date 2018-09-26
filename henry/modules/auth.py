@@ -9,7 +9,7 @@ auth_logger = logging.getLogger('auth')
 
 # returns an instanstiated Looker object using the
 # credentials supplied by the auth argument group
-def authenticate(**kwargs):
+def authenticate(timeout, **kwargs):
     auth_logger.info('Authenticating into Looker API')
     filepath = kwargs['path'] + 'config.yml'
     cleanpath = os.path.abspath(filepath)
@@ -62,7 +62,8 @@ def authenticate(**kwargs):
                        port=kwargs['port'],
                        id=client_id,
                        secret=client_secret,
-                       access_token=token)
+                       access_token=token,
+                       timeout=timeout,)
     auth_logger.info('Authentication Successful')
 
     if kwargs['alias']:

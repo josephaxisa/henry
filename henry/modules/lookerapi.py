@@ -1,10 +1,7 @@
 # -*- coding: UTF-8 -*-
 import requests
-from pprint import pprint as pp
 import json
-import re
 import sys
-import datetime
 import logging
 import logging.config
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -13,20 +10,20 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class LookerApi(object):
-    def __init__(self, id, secret, host, port, access_token):
+    def __init__(self, id, secret, host, port, access_token, timeout):
         self.api_logger = logging.getLogger('lookerapi')
         self.id = id
         self.secret = secret
         self.host = host
         self.port = port
         self.access_token = access_token
+        self.timeout = timeout
 
         self.session = requests.Session()
         self.session.verify = False
 
         self.session.headers.update({'Authorization': 'token %s' %
-                                    access_token})
-
+                                    access_token, 'User-Agent': 'OSS/Henry'})
         # if not valid anymore, authenticate again
         if self.__get_me() == 401:
             self.api_logger.warning('Existing auth token has expired')
@@ -44,10 +41,10 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => POST /api/3.0/login, %s',
                              self.host, {'client_id': params['client_id'],
                                          'client_secret': "[FILTERED]"})
-        r = self.session.post(url, params=params, timeout=60)
+        r = self.session.post(url, params=params, timeout=self.timeout)
         access_token = r.json().get('access_token')
-        self.session.headers.update({'Authorization': 'token '
-                                    '{}'.format(access_token)})
+        self.session.headers.update({'Authorization': 'token %s' %
+                                    access_token, 'User-Agent': 'OSS/Henry'})
         if r.status_code == requests.codes.ok:
             self.api_logger.info('Request Complete: %s', r.status_code)
             self.access_token = access_token
@@ -64,7 +61,7 @@ class LookerApi(object):
         url = 'https://{}:{}/api/3.0/user'.format(self.host, self.port)
         self.api_logger.info('Request to %s => POST /api/3.0/user', self.host)
         try:
-            r = self.session.get(url, timeout=1)
+            r = self.session.get(url, timeout=self.timeout)
         except Exception as e:
             self.api_logger.error(e)
             print('Connection timed out. Please confirm the hostname')
@@ -81,7 +78,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => GET /api/3.0/lookml_models, %s',
                              self.host,
                              params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -99,7 +96,7 @@ class LookerApi(object):
         params = fields
         self.api_logger.info('Request to %s => GET /api/3.0/lookml_models/%s,'
                              ' %s', self.host, model_name, params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -120,7 +117,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => GET /api/3.0/lookml_models/%s'
                              '/explores/%s, %s', self.host, model_name,
                              explore_name, params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -138,7 +135,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => GET /api/3.0/projects, %s',
                              self.host,
                              params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -158,7 +155,7 @@ class LookerApi(object):
                              self.host,
                              project_id,
                              params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -177,7 +174,7 @@ class LookerApi(object):
         params = fields
         self.api_logger.info('Request to %s => GET /api/3.0/projects/%s/files,'
                              ' %s', self.host, project, params)
-        r = self.session.get(url, params=params, timeout=60)
+        r = self.session.get(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -198,7 +195,8 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => POST /api/3.0/queries/run/%s, '
                              '%s', self.host, result_format, params)
         self.api_logger.info('Query params=%s', body)
-        r = self.session.post(url, json.dumps(body), params=params, timeout=60)
+        r = self.session.post(url, json.dumps(body), params=params,
+                              timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -217,7 +215,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => PATCH /api/3.0/session, %s',
                              self.host,
                              body)
-        r = self.session.patch(url, json=body)
+        r = self.session.patch(url, json=body, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -236,7 +234,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => GET /api/3.0/session, %s',
                              self.host,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -256,7 +254,7 @@ class LookerApi(object):
                              self.host,
                              project_id,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -277,7 +275,7 @@ class LookerApi(object):
                              project_id,
                              test_id,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -294,7 +292,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => GET /api/3.0/connections, %s',
                              self.host,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -311,7 +309,7 @@ class LookerApi(object):
         params = fields
         self.api_logger.info('Request to %s => POST /api/3.0/connections/'
                              '%s/test, %s', self.host, connection, params)
-        r = self.session.put(url, params=params)
+        r = self.session.put(url, params=params, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -327,7 +325,7 @@ class LookerApi(object):
         params = fields
         self.api_logger.info('Request to %s => POST /api/3.0/legacy_features,'
                              ' %s', self.host, params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -343,7 +341,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => POST /api/3.0/integrations, %s',
                              self.host,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -359,7 +357,7 @@ class LookerApi(object):
         self.api_logger.info('Request to %s => POST /api/3.0/versions, %s',
                              self.host,
                              params)
-        r = self.session.get(url)
+        r = self.session.get(url, timeout=self.timeout)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:

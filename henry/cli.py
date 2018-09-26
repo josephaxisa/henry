@@ -13,9 +13,11 @@ from tabulate import tabulate
 from .modules.auth import authenticate
 import logging.config
 import henry
+from pathlib import PosixPath
+import json
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__),
                                    '.support_files/logging.conf')
-LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry')
+LOGGING_LOG_PATH = os.path.join(os.path.expanduser('~'), '.henry/log')
 if not os.path.exists(LOGGING_LOG_PATH):
     os.mkdir(LOGGING_LOG_PATH)
 elif os.path.exists(LOGGING_LOG_PATH) and not os.path.isdir(LOGGING_LOG_PATH):
@@ -39,6 +41,18 @@ def main():
                              '.support_files/help.rtf')
     with open(HELP_PATH, 'r', encoding='unicode_escape') as myfile:
         descStr = myfile.read()
+
+    # load custom config settings if defined in ~/.henry/henry.json
+    settings_file = PosixPath('~/.henry/settings.json').expanduser()
+    if settings_file.is_file():
+        with open(settings_file, 'r') as f:
+            logger.info('Loading config settings from ~/.henry/settings.json')
+            timeout = json.load(f).get('api_conn_timeout', 120)
+            if type(timeout) is list:
+                timeout = tuple(timeout)
+    else:
+        logger.info('No custom config file found. Setting defaults.')
+        timeout = 120
 
     parser = argparse.ArgumentParser(
         description=descStr,
@@ -251,7 +265,7 @@ def main():
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
-    looker = authenticate(**auth_args)
+    looker = authenticate(timeout, **auth_args)
 
     # map subcommand to function
     if args['command'] in ('analyze', 'vacuum'):
