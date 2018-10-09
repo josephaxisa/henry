@@ -11,6 +11,9 @@ Henry is a command line tool that helps determine model bloat in your Looker ins
     - [Where to get it](#where-to-get-it)
     - [Usage](#usage)
         - [Storing Credentials](#storing-credentials)
+        - [Global Config File](#global-config-file)
+            - [API timeout settings](#api-timeout-settings)
+            - [Config Path](#config-path)
         - [Global Options that apply to many commands](#global-options-that-apply-to-many-commands)
             - [Suppressing Formatted Output](#suppressing-formatted-output)
             - [Output to File](#output-to-file)
@@ -55,18 +58,49 @@ In order to display usage information, use:
 
 <a name="storing_credentials"></a>
 ### Storing Credentials
-Store login information by creating the file `config.yml` in the home directory of your script with the api3 credentials
+API3 login credentials can be specified at runtime using various flags or more conveniently, using a `config.yml` having the format shown below.
 
 ```
 hosts:
-  host_alias:
+  dev_looker:
     access_token: ''
-    host: foo.bar.companyname.com
+    host: devhostname.looker.com
+    id: AbCdEfGhIjKlMnOp
+    secret: QrStUvWxYz1234567890
+  staging_looker:
+    access_token: ''
+    host: staginghostname.looker.com
     id: AbCdEfGhIjKlMnOp
     secret: QrStUvWxYz1234567890
 ```
 
 Make sure that the `config.yml` file has restricted permissions by running `chmod 600 config.yml`. The tool will also ensure that this is the case every time it writes to the file.
+
+If `config.yml` resides in the current working directory, then you don't need to do anything. If not, its location needs to be specified at runtime using the `--path` paramter or in the [global config file](#config-path). 
+
+<a name="global_config_file"></a>
+### Global Config File
+A global settings file called `settings.json` can be defined in `~/.henry`. The file can be used to define a number of paramaters to be used at runtime:
+
+```
+{
+    "api_conn_timeout": x,
+    "config_path": "/path/to/api3/credentials/yml/file"
+
+}
+```
+<a name="api_timeout_settings"></a>
+#### API timeout settings
+The `api_conn_timeout` parameter can be used to specify API call timeout settings. It can take 3 types of values: null, an integer representing
+connect and read timeouts (in seconds) combined or a list that specifies
+the connect and read timeouts separately (e.g. "[5, 15]").
+
+<a name="config_path"></a>
+#### Config Path
+The `config_path` parameter defines the absolute location to the [API3 credentials file](#storing-credentials). 
+
+In order of precedence, these are the ways that are used to define the location of the credentials file path:
+--path, config_path in ~/.henry/settings.json and then the default.
 
 <a name="global_options"></a>
 ### Global Options that apply to many commands
