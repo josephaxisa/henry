@@ -1,33 +1,38 @@
-<div align="center">
-  <img src="https://github.com/josephaxisa/henry/blob/master/doc/logo/logo.png"><br>
-</div>
+![image](https://raw.githubusercontent.com/josephaxisa/henry/master/doc/logo/logo.png)
 
 -----------------
 # Henry: A Looker Cleanup Tool
 Henry is a command line tool that helps determine model bloat in your Looker instance and identify unused content in models and explores. It is meant to help developers cleanup models from unused explores and explores from unused joins and fields, as well as maintain a healthy and user-friendly instance.
 
 ## Table of Contents
-- [Status and Support](#status_and_support)
-- [Installation](#where_to_get_it)
-- [Usage](#usage)
-  - [Storing Credentials](#storing_credentials)
-  - [Global Options](#global_options)
-    - [Suppressing Formatted Output](#supressed_output)
-    - [Output to File](#output_to_file)
-  - [The Pulse Command](#pulse_cmd)
-  - [The Analyze Command](#analyze_cmd)
-    - [Analyzing Projects](#analyze_projects)
-    - [Analyzing Models](#analyze_models)
-    - [Analyzing Explores](#analyze_explores)
-  - [The Vacuum Command](#vacuum_cmd)
-    - [Vacuuming Models](#vacuum_models)
-    - [Vacuuming Explores](#vacuum_explores)
-- [Logging](#logging)
-- [Dependencies](#dependencies)
-- [Development](#development)
-- [Contributing](#contributing)
-- [Code of Conduct](#code_of_conduct)
-- [Copyright](#copyright)
+- [Henry: A Looker Cleanup Tool](#henry-a-looker-cleanup-tool)
+    - [Table of Contents](#table-of-contents)
+    - [Status and Support](#status-and-support)
+    - [Where to get it](#where-to-get-it)
+    - [Usage](#usage)
+        - [Storing Credentials](#storing-credentials)
+        - [Global Options that apply to many commands](#global-options-that-apply-to-many-commands)
+            - [Suppressing Formatted Output](#suppressing-formatted-output)
+            - [Output to File](#output-to-file)
+        - [Pulse Command](#pulse-command)
+            - [Connection Checks](#connection-checks)
+            - [Query Stats](#query-stats)
+            - [Scheduled Plans](#scheduled-plans)
+            - [Legacy Features](#legacy-features)
+            - [Version](#version)
+        - [Analyze Command](#analyze-command)
+            - [analyze projects](#analyze-projects)
+            - [analyze models](#analyze-models)
+            - [analyze explores](#analyze-explores)
+        - [Vacuum Information](#vacuum-information)
+            - [vacuum models](#vacuum-models)
+            - [vacuum explores](#vacuum-explores)
+    - [Logging](#logging)
+    - [Dependencies](#dependencies)
+    - [Development](#development)
+    - [Contributing](#contributing)
+    - [Code of Conduct](#code-of-conduct)
+    - [Copyright](#copyright)
 
 <a name="status_and_support"></a>
 ## Status and Support
