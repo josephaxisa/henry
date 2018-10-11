@@ -4,17 +4,16 @@ import io
 import os
 import sys
 from shutil import rmtree
-from .henry import version as pkg
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
 NAME = 'henry'
 DESCRIPTION = 'A Looker Cleanup Tool'
-URL = "https://github.com/llooker/lookml_field_usage"
+URL = "https://github.com/josephaxisa/henry"
 EMAIL = 'jax@looker.com'
 AUTHOR = 'Joseph Axisa'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = pkg.__version__
+VERSION = ''
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -67,8 +66,8 @@ class UploadCommand(Command):
         except OSError:
             pass
 
-        self.status('Building Source and Wheel (universal) distribution…')
-        os.system('{0} setup.py sdist bdist_wheel --universal'.format(
+        self.status('Building Source and Wheel distribution…')
+        os.system('{0} setup.py sdist bdist_wheel'.format(
                                                                sys.executable))
 
         self.status('Uploading the package to PyPI via Twine…')
@@ -107,8 +106,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy'
+        'Programming Language :: Python :: 3.7',
     ],
     cmdclass={
         'upload': UploadCommand,
