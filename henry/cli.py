@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
-import yaml
 from .modules.lookerapi import LookerApi
-from itertools import groupby
 import argparse
 import os
 import errno
 import sys
-from operator import itemgetter
 from .modules.spinner import Spinner
-import threading
-from tabulate import tabulate
 from .modules.auth import authenticate
 import logging.config
 import henry
 from pathlib import PosixPath
 import json
 import uuid
-from . import version as pkg
+from . import __version__ as pkg
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__),
                                    '.support_files/logging.conf')
 METADATA_PATH = os.path.join(os.path.expanduser('~'), '.henry')
@@ -276,7 +271,11 @@ def main():
     auth_args = {k: args[k] for k in auth_params}
 
     # authenticate
-    session_info = f'Henry v{pkg.__version__}: cmd={args["command"]}' \
+    if args['command'] != 'pulse':
+        cmd = args['command']+' '+args['which']
+    else:
+        cmd = args['command']
+    session_info = f'Henry v{pkg.__version__}: cmd={cmd}' \
                    f', sid=#{uuid.uuid1()}'
     looker = authenticate(timeout, session_info, config_path, **auth_args)
 
