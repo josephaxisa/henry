@@ -76,7 +76,7 @@ hosts:
 
 Make sure that the `config.yml` file has restricted permissions by running `chmod 600 config.yml`. The tool will also ensure that this is the case every time it writes to the file.
 
-If `config.yml` resides in the current working directory, then you don't need to do anything. If not, its location needs to be specified at runtime using the `--path` paramter or in the [global config file](#config-path). 
+If `config.yml` resides in the current working directory, then you don't need to do anything. If not, its location needs to be specified at runtime using the `--path` parameter or in the [global config file](#global-config-file). 
 
 <a name="global_config_file"></a>
 ### Global Config File
@@ -250,7 +250,7 @@ It is very important to note that fields vacuumed fields in one explore are not 
 
 <a name="logging"></a>
 ## Logging
-The tool logs activity as it's being used. Log files are stored in `~/.henry/` in your home directory. Sensitive information such as your client secret is filtered out for security reasons. Moreover, log files have restricted permissions which allow only the owner to read and write.
+The tool logs activity as it's being used. Log files are stored in `~/.henry/log/` in your home directory. Sensitive information such as your client secret is filtered out for security reasons. Moreover, log files have restricted permissions which allow only the owner to read and write.
 
 The logging module utilises a rotating file handler which is currently set to rollover when the current log file reaches 500 KB in size. The system saves old log files by adding the suffix '.1', '.2' etc., to the filename. The file being written to is always named `henry.log`. No more than 10 log files are kept at any point in time, ensuring logs do not consume more than 5 MB max.
 
