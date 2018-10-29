@@ -10,43 +10,34 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class LookerApi(object):
-    def __init__(self, id, secret, host, port, access_token, timeout,
-                 session_info):
+    def __init__(self, id, secret, host, port, timeout, session_info):
         self.api_logger = logging.getLogger('lookerapi')
         self.id = id
         self.secret = secret
         self.host = host
         self.port = port
-        self.access_token = access_token
         self.timeout = timeout
+        self.session_info = session_info
 
         self.session = requests.Session()
         self.session.verify = False
 
-        self.session.headers.update({'Authorization': 'token %s' %
-                                    access_token, 'User-Agent': session_info})
-
-        # if not valid anymore, authenticate again
-        if self.__get_me() == 401:
-            self.api_logger.warning('Existing auth token has expired')
-            self.auth()
-
-    def get_access_token(self):
-        return self.access_token
+        # self.session.headers.update({'Authorization': 'token %s' %
+        #                             access_token, 'User-Agent': session_info})
+        self.auth()
 
     def auth(self):
         self.api_logger.info('Authenticating')
         url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'login')
-        params = {'client_id': self.id,
-                  'client_secret': self.secret
-                  }
+        params = {'client_id': self.id, 'client_secret': self.secret}
         self.api_logger.info('Request to %s => POST /api/3.0/login, %s',
                              self.host, {'client_id': params['client_id'],
                                          'client_secret': "[FILTERED]"})
         r = self.session.post(url, params=params, timeout=self.timeout)
+        token_type = r.json().get('token_type')
         access_token = r.json().get('access_token')
-        self.session.headers.update({'Authorization': 'token %s'
-                                     % access_token})
+        self.session.headers.update({'Authorization': f'{token_type} {access_token}',
+                                     'User-Agent': self.session_info})
         if r.status_code == requests.codes.ok:
             self.api_logger.info('Request Complete: %s', r.status_code)
             self.access_token = access_token
@@ -57,26 +48,13 @@ class LookerApi(object):
 
         return
 
-# GET /user - meant for use by the class itself
-    def __get_me(self):
-        self.api_logger.info('Trying to auth in using existing auth token')
-        url = 'https://{}:{}/api/3.0/user'.format(self.host, self.port)
-        self.api_logger.info('Request to %s => POST /api/3.0/user', self.host)
-        try:
-            r = self.session.get(url, timeout=self.timeout)
-        except Exception as e:
-            self.api_logger.error(e)
-            print('Connection timed out. Please confirm the hostname')
-            sys.exit(1)
-        self.api_logger.info('Request Complete: %s', r.status_code)
-        return r.status_code
-
 # GET /lookml_models/
     def get_models(self, fields={}):
         url = 'https://{}:{}/api/3.0/{}'.format(self.host,
                                                 self.port,
                                                 'lookml_models')
         params = fields
+        print(self.session.headers)
         self.api_logger.info('Request to %s => GET /api/3.0/lookml_models, %s',
                              self.host,
                              params)

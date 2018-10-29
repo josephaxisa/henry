@@ -246,8 +246,6 @@ def main():
                                required=any(k in sys.argv for k in
                                             ['--client_id', '--alias']),
                                help=argparse.SUPPRESS)
-        subparser.add_argument('--persist', action='store_true',
-                               help=argparse.SUPPRESS)
         subparser.add_argument('--alias', type=str,
                                help=argparse.SUPPRESS)
         subparser.add_argument('--path', type=str, default='',
@@ -266,7 +264,7 @@ def main():
         print('usage:', parser.usage)
         print('\nNo command specified. Try `henry --help` for help.')
         sys.exit(1)
-    auth_params = ('host', 'port', 'client_id', 'client_secret', 'persist',
+    auth_params = ('host', 'port', 'client_id', 'client_secret',
                    'alias', 'path')
     auth_args = {k: args[k] for k in auth_params}
 

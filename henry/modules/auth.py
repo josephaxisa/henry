@@ -45,9 +45,6 @@ def authenticate(timeout, session_info, config_path, **kwargs):
             host = params['hosts'][kwargs['host']]['host']
             client_secret = params['hosts'][kwargs['host']]['secret']
             client_id = params['hosts'][kwargs['host']]['id']
-            #  last auth token. Works if --persist was previously used,
-            # otherwise it fails)
-            token = params['hosts'][kwargs['host']]['access_token']
         except KeyError as error:
             auth_logger.error('Auth Error: %s not found' % error,
                               exc_info=False)
@@ -62,7 +59,6 @@ def authenticate(timeout, session_info, config_path, **kwargs):
                        port=kwargs['port'],
                        id=client_id,
                        secret=client_secret,
-                       access_token=token,
                        timeout=timeout,
                        session_info=session_info,
                        )
@@ -76,20 +72,6 @@ def authenticate(timeout, session_info, config_path, **kwargs):
             params['hosts'][kwargs['alias']]['host'] = host
             params['hosts'][kwargs['alias']]['id'] = client_id
             params['hosts'][kwargs['alias']]['secret'] = client_secret
-            params['hosts'][kwargs['alias']]['access_token'] = ''
-
-        with open(cleanpath, 'w') as f:
-            yaml.safe_dump(params, f, default_flow_style=False)
-
-        os.chmod(cleanpath, 0o600)
-
-    if kwargs['persist']:
-        auth_logger.info('Persisting API session. Saving auth token under '
-                         '%s in %s', host, cleanpath)
-        with open(cleanpath, 'r+') as f:
-            params = yaml.safe_load(f)
-            access_token = looker.get_access_token()
-            params['hosts'][kwargs['host']]['access_token'] = access_token
 
         with open(cleanpath, 'w') as f:
             yaml.safe_dump(params, f, default_flow_style=False)
