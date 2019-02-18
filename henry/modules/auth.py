@@ -24,7 +24,7 @@ def authenticate(timeout, session_info, config_path, **kwargs):
         st = os.stat(cleanpath)
         ap = oct(st.st_mode)
         if ap != '0o100600':
-            print('Config file permissions are set to %s and are not strict '
+            print(f'Config file permissions are set to %s and are not strict '
                   'enough. Change to rw------- or 600 and try again.' % ap)
             auth_logger.warning('Config file permissions are %s and not strict'
                                 ' enough.' % ap)

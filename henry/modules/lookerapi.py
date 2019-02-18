@@ -22,25 +22,21 @@ class LookerApi(object):
         self.session = requests.Session()
         self.session.verify = False
 
-        # self.session.headers.update({'Authorization': 'token %s' %
-        #                             access_token, 'User-Agent': session_info})
         self.auth()
 
     def auth(self):
         self.api_logger.info('Authenticating')
-        url = 'https://{}:{}/api/3.0/{}'.format(self.host, self.port, 'login')
+        url = f'https://{self.host}:{self.port}/api/3.0/login'
         params = {'client_id': self.id, 'client_secret': self.secret}
         self.api_logger.info('Request to %s => POST /api/3.0/login, %s',
                              self.host, {'client_id': params['client_id'],
                                          'client_secret': "[FILTERED]"})
         r = self.session.post(url, params=params, timeout=self.timeout)
-        token_type = r.json().get('token_type')
         access_token = r.json().get('access_token')
-        self.session.headers.update({'Authorization': f'{token_type} {access_token}',
+        self.session.headers.update({'Authorization': f'Bearer {access_token}', 
                                      'User-Agent': self.session_info})
         if r.status_code == requests.codes.ok:
             self.api_logger.info('Request Complete: %s', r.status_code)
-            self.access_token = access_token
         else:
             self.api_logger.warning('Request Complete: %s', r.status_code)
             print('Authentication Error: Check supplied credentials.')
@@ -54,7 +50,6 @@ class LookerApi(object):
                                                 self.port,
                                                 'lookml_models')
         params = fields
-        print(self.session.headers)
         self.api_logger.info('Request to %s => GET /api/3.0/lookml_models, %s',
                              self.host,
                              params)
