@@ -12,7 +12,7 @@ DESCRIPTION = 'A Looker Cleanup Tool'
 URL = "https://github.com/josephaxisa/henry"
 EMAIL = 'jax@looker.com'
 AUTHOR = 'Joseph Axisa'
-REQUIRES_PYTHON = '>=3.6.0'
+REQUIRES_PYTHON = '>=3.6'
 VERSION = ''
 
 # What packages are required for this module to be executed?
@@ -40,6 +40,9 @@ if not VERSION:
         exec(f.read(), about)
 else:
     about['__version__'] = VERSION
+
+if not (sys.version_info.major == 3 and sys.version_info.minor >= 6):
+    sys.exit("Sorry, Henry requires Python 3.6 or later.")
 
 
 class UploadCommand(Command):
