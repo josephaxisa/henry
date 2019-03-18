@@ -6,36 +6,36 @@ Henry is a command line tool that helps determine model bloat in your Looker ins
 
 ## Table of Contents
 - [Henry: A Looker Cleanup Tool](#henry-a-looker-cleanup-tool)
-    - [Table of Contents](#table-of-contents)
-    - [Status and Support](#status-and-support)
-    - [Where to get it](#where-to-get-it)
-    - [Usage](#usage)
-        - [Storing Credentials](#storing-credentials)
-        - [Global Config File](#global-config-file)
-            - [API timeout settings](#api-timeout-settings)
-            - [Config Path](#config-path)
-        - [Global Options that apply to many commands](#global-options-that-apply-to-many-commands)
-            - [Suppressing Formatted Output](#suppressing-formatted-output)
-            - [Output to File](#output-to-file)
-        - [Pulse Command](#pulse-command)
-            - [Connection Checks](#connection-checks)
-            - [Query Stats](#query-stats)
-            - [Scheduled Plans](#scheduled-plans)
-            - [Legacy Features](#legacy-features)
-            - [Version](#version)
-        - [Analyze Command](#analyze-command)
-            - [analyze projects](#analyze-projects)
-            - [analyze models](#analyze-models)
-            - [analyze explores](#analyze-explores)
-        - [Vacuum Information](#vacuum-information)
-            - [vacuum models](#vacuum-models)
-            - [vacuum explores](#vacuum-explores)
-    - [Logging](#logging)
-    - [Dependencies](#dependencies)
-    - [Development](#development)
-    - [Contributing](#contributing)
-    - [Code of Conduct](#code-of-conduct)
-    - [Copyright](#copyright)
+  - [Table of Contents](#table-of-contents)
+  - [Status and Support](#status-and-support)
+  - [Where to get it](#where-to-get-it)
+  - [Usage](#usage)
+    - [Storing Credentials](#storing-credentials)
+    - [Global Config File](#global-config-file)
+      - [API timeout settings](#api-timeout-settings)
+      - [Config Path](#config-path)
+    - [Global Options that apply to many commands](#global-options-that-apply-to-many-commands)
+      - [Suppressing Formatted Output](#suppressing-formatted-output)
+      - [Output to File](#output-to-file)
+    - [Pulse Command](#pulse-command)
+      - [Connection Checks](#connection-checks)
+      - [Query Stats](#query-stats)
+      - [Scheduled Plans](#scheduled-plans)
+      - [Legacy Features](#legacy-features)
+      - [Version](#version)
+    - [Analyze Command](#analyze-command)
+      - [analyze projects](#analyze-projects)
+      - [analyze models](#analyze-models)
+      - [analyze explores](#analyze-explores)
+    - [Vacuum Information](#vacuum-information)
+      - [vacuum models](#vacuum-models)
+      - [vacuum explores](#vacuum-explores)
+  - [Logging](#logging)
+  - [Dependencies](#dependencies)
+  - [Development](#development)
+  - [Contributing](#contributing)
+  - [Code of Conduct](#code-of-conduct)
+  - [Copyright](#copyright)
 
 <a name="status_and_support"></a>
 ## Status and Support
@@ -110,11 +110,11 @@ Many commands provide tabular output. For tables the option `--plain` will suppr
 
 <a name="output_to_file"></a>
 #### Output to File
-Using the `--output` option allows you to specify a path and a file to save the results to. When combined with `--plain` the header and format lines will be suppressed. Example usage:
+Using the `--output` option allows you to specify a path and a file to save the results to. When combined with `--plain` the format lines will be suppressed. Example usage:
 
-    $ henry vacuum models --plain --output=unused_explores.txt
+    $ henry vacuum models --plain --output=unused_explores.csv
 
-saves the results to *unused_explores.txt* in the current working directory.
+saves the results to *unused_explores.csv* in the current working directory.
 
 <a name="pulse_cmd"></a>
 ### Pulse Command
