@@ -1,6 +1,7 @@
 import logging
-from henry.modules import styler
+from henry.modules import data_controller as dc
 from henry.modules.fetcher import Fetcher as fetcher
+from henry.modules.color import color
 import re
 
 
@@ -37,8 +38,7 @@ class Vacuum(fetcher):
                                            min_queries=kwargs['min_queries'],
                                            timeframe=kwargs['timeframe'])
         self.vacuum_logger.info('Vacuum Complete')
-        result = styler.tabulate(result, headers=headers,
-                                 tablefmt=format, numalign='center')
+
         return result
 
     def _vacuum_models(self, project=None, model=None, timeframe=90,
@@ -110,9 +110,8 @@ class Vacuum(fetcher):
                 unused_fields = sorted(unused_fields)
                 unused_fields = ('\n').join(unused_fields)
             else:
-                unused_fields = styler.color.format(pattern,
-                                                    'fail',
-                                                    'color')
+                unused_fields = color.format(pattern, 'fail', 'color')
+
             info.append({
                         'model': e['model_name'],
                         'explore': e['name'],

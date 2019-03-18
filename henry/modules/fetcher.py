@@ -1,4 +1,3 @@
-from . import styler
 from collections import Counter
 import logging
 import re

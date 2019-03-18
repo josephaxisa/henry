@@ -11,6 +11,9 @@ import henry
 from pathlib import PosixPath
 import json
 import uuid
+from tabulate import tabulate
+from .modules import data_controller as dc
+import csv
 from . import __version__ as pkg
 LOGGING_CONFIG_PATH = os.path.join(os.path.dirname(henry.__file__),
                                    '.support_files/logging.conf')
@@ -289,9 +292,15 @@ def main():
                 else:
                     vacuum = Vacuum(looker)
                     result = vacuum.vacuum(**args)
-        # silence outout if --silence flag is used
+        # print results if --silence flag is not used
         if not args['quiet']:
-            print(result)
+            # tabulate result and print
+            tablefmt = 'plain' if args['plain'] else 'psql'
+            headers = 'keys'
+            formatted_result = tabulate(result, headers=headers,
+                                        tablefmt=tablefmt, numalign='center')
+            print(formatted_result)
+
     elif args['command'] == 'pulse':
                 pulse = Pulse(looker)
                 result = pulse.run_all()
@@ -300,32 +309,10 @@ def main():
 
     # save to file if --output flag is used
     if args['output']:
-        logger.info('Saving results to file: %s', args['output'])
-        if os.path.isdir(args['output']):
-            error = IsADirectoryError(errno.EISDIR,
-                                      os.strerror(errno.EISDIR),
-                                      args['output'])
-            logger.error(error)
-            raise error
-        elif not args['output'].endswith('.txt'):
-            error = ValueError('Output file must be a .txt file')
-            logger.exception(error)
-            raise error
-        elif os.path.isfile(args['output']):
-            error = FileExistsError(errno.EEXIST,
-                                    os.strerror(errno.EEXIST),
-                                    args['output'])
-            logger.error(error)
-            raise error
-        else:
-            try:
-                f = open(args['output'], 'w+')
-                f.write(result+'\n')
-                f.close()
-                logger.info('Results succesfully saved.')
-            except Exception as e:
-                logger.error(e)
-                raise(e)
+        file = args['output']
+        logger.info(f'Saving results to {file}')
+        dc.save_to_file(args['output'], result)
+        logger.info('Results succesfully saved.')
 
 
 if __name__ == "__main__":

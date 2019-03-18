@@ -1,6 +1,6 @@
 import logging
 from henry.modules.fetcher import Fetcher as fetcher
-from henry.modules import styler
+from henry.modules import data_controller as dc
 from tabulate import tabulate
 import json
 
@@ -52,9 +52,6 @@ class Analyze(fetcher):
                                             min_queries=kwargs['min_queries'])
         self.analyze_logger.info('Analyze Complete')
 
-        result = tabulate(result, headers=headers,
-                          tablefmt=format, numalign='center')
-
         return result
 
     def _analyze_projects(self, project=None, sortkey=None, limit=None):
@@ -79,8 +76,8 @@ class Analyze(fetcher):
             })
 
         valid_values = list(info[0].keys())
-        info = styler.sort(info, valid_values, sortkey)
-        info = styler.limit(info, limit=limit)
+        info = dc.sort(info, valid_values, sortkey)
+        info = dc.limit(info, limit=limit)
 
         return info
 
@@ -108,8 +105,8 @@ class Analyze(fetcher):
                 'query_run_count': query_run_count
             })
         valid_values = list(info[0].keys())
-        info = styler.sort(info, valid_values, sortkey)
-        info = styler.limit(info, limit=limit)
+        info = dc.sort(info, valid_values, sortkey)
+        info = dc.limit(info, limit=limit)
         return info
 
     def _analyze_explores(self, model=None, explore=None,
@@ -166,6 +163,6 @@ class Analyze(fetcher):
             self.analyze_logger.error('No matching explores found')
             raise Exception('No matching explores found')
         valid_values = list(info[0].keys())
-        info = styler.sort(info, valid_values, sortkey)
-        info = styler.limit(info, limit=limit)
+        info = dc.sort(info, valid_values, sortkey)
+        info = dc.limit(info, limit=limit)
         return info
