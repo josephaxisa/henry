@@ -63,12 +63,10 @@ API3 login credentials can be specified at runtime using various flags or more c
 ```
 hosts:
   dev_looker:
-    access_token: ''
     host: devhostname.looker.com
     id: AbCdEfGhIjKlMnOp
     secret: QrStUvWxYz1234567890
   staging_looker:
-    access_token: ''
     host: staginghostname.looker.com
     id: AbCdEfGhIjKlMnOp
     secret: QrStUvWxYz1234567890
