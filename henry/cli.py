@@ -236,7 +236,7 @@ def main():
         subparser.add_argument_group("Authentication")
         subparser.add_argument('--host', type=str, default='looker',
                                required=any(k in sys.argv for k in
-                                            ['--client_id', '--cliet_secret',
+                                            ['--client_id', '--client_secret',
                                              '--alias']),
                                help=argparse.SUPPRESS)
         subparser.add_argument('--port', type=int, default=19999,
